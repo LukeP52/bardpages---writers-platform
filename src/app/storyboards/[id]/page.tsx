@@ -70,14 +70,13 @@ function SortableExcerptCard({
       ref={setNodeRef}
       style={style}
       className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-24 flex items-center justify-between ${
-        isDragging ? 'opacity-0' : ''
+        isDragging ? 'shadow-2xl ring-2 ring-blue-400' : ''
       } ${
         isBeingDraggedOver ? 'ring-2 ring-blue-400 ring-opacity-50 scale-105' : ''
       }`}
       layout
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ 
-        opacity: isDragging ? 0 : 1, 
         scale: isBeingDraggedOver ? 1.05 : 1,
         boxShadow: isBeingDraggedOver ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' : undefined
       }}
@@ -914,7 +913,7 @@ export default function StoryboardEditPage() {
         <div className="h-full p-6 overflow-auto">
           <DndContext
             sensors={sensors}
-            collisionDetection={closestCenter}
+            collisionDetection={rectIntersection}
             onDragStart={handleDragStart}
             onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
@@ -991,19 +990,19 @@ export default function StoryboardEditPage() {
             <DragOverlay>
               {activeId && activeExcerpt ? (
                 <motion.div
-                  initial={{ scale: 1, rotate: 0 }}
-                  animate={{ scale: 1.1, rotate: 6 }}
-                  className="bg-white border-2 border-blue-400 rounded-xl p-4 shadow-2xl opacity-95 h-24"
+                  initial={{ scale: 1.1, rotate: 2 }}
+                  animate={{ scale: 1.15, rotate: 8 }}
+                  className="bg-white border-2 border-blue-500 rounded-xl p-4 shadow-2xl opacity-90 h-24 pointer-events-none"
                 >
-                  <div className="flex items-center gap-3 mb-2">
+                  <div className="flex items-center gap-3">
                     <span className="bg-blue-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg">
                       {String(storyboard.sections.findIndex(s => s.id === activeId) + 1).padStart(2, '0')}
                     </span>
-                    <div>
-                      <h3 className="font-semibold text-gray-900 text-sm">
-                        {(displayMode === 'title' ? activeExcerpt.title : new Date(activeExcerpt.createdAt).toLocaleDateString()).substring(0, 20)}...
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-gray-900 text-sm truncate">
+                        {(displayMode === 'title' ? activeExcerpt.title : new Date(activeExcerpt.createdAt).toLocaleDateString()).substring(0, 25)}...
                       </h3>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 mt-1">
                         {new Date(activeExcerpt.createdAt).toLocaleDateString()}
                       </p>
                     </div>
