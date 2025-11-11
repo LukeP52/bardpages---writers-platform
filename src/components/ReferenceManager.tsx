@@ -119,16 +119,41 @@ export default function ReferenceManager({
   }
 
   const deleteReference = (id: string) => {
-    // Check if reference is used in citations
-    const usedInCitations = citations.some(citation => citation.referenceId === id)
+    // Find all citations that reference this reference
+    const citationsToDelete = citations.filter(citation => citation.referenceId === id)
     
-    if (usedInCitations) {
-      toast.error('Cannot delete reference that is cited in the text')
-      return
+    if (citationsToDelete.length > 0) {
+      // Remove citation markers from content text
+      let updatedContent = content
+      
+      // Sort citations by position (end to start) to avoid position shifts during removal
+      const sortedCitations = citationsToDelete.sort((a, b) => b.endPos - a.endPos)
+      
+      sortedCitations.forEach(citation => {
+        // Find and remove the citation marker [number] that was added after the cited text
+        const citationNumber = citations.indexOf(citation) + 1
+        const markerPattern = `\\[${citationNumber}\\]`
+        const markerRegex = new RegExp(markerPattern, 'g')
+        updatedContent = updatedContent.replace(markerRegex, '')
+      })
+      
+      // Update content with citations removed
+      onContentChange(updatedContent)
+      
+      // Remove all citations that reference this reference
+      const remainingCitations = citations.filter(citation => citation.referenceId !== id)
+      onCitationsChange(remainingCitations)
     }
 
+    // Remove the reference
     onReferencesChange(references.filter(ref => ref.id !== id))
-    toast.success('Reference deleted')
+    
+    const citationCount = citationsToDelete.length
+    if (citationCount > 0) {
+      toast.success(`Reference deleted and ${citationCount} citation${citationCount > 1 ? 's' : ''} removed from text`)
+    } else {
+      toast.success('Reference deleted')
+    }
   }
 
   const formatReference = (ref: Reference) => {
