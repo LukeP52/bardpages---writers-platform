@@ -269,6 +269,8 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             <div className="flex gap-0">
               <input
                 type="text"
+                id="new-tag"
+                name="new-tag"
                 value={newTag}
                 onChange={(e) => setNewTag(e.target.value)}
                 onKeyPress={(e) => {
