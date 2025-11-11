@@ -2,13 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
 import { Excerpt } from '@/types'
 import { storage } from '@/lib/storage'
-import { v4 as uuidv4 } from 'uuid'
 
 export default function ExcerptsPage() {
-  const router = useRouter()
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
   const [filteredExcerpts, setFilteredExcerpts] = useState<Excerpt[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
@@ -25,9 +22,6 @@ export default function ExcerptsPage() {
     const loadedExcerpts = storage.getExcerpts()
     const usedTags = storage.getUsedTags()
     const usedAuthors = storage.getUsedAuthors()
-    
-    console.log('Loaded excerpts:', loadedExcerpts)
-    console.log('Number of excerpts:', loadedExcerpts.length)
     
     setExcerpts(loadedExcerpts)
     setFilteredExcerpts(loadedExcerpts)
@@ -83,32 +77,6 @@ export default function ExcerptsPage() {
     setDateTo('')
   }
 
-  const handleEditExcerpt = (excerptId: string) => {
-    console.log('Edit button clicked for excerpt ID:', excerptId)
-    console.log('Navigating to:', `/excerpts/${excerptId}/edit`)
-    window.location.href = `/excerpts/${excerptId}/edit`
-  }
-
-  const createTestExcerpt = () => {
-    const testExcerpt: Excerpt = {
-      id: uuidv4(),
-      title: 'Test Excerpt',
-      content: 'This is a test excerpt to verify edit functionality works.',
-      author: 'Test Author',
-      status: 'draft',
-      tags: ['test'],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      wordCount: 10
-    }
-    
-    storage.saveExcerpt(testExcerpt)
-    console.log('Test excerpt created with ID:', testExcerpt.id)
-    
-    // Reload the page to show the new excerpt
-    window.location.reload()
-  }
-
   const getExcerptPreview = (content: string, maxLength = 150) => {
     const textContent = content.replace(/<[^>]*>/g, '').trim()
     return textContent.length > maxLength
@@ -127,12 +95,12 @@ export default function ExcerptsPage() {
                   <span className="text-black font-bold font-mono text-lg">
                     {String(index + 1).padStart(2, '0')}
                   </span>
-                  <button 
-                    onClick={() => handleEditExcerpt(excerpt.id)}
-                    className="text-2xl font-bold text-black tracking-tight hover:underline cursor-pointer text-left"
+                  <Link 
+                    href={`/excerpts/${excerpt.id}/edit`}
+                    className="text-2xl font-bold text-black tracking-tight hover:underline cursor-pointer"
                   >
                     {excerpt.title}
-                  </button>
+                  </Link>
                 </div>
                 <div className="text-black mb-4 leading-relaxed">
                   {getExcerptPreview(excerpt.content, 200)}
@@ -140,12 +108,12 @@ export default function ExcerptsPage() {
               </div>
               
               <div className="flex gap-2 ml-6">
-                <button
-                  onClick={() => handleEditExcerpt(excerpt.id)}
+                <Link
+                  href={`/excerpts/${excerpt.id}/edit`}
                   className="btn btn-primary"
                 >
                   EDIT
-                </button>
+                </Link>
               </div>
             </div>
             
@@ -201,20 +169,12 @@ export default function ExcerptsPage() {
           </p>
         </div>
         
-        <div className="flex gap-4">
-          <button
-            onClick={createTestExcerpt}
-            className="btn btn-secondary"
-          >
-            CREATE TEST EXCERPT
-          </button>
-          <Link
-            href="/excerpts/new"
-            className="btn btn-primary"
-          >
-            + NEW EXCERPT
-          </Link>
-        </div>
+        <Link
+          href="/excerpts/new"
+          className="btn btn-primary"
+        >
+          + NEW EXCERPT
+        </Link>
       </div>
 
       {/* Search and Filters */}

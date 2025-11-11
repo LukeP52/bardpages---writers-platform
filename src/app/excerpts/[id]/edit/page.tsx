@@ -16,12 +16,8 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    console.log('Edit page loading excerpt with ID:', params.id)
     const loadedExcerpt = storage.getExcerpt(params.id)
-    console.log('Loaded excerpt:', loadedExcerpt)
-    
     if (!loadedExcerpt) {
-      console.log('No excerpt found, redirecting to /excerpts')
       router.push('/excerpts')
       return
     }
