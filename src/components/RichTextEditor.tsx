@@ -22,6 +22,7 @@ export default function RichTextEditor({
   const quillRef = useRef<Quill | null>(null)
   const [isMounted, setIsMounted] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   
   // Track if we're in the middle of updating from props to avoid loops
   const isUpdatingFromProps = useRef(false)
@@ -37,12 +38,19 @@ export default function RichTextEditor({
 
     async function initEditor() {
       try {
+        console.log('Initializing Quill editor...')
+        
         const QuillModule = await import('quill')
+        console.log('Quill module imported:', QuillModule)
+        
         const QuillConstructor = QuillModule.default
-
+        
         if (isCancelled || !containerRef.current || quillRef.current) {
+          console.log('Editor initialization cancelled or already exists')
           return
         }
+
+        console.log('Creating Quill instance...')
 
         // Configure toolbar based on readonly mode
         const toolbarOptions = readonly ? false : [
@@ -54,7 +62,7 @@ export default function RichTextEditor({
           ['clean']
         ]
 
-        quillRef.current = new QuillConstructor(containerRef.current, {
+        const quillInstance = new QuillConstructor(containerRef.current, {
           theme: 'snow',
           placeholder,
           readOnly: readonly,
@@ -63,17 +71,20 @@ export default function RichTextEditor({
           }
         })
 
+        quillRef.current = quillInstance
+        console.log('Quill instance created successfully')
+
         // Set initial content
         if (value) {
           isUpdatingFromProps.current = true
-          quillRef.current.root.innerHTML = value
+          quillInstance.root.innerHTML = value
           isUpdatingFromProps.current = false
         }
 
         // Listen for changes
-        quillRef.current.on('text-change', () => {
+        quillInstance.on('text-change', () => {
           if (!isUpdatingFromProps.current && onChange) {
-            const html = quillRef.current?.root.innerHTML || ''
+            const html = quillInstance.root.innerHTML || ''
             onChange(html)
           }
         })
@@ -87,15 +98,19 @@ export default function RichTextEditor({
         }
 
         setIsLoading(false)
+        console.log('Quill editor initialization complete')
       } catch (error) {
         console.error('Failed to initialize Quill:', error)
+        setError(error instanceof Error ? error.message : 'Unknown error')
         setIsLoading(false)
       }
     }
 
-    initEditor()
+    // Add a small delay to ensure DOM is ready
+    const timer = setTimeout(initEditor, 100)
 
     return () => {
+      clearTimeout(timer)
       isCancelled = true
       if (quillRef.current) {
         quillRef.current.off('text-change')
@@ -127,13 +142,39 @@ export default function RichTextEditor({
     return text.length > 0 ? text.split(/\s+/).length : 0
   }
 
-  if (!isMounted || isLoading) {
+  if (!isMounted) {
+    return (
+      <div 
+        className="border border-gray-300 rounded-lg p-4 bg-gray-50"
+        style={{ height }}
+      >
+        <div className="text-gray-500">Preparing editor...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div 
+        className="border border-red-300 rounded-lg p-4 bg-red-50"
+        style={{ height }}
+      >
+        <div className="text-red-600">
+          <strong>Editor Error:</strong> {error}
+          <br />
+          <small>Please refresh the page to try again.</small>
+        </div>
+      </div>
+    )
+  }
+
+  if (isLoading) {
     return (
       <div 
         className="border border-gray-300 rounded-lg p-4 bg-gray-50 animate-pulse"
         style={{ height }}
       >
-        <div className="text-gray-500">Loading editor...</div>
+        <div className="text-gray-500">Loading Quill editor...</div>
       </div>
     )
   }
