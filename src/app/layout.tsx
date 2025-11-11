@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import ResponsiveLayout from '@/components/ResponsiveLayout'
+import { AuthProvider } from '@/contexts/AuthContext'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
 import 'quill/dist/quill.snow.css'
@@ -25,9 +26,11 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased bg-gray-50 font-inter">
-        <ResponsiveLayout>
-          {children}
-        </ResponsiveLayout>
+        <AuthProvider>
+          <ResponsiveLayout>
+            {children}
+          </ResponsiveLayout>
+        </AuthProvider>
         <Toaster
           position="top-right"
           toastOptions={{
