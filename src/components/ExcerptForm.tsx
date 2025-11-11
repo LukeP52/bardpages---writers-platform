@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { v4 as uuidv4 } from 'uuid'
 import QuillEditor from '@/components/QuillEditor'
+import LoadingSpinner from '@/components/LoadingSpinner'
 import { Excerpt } from '@/types'
 import { storage } from '@/lib/storage'
+import toast from 'react-hot-toast'
 
 interface ExcerptFormProps {
   excerpt?: Excerpt
@@ -27,8 +29,8 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    setAvailableTags(storage.getUsedTags())
-    setAvailableCategories(storage.getUsedCategories())
+    setAvailableTags(storage.getAllTags())
+    setAvailableCategories(storage.getAllCategories())
     setAvailableAuthors(storage.getUsedAuthors())
   }, [])
 
@@ -53,7 +55,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     e.preventDefault()
     
     if (!title.trim() || !content.trim()) {
-      alert('Please provide both a title and content for your excerpt.')
+      toast.error('Please provide both a title and content for your excerpt.')
       return
     }
 
@@ -76,10 +78,11 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
 
       storage.saveExcerpt(excerptData)
       
+      toast.success(`Excerpt ${mode === 'create' ? 'created' : 'updated'} successfully!`)
       router.push('/excerpts')
     } catch (error) {
       console.error('Error saving excerpt:', error)
-      alert('There was an error saving your excerpt. Please try again.')
+      toast.error('There was an error saving your excerpt. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -275,7 +278,12 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
               disabled={isSubmitting || !title.trim() || !content.trim()}
               className="btn btn-primary"
             >
-              {isSubmitting ? 'Saving...' : mode === 'create' ? 'Create Excerpt' : 'Update Excerpt'}
+              {isSubmitting ? (
+                <>
+                  <LoadingSpinner size="sm" color="white" className="mr-2" />
+                  Saving...
+                </>
+              ) : mode === 'create' ? 'Create Excerpt' : 'Update Excerpt'}
             </button>
           </div>
         </form>

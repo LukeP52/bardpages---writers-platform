@@ -5,6 +5,8 @@ class InMemoryStorage {
   private tags: Map<string, Tag> = new Map()
   private storyboards: Map<string, Storyboard> = new Map()
   private books: Map<string, Book> = new Map()
+  private premadeCategories: Set<string> = new Set()
+  private premadeTags: Set<string> = new Set()
 
   // Excerpts
   getExcerpts(): Excerpt[] {
@@ -173,6 +175,50 @@ class InMemoryStorage {
 
   deleteBook(id: string): boolean {
     return this.books.delete(id)
+  }
+
+  // Premade Categories
+  getPremadeCategories(): string[] {
+    return Array.from(this.premadeCategories).sort()
+  }
+
+  addPremadeCategory(category: string): void {
+    if (category.trim()) {
+      this.premadeCategories.add(category.trim())
+    }
+  }
+
+  deletePremadeCategory(category: string): boolean {
+    return this.premadeCategories.delete(category)
+  }
+
+  getAllCategories(): string[] {
+    const usedCategories = this.getUsedCategories()
+    const premadeCategories = this.getPremadeCategories()
+    const allCategories = new Set([...usedCategories, ...premadeCategories])
+    return Array.from(allCategories).sort()
+  }
+
+  // Premade Tags
+  getPremadeTags(): string[] {
+    return Array.from(this.premadeTags).sort()
+  }
+
+  addPremadeTag(tag: string): void {
+    if (tag.trim()) {
+      this.premadeTags.add(tag.trim())
+    }
+  }
+
+  deletePremadeTag(tag: string): boolean {
+    return this.premadeTags.delete(tag)
+  }
+
+  getAllTags(): string[] {
+    const usedTags = this.getUsedTags()
+    const premadeTags = this.getPremadeTags()
+    const allTags = new Set([...usedTags, ...premadeTags])
+    return Array.from(allTags).sort()
   }
 }
 

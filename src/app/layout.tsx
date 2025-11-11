@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Sidebar from '@/components/Sidebar'
+import ResponsiveLayout from '@/components/ResponsiveLayout'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
 import 'quill/dist/quill.snow.css'
@@ -25,14 +25,9 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased bg-gray-50 font-inter">
-        <div className="flex h-screen overflow-hidden">
-          <Sidebar />
-          <main className="flex-1 overflow-auto bg-white">
-            <div className="min-h-full">
-              {children}
-            </div>
-          </main>
-        </div>
+        <ResponsiveLayout>
+          {children}
+        </ResponsiveLayout>
         <Toaster
           position="top-right"
           toastOptions={{
