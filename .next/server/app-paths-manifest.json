@@ -7,5 +7,6 @@
   "/excerpts/new/page": "app/excerpts/new/page.js",
   "/excerpts/page": "app/excerpts/page.js",
   "/page": "app/page.js",
+  "/storyboards/[id]/page": "app/storyboards/[id]/page.js",
   "/storyboards/page": "app/storyboards/page.js"
 }

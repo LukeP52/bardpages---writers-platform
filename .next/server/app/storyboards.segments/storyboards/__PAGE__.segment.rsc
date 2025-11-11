@@ -1,5 +1,9 @@
 1:"$Sreact.fragment"
-2:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
-3:"$Sreact.suspense"
-0:{"buildId":"tEa-LOp1aL2WQtoGaCDVu","rsc":["$","$1","c",{"children":[["$","div",null,{"className":"max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8","children":[["$","h1",null,{"className":"text-3xl font-bold text-gray-900 mb-8","children":"Storyboards"}],["$","div",null,{"className":"text-center py-12","children":[["$","div",null,{"className":"text-6xl mb-4","children":"📋"}],["$","h3",null,{"className":"text-xl font-semibold text-gray-900 mb-2","children":"Coming Soon"}],["$","p",null,{"className":"text-gray-500","children":"Storyboard functionality will be available soon. You'll be able to organize your excerpts into structured stories here."}]]}]]}],null,["$","$L2",null,{"children":["$","$3",null,{"name":"Next.MetadataOutlet","children":"$@4"}]}]]}],"loading":null,"isPartial":false}
-4:null
+2:I[47257,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"ClientPageRoot"]
+3:I[20610,["/_next/static/chunks/27090f217c2970fc.js","/_next/static/chunks/c22c9b6dce2b2349.js"],"default"]
+6:I[97367,["/_next/static/chunks/ff1a16fafef87110.js","/_next/static/chunks/247eb132b7f7b574.js"],"OutletBoundary"]
+7:"$Sreact.suspense"
+0:{"buildId":"0doDH9JZVfEZ2rSQjFYPT","rsc":["$","$1","c",{"children":[["$","$L2",null,{"Component":"$3","serverProvidedParams":{"searchParams":{},"params":{},"promises":["$@4","$@5"]}}],[["$","script","script-0",{"src":"/_next/static/chunks/c22c9b6dce2b2349.js","async":true}]],["$","$L6",null,{"children":["$","$7",null,{"name":"Next.MetadataOutlet","children":"$@8"}]}]]}],"loading":null,"isPartial":false}
+4:{}
+5:"$0:rsc:props:children:0:props:serverProvidedParams:params"
+8:null

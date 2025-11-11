@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { v4 as uuidv4 } from 'uuid'
-import RichTextEditor from '@/components/RichTextEditor'
+import SimpleQuillEditor from '@/components/SimpleQuillEditor'
 import { Excerpt } from '@/types'
 import { storage } from '@/lib/storage'
 
@@ -107,7 +107,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Content *
           </label>
-          <RichTextEditor
+          <SimpleQuillEditor
             value={content}
             onChange={setContent}
             placeholder="Start writing your excerpt..."

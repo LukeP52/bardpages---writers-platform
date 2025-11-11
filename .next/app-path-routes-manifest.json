@@ -7,5 +7,6 @@
   "/excerpts/new/page": "/excerpts/new",
   "/excerpts/page": "/excerpts",
   "/page": "/",
+  "/storyboards/[id]/page": "/storyboards/[id]",
   "/storyboards/page": "/storyboards"
 }

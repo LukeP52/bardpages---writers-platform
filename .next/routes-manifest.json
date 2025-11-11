@@ -35,6 +35,14 @@
         "nxtPid": "nxtPid"
       },
       "namedRegex": "^/excerpts/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    },
+    {
+      "page": "/storyboards/[id]",
+      "regex": "^/storyboards/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/storyboards/(?<nxtPid>[^/]+?)(?:/)?$"
     }
   ],
   "staticRoutes": [
