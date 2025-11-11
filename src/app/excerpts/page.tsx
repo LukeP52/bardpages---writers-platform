@@ -140,10 +140,40 @@ export default function ExcerptsPage() {
     console.log('Creating test excerpt with ID:', testExcerpt.id)
     storage.saveExcerpt(testExcerpt)
     
+    // Test immediate retrieval
+    const retrieved = storage.getExcerpt(testExcerpt.id)
+    console.log('Immediate retrieval test:', retrieved ? 'SUCCESS' : 'FAILED')
+    
     // Force refresh the state
     const updated = storage.getExcerpts()
     setExcerpts(updated)
     setFilteredExcerpts(updated)
+    
+    // Test edit URL
+    console.log('Edit URL would be:', `/excerpts/${testExcerpt.id}/edit`)
+  }
+
+  const testDirectStorage = () => {
+    console.log('=== DIRECT LOCALSTORAGE TEST ===')
+    
+    // Direct test
+    const testData = { test: 'data', time: new Date().toISOString() }
+    
+    try {
+      localStorage.setItem('test_storage', JSON.stringify(testData))
+      const retrieved = localStorage.getItem('test_storage')
+      console.log('Direct localStorage test:', retrieved ? 'SUCCESS' : 'FAILED')
+      
+      // Check current excerpts in localStorage
+      const excerpts = localStorage.getItem('bardpages_excerpts')
+      console.log('Current excerpts in localStorage:', excerpts ? JSON.parse(excerpts).length : 'NONE')
+      
+      localStorage.removeItem('test_storage')
+    } catch (error) {
+      console.error('localStorage error:', error)
+    }
+    
+    console.log('=== END DIRECT TEST ===')
   }
 
   const renderExcerpts = () => (
@@ -233,7 +263,13 @@ export default function ExcerptsPage() {
           </p>
         </div>
         
-        <div className="flex gap-4">
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={testDirectStorage}
+            className="btn btn-outline"
+          >
+            TEST LOCALSTORAGE
+          </button>
           <button
             onClick={debugStorage}
             className="btn btn-ghost"
