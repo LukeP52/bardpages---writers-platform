@@ -1,20 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
 import { 
   DocumentTextIcon, 
   BookOpenIcon, 
   FilmIcon, 
   ArrowRightIcon,
-  SparklesIcon,
-  CheckIcon
+  SparklesIcon
 } from '@heroicons/react/24/outline'
 import { motion } from 'framer-motion'
-import QuillEditor from '@/components/QuillEditor'
 
 export default function Home() {
-  const [content, setContent] = useState('<p>Start writing your next excerpt...</p>')
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
@@ -182,98 +178,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Editor Demo */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Experience the Editor
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Our rich text editor captures every keystroke with precision, preserving your formatting exactly as intended.
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  Write with Confidence
-                </h3>
-                <p className="text-gray-600">
-                  Experience our writing environment built for authors who value both creativity and precision.
-                </p>
-              </div>
-              <div className="card p-0 overflow-hidden">
-                <QuillEditor
-                  value={content}
-                  onChange={setContent}
-                  placeholder="Begin your story here..."
-                  className="min-h-[400px] border-0 rounded-lg"
-                />
-              </div>
-            </motion.div>
-            
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-            >
-              <div className="mb-6">
-                <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  Live Preview
-                </h3>
-                <p className="text-gray-600">
-                  See your work exactly as readers will experience it.
-                </p>
-              </div>
-              <div className="card p-8 min-h-[400px] bg-gray-50">
-                <div
-                  className="prose prose-gray max-w-none"
-                  dangerouslySetInnerHTML={{ __html: content }}
-                />
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Features List */}
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            viewport={{ once: true }}
-            className="mt-16 text-center"
-          >
-            <div className="inline-flex flex-wrap gap-6 justify-center">
-              {[
-                'Rich Text Formatting',
-                'Auto-Save',
-                'Word Count',
-                'Export Options',
-                'Version History',
-                'Collaboration Tools'
-              ].map((feature) => (
-                <div key={feature} className="flex items-center space-x-2">
-                  <CheckIcon className="w-5 h-5 text-green-600" />
-                  <span className="text-gray-700 font-medium">{feature}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </div>
-      </section>
     </div>
   )
 }
