@@ -8,7 +8,7 @@ import LoadingState from '@/components/LoadingState'
 import ErrorState from '@/components/ErrorState'
 import { Book } from '@/types'
 import { storage } from '@/lib/storage'
-import { generateBookContent, exportBook, downloadFile } from '@/lib/exportUtils'
+import { generateBookContent, exportBook, downloadFile, downloadPDF } from '@/lib/exportUtils'
 import toast from 'react-hot-toast'
 
 export default function BookPreviewPage() {
@@ -53,9 +53,14 @@ export default function BookPreviewPage() {
       })
       
       const filename = `${book.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${format}`
-      downloadFile(content, filename, format === 'html' ? 'text/html' : 'application/octet-stream')
       
-      toast.success(`Book exported as ${format.toUpperCase()}!`)
+      if (format === 'pdf') {
+        await downloadPDF(content, filename)
+        toast.success('PDF downloaded successfully!')
+      } else {
+        downloadFile(content, filename, format === 'html' ? 'text/html' : 'application/octet-stream')
+        toast.success(`Book exported as ${format.toUpperCase()}!`)
+      }
     } catch (err) {
       toast.error('Failed to export book')
     } finally {

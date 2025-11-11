@@ -233,13 +233,161 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
   `
 }
 
+// PDF-specific HTML with print optimizations
+const exportToPDF = (book: Book, options: ExportOptions): string => {
+  const { title, content, chapters } = generateBookContent(book)
+  
+  const metadata = options.includeMetadata ? `
+    <div class="metadata">
+      <h1>${book.title}</h1>
+      ${book.subtitle ? `<h2>${book.subtitle}</h2>` : ''}
+      <p class="author">by ${book.author}</p>
+      ${book.metadata.genre ? `<p class="genre">Genre: ${book.metadata.genre}</p>` : ''}
+      ${book.metadata.description ? `<div class="description">${book.metadata.description}</div>` : ''}
+    </div>
+  ` : ''
+
+  // Process images for PDF - smaller and more print-friendly
+  const processImagesForPDF = (content: string): string => {
+    return content.replace(/<img([^>]*?)>/g, (match, attributes) => {
+      const srcMatch = attributes.match(/src\s*=\s*["']([^"']*)["']/i);
+      const src = srcMatch ? srcMatch[1] : '';
+      const altMatch = attributes.match(/alt\s*=\s*["']([^"']*)["']/i);
+      const alt = altMatch ? altMatch[1] : '';
+      
+      return `
+        <table align="center" style="margin: 0.5em auto; max-width: 100%; page-break-inside: avoid;">
+          <tr>
+            <td align="center">
+              <img src="${src}"${alt ? ` alt="${alt}"` : ''} style="max-width: 300px; height: auto; border: none;">
+            </td>
+          </tr>
+        </table>
+      `;
+    });
+  };
+
+  const chaptersHTML = chapters.map(chapter => `
+    <div class="chapter">
+      <h2>${chapter.title}</h2>
+      <div class="chapter-content">${processImagesForPDF(chapter.content)}</div>
+    </div>
+  `).join('')
+
+  return `
+<!DOCTYPE html>
+<html lang="${book.metadata.language}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <style>
+    @media print {
+      @page {
+        size: A4;
+        margin: ${book.formatting.marginTop}in ${book.formatting.marginRight}in ${book.formatting.marginBottom}in ${book.formatting.marginLeft}in;
+      }
+      
+      body {
+        font-family: ${book.formatting.fontFamily}, serif;
+        font-size: ${book.formatting.fontSize}pt;
+        line-height: ${book.formatting.lineHeight};
+        color: #000;
+        background: white;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      h1 { 
+        font-size: 24pt; 
+        margin-bottom: 12pt; 
+        text-align: center;
+        page-break-before: always;
+        font-weight: bold;
+      }
+      
+      h2 { 
+        font-size: 18pt; 
+        margin: 24pt 0 12pt 0;
+        font-weight: bold;
+        ${book.formatting.chapterBreakStyle === 'page-break' ? 'page-break-before: always;' : ''}
+        ${book.formatting.chapterBreakStyle === 'spacing' ? 'margin-top: 48pt;' : ''}
+      }
+      
+      .metadata {
+        text-align: center;
+        margin-bottom: 36pt;
+        border-bottom: 1pt solid #000;
+        padding-bottom: 24pt;
+      }
+      
+      .chapter-content {
+        text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
+      }
+      
+      p {
+        margin: ${book.formatting.paragraphSpacing || 0.5}em 0;
+        ${book.formatting.firstLineIndent && book.formatting.firstLineIndent > 0 ? `text-indent: ${book.formatting.firstLineIndent}em;` : ''}
+        orphans: 3;
+        widows: 3;
+      }
+      
+      img {
+        max-width: 300px;
+        height: auto;
+        page-break-inside: avoid;
+        border: none;
+      }
+      
+      table {
+        border: none;
+        margin: 6pt auto;
+        page-break-inside: avoid;
+      }
+      
+      table td {
+        border: none;
+        padding: 0;
+      }
+      
+      .chapter {
+        page-break-inside: avoid;
+      }
+    }
+    
+    /* Screen styles for preview */
+    body {
+      font-family: ${book.formatting.fontFamily}, serif;
+      font-size: ${book.formatting.fontSize}pt;
+      line-height: ${book.formatting.lineHeight};
+      max-width: 8.5in;
+      margin: 0 auto;
+      padding: 1in;
+      background: white;
+      color: #000;
+    }
+    
+    img {
+      max-width: 300px;
+      height: auto;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+  ${metadata}
+  ${chaptersHTML}
+</body>
+</html>
+  `
+}
+
 export const exportBook = async (book: Book, options: ExportOptions): Promise<string> => {
   switch (options.format) {
     case 'html':
       return exportToHTML(book, options)
     case 'pdf':
-      // For now, return HTML - in a real app, you'd use a library like Puppeteer
-      return exportToHTML(book, options)
+      return exportToPDF(book, options)
     case 'epub':
       // For now, return HTML - in a real app, you'd use a library like epub-gen
       return exportToHTML(book, options)
@@ -262,4 +410,105 @@ export const downloadFile = (content: string, filename: string, mimeType: string
   link.click()
   document.body.removeChild(link)
   URL.revokeObjectURL(url)
+}
+
+export const downloadPDF = async (content: string, filename: string) => {
+  try {
+    // Dynamic import to avoid SSR issues
+    const jsPDF = (await import('jspdf')).default
+    const html2canvas = (await import('html2canvas')).default
+    
+    // Create a temporary container with the content
+    const tempContainer = document.createElement('div')
+    tempContainer.style.position = 'absolute'
+    tempContainer.style.left = '-9999px'
+    tempContainer.style.top = '-9999px'
+    tempContainer.style.width = '700px' // Fixed width for consistent rendering
+    tempContainer.style.backgroundColor = 'white'
+    tempContainer.style.fontFamily = 'Times New Roman, serif'
+    tempContainer.style.fontSize = '12pt'
+    tempContainer.style.lineHeight = '1.6'
+    tempContainer.style.padding = '40px'
+    tempContainer.innerHTML = content
+    document.body.appendChild(tempContainer)
+    
+    // Wait for fonts and content to load
+    await new Promise(resolve => setTimeout(resolve, 1500))
+    
+    // Capture the content as canvas
+    const canvas = await html2canvas(tempContainer, {
+      scale: 1.5, // Good balance of quality and file size
+      useCORS: true,
+      backgroundColor: '#ffffff',
+      width: tempContainer.scrollWidth,
+      height: tempContainer.scrollHeight,
+      logging: false
+    })
+    
+    // Remove temp container
+    document.body.removeChild(tempContainer)
+    
+    // Create PDF with proper multi-page handling
+    const imgData = canvas.toDataURL('image/png')
+    const pdf = new jsPDF('portrait', 'pt', 'letter')
+    
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = pdf.internal.pageSize.getHeight()
+    const margin = 40 // 40pt margins
+    const contentWidth = pdfWidth - (margin * 2)
+    const contentHeight = pdfHeight - (margin * 2)
+    
+    const imgWidth = canvas.width
+    const imgHeight = canvas.height
+    
+    // Calculate how much content fits on each page
+    const ratio = contentWidth / imgWidth
+    const scaledHeight = imgHeight * ratio
+    
+    let yPosition = 0
+    let pageNumber = 1
+    
+    while (yPosition < scaledHeight) {
+      const pageContent = Math.min(contentHeight, scaledHeight - yPosition)
+      
+      // Add image section to current page
+      pdf.addImage(
+        imgData, 
+        'PNG', 
+        margin, 
+        margin - (yPosition / ratio), 
+        contentWidth, 
+        scaledHeight
+      )
+      
+      yPosition += pageContent
+      
+      // Add new page if there's more content
+      if (yPosition < scaledHeight) {
+        pdf.addPage()
+        pageNumber++
+      }
+    }
+    
+    // Save the PDF
+    pdf.save(filename)
+    
+  } catch (error) {
+    console.error('PDF generation failed:', error)
+    // Fallback to the print dialog method
+    const printWindow = window.open('', '_blank')
+    
+    if (printWindow) {
+      printWindow.document.write(content)
+      printWindow.document.close()
+      
+      printWindow.onload = () => {
+        setTimeout(() => {
+          printWindow.print()
+        }, 500)
+      }
+    } else {
+      alert('PDF generation failed. Please try again or use your browser\'s print function.')
+    }
+  }
 }
