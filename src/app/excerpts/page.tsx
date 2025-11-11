@@ -276,32 +276,12 @@ export default function ExcerptsPage() {
           </p>
         </div>
         
-        <div className="flex gap-2 flex-wrap">
-          <button
-            onClick={testDirectStorage}
-            className="btn btn-outline"
-          >
-            TEST LOCALSTORAGE
-          </button>
-          <button
-            onClick={debugStorage}
-            className="btn btn-ghost"
-          >
-            DEBUG STORAGE
-          </button>
-          <button
-            onClick={createTestExcerpt}
-            className="btn btn-secondary"
-          >
-            CREATE TEST
-          </button>
-          <Link
-            href="/excerpts/new"
-            className="btn btn-primary"
-          >
-            + NEW EXCERPT
-          </Link>
-        </div>
+        <Link
+          href="/excerpts/new"
+          className="btn btn-primary"
+        >
+          + NEW EXCERPT
+        </Link>
       </div>
 
       {/* Search and Filters */}
