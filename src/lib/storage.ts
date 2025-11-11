@@ -6,24 +6,108 @@ class InMemoryStorage {
   private storyboards: Map<string, Storyboard> = new Map()
   private books: Map<string, Book> = new Map()
   private premadeTags: Set<string> = new Set()
+  private isInitialized = false
+
+  private initializeFromLocalStorage() {
+    if (this.isInitialized || typeof window === 'undefined') return
+    
+    try {
+      // Load excerpts
+      const excerpts = localStorage.getItem('bardpages_excerpts')
+      if (excerpts) {
+        const parsedExcerpts = JSON.parse(excerpts)
+        parsedExcerpts.forEach((excerpt: any) => {
+          this.excerpts.set(excerpt.id, {
+            ...excerpt,
+            createdAt: new Date(excerpt.createdAt),
+            updatedAt: new Date(excerpt.updatedAt)
+          })
+        })
+      }
+
+      // Load storyboards
+      const storyboards = localStorage.getItem('bardpages_storyboards')
+      if (storyboards) {
+        const parsedStoryboards = JSON.parse(storyboards)
+        parsedStoryboards.forEach((storyboard: any) => {
+          this.storyboards.set(storyboard.id, {
+            ...storyboard,
+            createdAt: new Date(storyboard.createdAt),
+            updatedAt: new Date(storyboard.updatedAt)
+          })
+        })
+      }
+
+      // Load books
+      const books = localStorage.getItem('bardpages_books')
+      if (books) {
+        const parsedBooks = JSON.parse(books)
+        parsedBooks.forEach((book: any) => {
+          this.books.set(book.id, {
+            ...book,
+            createdAt: new Date(book.createdAt),
+            updatedAt: new Date(book.updatedAt)
+          })
+        })
+      }
+
+      // Load premade tags
+      const premadeTags = localStorage.getItem('bardpages_premade_tags')
+      if (premadeTags) {
+        const parsedTags = JSON.parse(premadeTags)
+        this.premadeTags = new Set(parsedTags)
+      }
+
+      this.isInitialized = true
+    } catch (error) {
+      console.error('Error loading from localStorage:', error)
+    }
+  }
+
+  private saveToLocalStorage() {
+    if (typeof window === 'undefined') return
+
+    try {
+      // Save excerpts
+      localStorage.setItem('bardpages_excerpts', JSON.stringify(Array.from(this.excerpts.values())))
+      
+      // Save storyboards
+      localStorage.setItem('bardpages_storyboards', JSON.stringify(Array.from(this.storyboards.values())))
+      
+      // Save books
+      localStorage.setItem('bardpages_books', JSON.stringify(Array.from(this.books.values())))
+      
+      // Save premade tags
+      localStorage.setItem('bardpages_premade_tags', JSON.stringify(Array.from(this.premadeTags)))
+    } catch (error) {
+      console.error('Error saving to localStorage:', error)
+    }
+  }
 
   // Excerpts
   getExcerpts(): Excerpt[] {
+    this.initializeFromLocalStorage()
     return Array.from(this.excerpts.values()).sort((a, b) => 
       b.updatedAt.getTime() - a.updatedAt.getTime()
     )
   }
 
   getExcerpt(id: string): Excerpt | undefined {
+    this.initializeFromLocalStorage()
     return this.excerpts.get(id)
   }
 
   saveExcerpt(excerpt: Excerpt): void {
+    this.initializeFromLocalStorage()
     this.excerpts.set(excerpt.id, excerpt)
+    this.saveToLocalStorage()
   }
 
   deleteExcerpt(id: string): boolean {
-    return this.excerpts.delete(id)
+    this.initializeFromLocalStorage()
+    const result = this.excerpts.delete(id)
+    this.saveToLocalStorage()
+    return result
   }
 
   getExcerptsByTag(tagName: string): Excerpt[] {
@@ -125,56 +209,76 @@ class InMemoryStorage {
 
   // Storyboards
   getStoryboards(): Storyboard[] {
+    this.initializeFromLocalStorage()
     return Array.from(this.storyboards.values()).sort((a, b) => 
       b.updatedAt.getTime() - a.updatedAt.getTime()
     )
   }
 
   getStoryboard(id: string): Storyboard | undefined {
+    this.initializeFromLocalStorage()
     return this.storyboards.get(id)
   }
 
   saveStoryboard(storyboard: Storyboard): void {
+    this.initializeFromLocalStorage()
     this.storyboards.set(storyboard.id, storyboard)
+    this.saveToLocalStorage()
   }
 
   deleteStoryboard(id: string): boolean {
-    return this.storyboards.delete(id)
+    this.initializeFromLocalStorage()
+    const result = this.storyboards.delete(id)
+    this.saveToLocalStorage()
+    return result
   }
 
   // Books
   getBooks(): Book[] {
+    this.initializeFromLocalStorage()
     return Array.from(this.books.values()).sort((a, b) => 
       b.updatedAt.getTime() - a.updatedAt.getTime()
     )
   }
 
   getBook(id: string): Book | undefined {
+    this.initializeFromLocalStorage()
     return this.books.get(id)
   }
 
   saveBook(book: Book): void {
+    this.initializeFromLocalStorage()
     this.books.set(book.id, book)
+    this.saveToLocalStorage()
   }
 
   deleteBook(id: string): boolean {
-    return this.books.delete(id)
+    this.initializeFromLocalStorage()
+    const result = this.books.delete(id)
+    this.saveToLocalStorage()
+    return result
   }
 
 
   // Premade Tags
   getPremadeTags(): string[] {
+    this.initializeFromLocalStorage()
     return Array.from(this.premadeTags).sort()
   }
 
   addPremadeTag(tag: string): void {
+    this.initializeFromLocalStorage()
     if (tag.trim()) {
       this.premadeTags.add(tag.trim())
+      this.saveToLocalStorage()
     }
   }
 
   deletePremadeTag(tag: string): boolean {
-    return this.premadeTags.delete(tag)
+    this.initializeFromLocalStorage()
+    const result = this.premadeTags.delete(tag)
+    this.saveToLocalStorage()
+    return result
   }
 
   getAllTags(): string[] {
