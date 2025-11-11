@@ -79,11 +79,19 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
     </div>
   ` : ''
 
-  // Process images to be on separate pages
+  // Process images and page breaks
   const processImagesInContent = (content: string): string => {
-    // Split content by images and create separate pages
-    const parts = content.split(/(<img[^>]*>)/g);
-    let processedContent = '';
+    let processedContent = content;
+    
+    // First, handle custom page breaks from Quill editor
+    processedContent = processedContent.replace(
+      /<div class="ql-page-break-container">[\s\S]*?<\/div>/g, 
+      '<div style="page-break-after: always;"></div>'
+    );
+    
+    // Then handle images - split content by images and create separate pages
+    const parts = processedContent.split(/(<img[^>]*>)/g);
+    processedContent = '';
     
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
@@ -259,9 +267,17 @@ const exportToPDFPreview = (book: Book, options: ExportOptions): string => {
   ` : ''
 
   const processImages = (content: string): string => {
-    // Split content by images and create separate pages for PDF
-    const parts = content.split(/(<img[^>]*>)/g);
-    let processedContent = '';
+    let processedContent = content;
+    
+    // First, handle custom page breaks from Quill editor
+    processedContent = processedContent.replace(
+      /<div class="ql-page-break-container">[\s\S]*?<\/div>/g, 
+      '<div style="page-break-after: always; margin: 0; padding: 0;"></div>'
+    );
+    
+    // Then handle images - split content by images and create separate pages for PDF
+    const parts = processedContent.split(/(<img[^>]*>)/g);
+    processedContent = '';
     
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
@@ -383,10 +399,18 @@ const exportToPDF = (book: Book, options: ExportOptions): string => {
     </div>
   ` : ''
 
-  // Process images for PDF - full page images
+  // Process images and page breaks for PDF - full page images
   const processImagesForPDF = (content: string): string => {
-    const parts = content.split(/(<img[^>]*>)/g);
-    let processedContent = '';
+    let processedContent = content;
+    
+    // Handle custom page breaks from Quill editor
+    processedContent = processedContent.replace(
+      /<div class="ql-page-break-container">[\s\S]*?<\/div>/g, 
+      '<div style="page-break-after: always; margin: 0; padding: 0;"></div>'
+    );
+    
+    const parts = processedContent.split(/(<img[^>]*>)/g);
+    processedContent = '';
     
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];

@@ -15,6 +15,7 @@ const DEFAULT_TOOLBAR_OPTIONS = [
   [{ align: [] }],
   [{ color: [] }, { background: [] }],
   ['link', 'image'],
+  ['pagebreak'],
   ['clean'],
 ]
 
@@ -36,6 +37,7 @@ const DEFAULT_FORMATS = [
   'background',
   'link',
   'image',
+  'pagebreak',
 ]
 
 type QuillEditorProps = {
@@ -92,6 +94,57 @@ export default function QuillEditor({
       }
       QuillConstructor.register(Size, true)
 
+      // Custom Page Break Blot
+      const Embed = QuillConstructor.import('blots/embed') as any
+      
+      class PageBreak extends Embed {
+        static create(value: any) {
+          const node = super.create()
+          node.innerHTML = `
+            <div class="ql-page-break" style="
+              display: flex; 
+              align-items: center; 
+              margin: 20px 0; 
+              user-select: none;
+              border: 2px dashed #ccc;
+              padding: 10px;
+              background: #f8f9fa;
+              border-radius: 4px;
+            ">
+              <div style="
+                flex: 1; 
+                height: 2px; 
+                background: linear-gradient(to right, #ddd, transparent);
+              "></div>
+              <span style="
+                padding: 0 15px; 
+                font-size: 12px; 
+                color: #666; 
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 1px;
+              ">Page Break</span>
+              <div style="
+                flex: 1; 
+                height: 2px; 
+                background: linear-gradient(to left, #ddd, transparent);
+              "></div>
+            </div>
+          `
+          return node
+        }
+        
+        static value(node: any) {
+          return true
+        }
+      }
+      
+      PageBreak.blotName = 'pagebreak'
+      PageBreak.tagName = 'div'
+      PageBreak.className = 'ql-page-break-container'
+      
+      QuillConstructor.register(PageBreak, true)
+
       const quillInstance = new QuillConstructor(containerRef.current, {
         theme: 'snow',
         placeholder,
@@ -113,6 +166,16 @@ export default function QuillEditor({
       if (externalQuillRef) {
         externalQuillRef.current = quillInstance
       }
+
+      // Add custom toolbar handler for page breaks
+      const toolbar = quillInstance.getModule('toolbar') as any
+      toolbar.addHandler('pagebreak', () => {
+        const range = quillInstance.getSelection()
+        if (range) {
+          quillInstance.insertEmbed(range.index, 'pagebreak', true, 'user')
+          quillInstance.setSelection(range.index + 1, 0, 'silent')
+        }
+      })
 
       if (typeof initialValueRef.current === 'string') {
         quillInstance.clipboard.dangerouslyPasteHTML(initialValueRef.current)
@@ -160,6 +223,50 @@ export default function QuillEditor({
     }
   }, [value])
 
-  return <div ref={containerRef} className={className} />
+  return (
+    <>
+      <style jsx global>{`
+        /* Page break styling for editor */
+        .ql-page-break-container {
+          display: block !important;
+          margin: 20px 0 !important;
+        }
+        
+        .ql-page-break {
+          page-break-after: always;
+          page-break-inside: avoid;
+        }
+        
+        /* Page break toolbar button styling */
+        .ql-toolbar .ql-pagebreak::before {
+          content: "⏎";
+          font-size: 16px;
+          font-weight: bold;
+        }
+        
+        .ql-toolbar .ql-pagebreak {
+          width: 28px !important;
+        }
+        
+        .ql-toolbar .ql-pagebreak:hover {
+          background: #f0f0f0;
+        }
+        
+        /* Print styles for page breaks */
+        @media print {
+          .ql-page-break-container {
+            page-break-after: always;
+            page-break-inside: avoid;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            display: none !important;
+          }
+        }
+      `}</style>
+      <div ref={containerRef} className={className} />
+    </>
+  )
 }
 
