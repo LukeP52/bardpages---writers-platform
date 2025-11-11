@@ -10,6 +10,7 @@ import CitationWorkflow from '@/components/CitationWorkflow'
 import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
 import { Excerpt, Reference, Citation } from '@/types'
 import { storage } from '@/lib/storage'
+import { FileParser } from '@/lib/fileParser'
 import toast from 'react-hot-toast'
 
 interface ExcerptFormProps {
@@ -42,7 +43,10 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showCategoryAssignmentModal, setShowCategoryAssignmentModal] = useState(false)
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState('')
+  const [isUploadingFile, setIsUploadingFile] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState('')
   const quillRef = useRef<any>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Auto-save functionality
   const getDraftKey = useCallback(() => {
@@ -183,6 +187,58 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
 
   const removeTag = (tagToRemove: string) => {
     setTags(prev => prev.filter(tag => tag !== tagToRemove))
+  }
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingFile(true)
+    setUploadProgress('Validating file...')
+
+    try {
+      // Validate file
+      const validation = FileParser.validateFile(file)
+      if (!validation.valid) {
+        toast.error(validation.error || 'Invalid file')
+        return
+      }
+
+      setUploadProgress('Reading file content...')
+
+      // Parse file content
+      const parsed = await FileParser.parseFile(file)
+      
+      setUploadProgress('Populating form...')
+
+      // Populate form fields
+      if (!title.trim()) {
+        setTitle(parsed.title)
+      }
+      
+      setContent(parsed.content)
+      
+      // Update word count will be handled by the content change
+      
+      setUploadProgress('File uploaded successfully!')
+      toast.success(`File "${file.name}" uploaded and processed successfully!`)
+      
+      // Clear the file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ''
+      }
+      
+    } catch (error) {
+      console.error('File upload error:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to process file')
+    } finally {
+      setIsUploadingFile(false)
+      setTimeout(() => setUploadProgress(''), 3000)
+    }
+  }
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click()
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -392,6 +448,51 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
                   className="input"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* File Upload Section */}
+          <div className="card">
+            <div className="form-group">
+              <label className="form-label">
+                Import From File
+              </label>
+              <p className="text-sm text-slate-600 mb-4">
+                Upload a document to automatically populate your excerpt. Supported formats: {FileParser.getSupportedFormats().join(', ')}
+              </p>
+              
+              <div className="flex items-center gap-4">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileUpload}
+                  accept={FileParser.getSupportedFormats().join(',')}
+                  className="hidden"
+                  disabled={isUploadingFile}
+                />
+                <button
+                  type="button"
+                  onClick={triggerFileUpload}
+                  disabled={isUploadingFile}
+                  className="btn btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUploadingFile ? 'Processing...' : 'Choose File'}
+                </button>
+                
+                {uploadProgress && (
+                  <span className="text-sm text-slate-600 font-medium">
+                    {uploadProgress}
+                  </span>
+                )}
+              </div>
+              
+              {isUploadingFile && (
+                <div className="mt-3">
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
