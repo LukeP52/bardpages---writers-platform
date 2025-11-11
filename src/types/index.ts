@@ -2,10 +2,13 @@ export interface Excerpt {
   id: string
   title: string
   content: string
+  author?: string
   tags: string[]
   createdAt: Date
   updatedAt: Date
   wordCount: number
+  status: 'draft' | 'review' | 'final'
+  category?: string
 }
 
 export interface Tag {

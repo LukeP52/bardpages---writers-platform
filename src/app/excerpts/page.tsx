@@ -9,36 +9,40 @@ export default function ExcerptsPage() {
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
   const [filteredExcerpts, setFilteredExcerpts] = useState<Excerpt[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([])
   const [availableTags, setAvailableTags] = useState<string[]>([])
+  const [availableCategories, setAvailableCategories] = useState<string[]>([])
+  const [availableAuthors, setAvailableAuthors] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  const [filtersExpanded, setFiltersExpanded] = useState(false)
 
   useEffect(() => {
     const loadedExcerpts = storage.getExcerpts()
     const usedTags = storage.getUsedTags()
+    const usedCategories = storage.getUsedCategories()
+    const usedAuthors = storage.getUsedAuthors()
     
     setExcerpts(loadedExcerpts)
     setFilteredExcerpts(loadedExcerpts)
     setAvailableTags(usedTags)
+    setAvailableCategories(usedCategories)
+    setAvailableAuthors(usedAuthors)
   }, [])
 
   useEffect(() => {
-    let filtered = excerpts
-
-    if (selectedTags.length > 0) {
-      filtered = filtered.filter(excerpt =>
-        selectedTags.some(tag => excerpt.tags.includes(tag))
-      )
+    const filters = {
+      tags: selectedTags.length > 0 ? selectedTags : undefined,
+      status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
+      categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+      authors: selectedAuthors.length > 0 ? selectedAuthors : undefined,
+      search: searchQuery || undefined
     }
 
-    if (searchQuery) {
-      filtered = filtered.filter(excerpt =>
-        excerpt.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        excerpt.content.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    }
-
+    const filtered = storage.filterExcerpts(filters)
     setFilteredExcerpts(filtered)
-  }, [excerpts, selectedTags, searchQuery])
+  }, [selectedTags, selectedStatuses, selectedCategories, selectedAuthors, searchQuery])
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
@@ -46,6 +50,38 @@ export default function ExcerptsPage() {
         ? prev.filter(t => t !== tag)
         : [...prev, tag]
     )
+  }
+
+  const toggleStatus = (status: string) => {
+    setSelectedStatuses(prev =>
+      prev.includes(status)
+        ? prev.filter(s => s !== status)
+        : [...prev, status]
+    )
+  }
+
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    )
+  }
+
+  const toggleAuthor = (author: string) => {
+    setSelectedAuthors(prev =>
+      prev.includes(author)
+        ? prev.filter(a => a !== author)
+        : [...prev, author]
+    )
+  }
+
+  const clearAllFilters = () => {
+    setSelectedTags([])
+    setSelectedStatuses([])
+    setSelectedCategories([])
+    setSelectedAuthors([])
+    setSearchQuery('')
   }
 
   const getExcerptPreview = (content: string, maxLength = 150) => {
@@ -105,8 +141,27 @@ export default function ExcerptsPage() {
             )}
             
             <div className="flex items-center justify-between text-sm font-mono text-black">
-              <span>{excerpt.wordCount} WORDS</span>
-              <span>{excerpt.updatedAt.toLocaleDateString().toUpperCase()}</span>
+              <div className="flex items-center space-x-4">
+                <span>{excerpt.wordCount} WORDS</span>
+                {excerpt.author && (
+                  <span>BY {excerpt.author.toUpperCase()}</span>
+                )}
+                {excerpt.category && (
+                  <span className="px-2 py-1 bg-black text-white text-xs">
+                    {excerpt.category.toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center space-x-4">
+                <span className={`px-2 py-1 text-xs font-bold ${
+                  excerpt.status === 'final' ? 'bg-green-500 text-white' :
+                  excerpt.status === 'review' ? 'bg-yellow-500 text-white' :
+                  'bg-gray-500 text-white'
+                }`}>
+                  {excerpt.status.toUpperCase()}
+                </span>
+                <span>{excerpt.updatedAt.toLocaleDateString().toUpperCase()}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -139,34 +194,150 @@ export default function ExcerptsPage() {
 
       {/* Search and Filters */}
       <div className="mb-8 space-y-6">
-        <div>
+        <div className="flex gap-4">
           <input
             type="text"
             placeholder="SEARCH EXCERPTS..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="input w-full"
+            className="input flex-1"
           />
+          <button
+            onClick={() => setFiltersExpanded(!filtersExpanded)}
+            className="btn btn-outline"
+          >
+            FILTERS {filtersExpanded ? '−' : '+'}
+          </button>
+          {(selectedTags.length > 0 || selectedStatuses.length > 0 || selectedCategories.length > 0 || selectedAuthors.length > 0 || searchQuery) && (
+            <button
+              onClick={clearAllFilters}
+              className="btn btn-ghost"
+            >
+              CLEAR ALL
+            </button>
+          )}
         </div>
 
-        {availableTags.length > 0 && (
-          <div>
-            <p className="text-black font-bold text-sm mb-3 tracking-wide">
-              FILTER BY TAGS:
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {availableTags.map(tag => (
-                <button
-                  key={tag}
-                  onClick={() => toggleTag(tag)}
-                  className={`tag ${
-                    selectedTags.includes(tag) ? 'tag-active' : ''
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
+        {filtersExpanded && (
+          <div className="border-2 border-black bg-white p-6 space-y-6">
+            {/* Status Filter */}
+            <div>
+              <p className="text-black font-bold text-sm mb-3 tracking-wide">
+                STATUS:
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {['draft', 'review', 'final'].map(status => (
+                  <button
+                    key={status}
+                    onClick={() => toggleStatus(status)}
+                    className={`px-4 py-2 border-2 border-black text-sm font-bold tracking-wide transition-colors ${
+                      selectedStatuses.includes(status) 
+                        ? 'bg-black text-white' 
+                        : 'bg-white text-black hover:bg-black hover:text-white'
+                    }`}
+                  >
+                    {status.toUpperCase()}
+                  </button>
+                ))}
+              </div>
             </div>
+
+            {/* Authors Filter */}
+            {availableAuthors.length > 0 && (
+              <div>
+                <p className="text-black font-bold text-sm mb-3 tracking-wide">
+                  AUTHORS:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {availableAuthors.map(author => (
+                    <button
+                      key={author}
+                      onClick={() => toggleAuthor(author)}
+                      className={`px-4 py-2 border-2 border-black text-sm font-bold tracking-wide transition-colors ${
+                        selectedAuthors.includes(author) 
+                          ? 'bg-black text-white' 
+                          : 'bg-white text-black hover:bg-black hover:text-white'
+                      }`}
+                    >
+                      {author.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Categories Filter */}
+            {availableCategories.length > 0 && (
+              <div>
+                <p className="text-black font-bold text-sm mb-3 tracking-wide">
+                  CATEGORIES:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {availableCategories.map(category => (
+                    <button
+                      key={category}
+                      onClick={() => toggleCategory(category)}
+                      className={`px-4 py-2 border-2 border-black text-sm font-bold tracking-wide transition-colors ${
+                        selectedCategories.includes(category) 
+                          ? 'bg-black text-white' 
+                          : 'bg-white text-black hover:bg-black hover:text-white'
+                      }`}
+                    >
+                      {category.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Tags Filter */}
+            {availableTags.length > 0 && (
+              <div>
+                <p className="text-black font-bold text-sm mb-3 tracking-wide">
+                  TAGS:
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags.map(tag => (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      className={`tag ${
+                        selectedTags.includes(tag) ? 'tag-active' : ''
+                      }`}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Active Filters Summary */}
+        {(selectedTags.length > 0 || selectedStatuses.length > 0 || selectedCategories.length > 0 || selectedAuthors.length > 0) && (
+          <div className="flex flex-wrap gap-2 items-center">
+            <span className="text-sm font-bold text-black tracking-wide">ACTIVE FILTERS:</span>
+            {selectedStatuses.map(status => (
+              <span key={status} className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
+                Status: {status}
+              </span>
+            ))}
+            {selectedAuthors.map(author => (
+              <span key={author} className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
+                Author: {author}
+              </span>
+            ))}
+            {selectedCategories.map(category => (
+              <span key={category} className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
+                Category: {category}
+              </span>
+            ))}
+            {selectedTags.map(tag => (
+              <span key={tag} className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
+                Tag: {tag}
+              </span>
+            ))}
           </div>
         )}
       </div>
