@@ -14,8 +14,22 @@ export default function TagManagerPage() {
   }, [])
 
   const loadData = () => {
-    const all = storage.getAllTags()
-    setAllTags(all)
+    // Debug what's happening with tags
+    const excerpts = storage.getExcerpts()
+    const usedTags = storage.getUsedTags() 
+    const premadeTags = storage.getPremadeTags()
+    const allTags = storage.getAllTags()
+    
+    console.log('=== TAG DEBUG ===')
+    console.log('Total excerpts:', excerpts.length)
+    console.log('Excerpts with tags:', excerpts.filter(e => e.tags && e.tags.length > 0))
+    console.log('All excerpt tags found:', excerpts.flatMap(e => e.tags || []))
+    console.log('UsedTags method result:', usedTags)
+    console.log('PremadeTags method result:', premadeTags)
+    console.log('GetAllTags method result:', allTags)
+    console.log('=== END DEBUG ===')
+    
+    setAllTags(allTags)
   }
 
 
@@ -41,6 +55,28 @@ export default function TagManagerPage() {
     storage.deletePremadeTag(tag)
     loadData()
     toast.success('Tag removed successfully!')
+  }
+
+  const migrateExistingTags = () => {
+    // Get all tags from excerpts and add them to premade tags
+    const excerpts = storage.getExcerpts()
+    const allExcerptTags = new Set<string>()
+    
+    excerpts.forEach(excerpt => {
+      excerpt.tags.forEach(tag => {
+        if (tag.trim()) {
+          allExcerptTags.add(tag.trim())
+        }
+      })
+    })
+    
+    // Add all found tags to premade tags
+    allExcerptTags.forEach(tag => {
+      storage.addPremadeTag(tag)
+    })
+    
+    loadData()
+    toast.success(`Migrated ${allExcerptTags.size} tags from excerpts!`)
   }
 
   return (
@@ -88,12 +124,22 @@ export default function TagManagerPage() {
         {/* All Tags List */}
         <div className="border-2 border-black bg-white">
           <div className="p-6 border-b-2 border-black">
-            <h3 className="text-lg font-bold text-black tracking-wide">
-              ALL TAGS ({allTags.length})
-            </h3>
-            <p className="text-sm text-gray-600 mt-2">
-              Tags from excerpts and manually added tags. All tags appear as quick-select options when creating excerpts.
-            </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-bold text-black tracking-wide">
+                  ALL TAGS ({allTags.length})
+                </h3>
+                <p className="text-sm text-gray-600 mt-2">
+                  Tags from excerpts and manually added tags. All tags appear as quick-select options when creating excerpts.
+                </p>
+              </div>
+              <button
+                onClick={migrateExistingTags}
+                className="text-xs text-blue-600 hover:text-blue-800 underline"
+              >
+                SYNC EXCERPT TAGS
+              </button>
+            </div>
           </div>
           <div className="p-6">
             {allTags.length === 0 ? (
