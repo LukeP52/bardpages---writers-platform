@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Storyboard, Excerpt, StoryboardSection } from '@/types'
 import { storage } from '@/lib/storage'
@@ -17,7 +17,7 @@ export default function StoryboardEditPage() {
   const [filteredAvailableExcerpts, setFilteredAvailableExcerpts] = useState<Excerpt[]>([])
   const [draggedExcerpt, setDraggedExcerpt] = useState<Excerpt | null>(null)
   const [draggedSection, setDraggedSection] = useState<StoryboardSection | null>(null)
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [dragOverInsertionIndex, setDragOverInsertionIndex] = useState<number | null>(null)
   const [selectedExcerpts, setSelectedExcerpts] = useState<Set<string>>(new Set())
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
@@ -153,10 +153,17 @@ export default function StoryboardEditPage() {
     setDraggedSection(section)
   }
 
-  const handleDragOver = (e: React.DragEvent, index?: number) => {
+  const handleDragOver = (e: React.DragEvent, insertionIndex?: number) => {
     e.preventDefault()
-    if (index !== undefined) {
-      setDragOverIndex(index)
+    if (insertionIndex !== undefined) {
+      setDragOverInsertionIndex(insertionIndex)
+    }
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    // Only clear if we're leaving the main container
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setDragOverInsertionIndex(null)
     }
   }
 
@@ -175,7 +182,7 @@ export default function StoryboardEditPage() {
     
     setDraggedExcerpt(null)
     setDraggedSection(null)
-    setDragOverIndex(null)
+    setDragOverInsertionIndex(null)
   }
 
   const applyFilters = (excerptsList = availableExcerpts) => {
@@ -571,6 +578,7 @@ export default function StoryboardEditPage() {
           <div
             className="min-h-96"
             onDragOver={(e) => handleDragOver(e)}
+            onDragLeave={handleDragLeave}
             onDrop={(e) => handleDrop(e)}
           >
             {storyboard.sections.length === 0 ? (
@@ -581,102 +589,116 @@ export default function StoryboardEditPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {storyboard.sections.map((section, index) => {
-                  const excerpt = getExcerptById(section.excerptId)
-                  if (!excerpt) return null
-
-                  const displayText = displayMode === 'title' 
-                    ? excerpt.title 
-                    : new Date(excerpt.createdAt).toLocaleDateString()
-
-                  return (
+              <div className="space-y-1">
+                    {/* Initial drop zone */}
                     <div
-                      key={section.id}
-                      draggable
-                      onDragStart={() => handleSectionDragStart(section)}
-                      onDragOver={(e) => handleDragOver(e, index)}
-                      onDrop={(e) => handleDrop(e, index)}
-                      className={`bg-white border-2 rounded-lg p-3 cursor-move transition-all hover:shadow-lg group ${
-                        dragOverIndex === index ? 'border-blue-400 bg-blue-50' : 'border-gray-200 hover:border-gray-300'
+                      className={`h-3 rounded-lg border-2 border-dashed transition-all flex items-center justify-center ${
+                        dragOverInsertionIndex === 0
+                          ? 'border-blue-400 bg-blue-50'
+                          : 'border-transparent hover:border-gray-300'
                       }`}
+                      onDragOver={(e) => handleDragOver(e, 0)}
+                      onDrop={(e) => handleDrop(e, 0)}
                     >
-                      {/* Header */}
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                          <span className="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-1 rounded shrink-0">
-                            {String(index + 1).padStart(2, '0')}
-                          </span>
-                          <h3 className="font-medium text-gray-900 text-sm truncate" title={displayText}>
-                            {displayText}
-                          </h3>
-                        </div>
-                        <button
-                          onClick={() => removeSection(section.id)}
-                          className="text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-                          title="Remove from storyboard"
-                        >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
-                      </div>
-
-                      {/* Metadata */}
-                      <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                        <span>{excerpt.wordCount}w</span>
-                        {excerpt.author && (
-                          <span className="truncate" title={excerpt.author}>by {excerpt.author}</span>
-                        )}
-                      </div>
-
-                      {/* Content Preview */}
-                      <p className="text-xs text-gray-600 line-clamp-2 mb-3" title={excerpt.content.replace(/<[^>]*>/g, '').substring(0, 100)}>
-                        {excerpt.content.replace(/<[^>]*>/g, '').substring(0, 60)}...
-                      </p>
-
-                      {/* Tags */}
-                      {excerpt.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mb-2">
-                          {excerpt.tags.slice(0, 2).map(tag => (
-                            <span key={tag} className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
-                              {tag}
-                            </span>
-                          ))}
-                          {excerpt.tags.length > 2 && (
-                            <span className="text-xs text-gray-400">+{excerpt.tags.length - 2}</span>
-                          )}
-                        </div>
+                      {dragOverInsertionIndex === 0 && (
+                        <span className="text-xs text-blue-600 font-medium">Drop here to place at beginning</span>
                       )}
-
-                      {/* Notes */}
-                      <textarea
-                        value={section.notes || ''}
-                        onChange={(e) => updateSectionNotes(section.id, e.target.value)}
-                        placeholder="Notes..."
-                        className="w-full px-2 py-1 text-xs border border-gray-200 rounded resize-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                        rows={2}
-                        onClick={(e) => e.stopPropagation()}
-                      />
                     </div>
-                  )
-                })}
-                
-                {/* Drop zone for new items */}
-                <div
-                  className={`border-2 border-dashed rounded-lg p-6 flex items-center justify-center transition-colors ${
-                    dragOverIndex === storyboard.sections.length 
-                      ? 'border-blue-400 bg-blue-50' 
-                      : 'border-gray-300 bg-gray-50'
-                  }`}
-                  onDragOver={(e) => handleDragOver(e, storyboard.sections.length)}
-                  onDrop={(e) => handleDrop(e, storyboard.sections.length)}
-                >
-                  <div className="text-center">
-                    <div className="text-2xl text-gray-400 mb-1">+</div>
-                    <p className="text-xs text-gray-500">Drop here</p>
-                  </div>
-                </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                      {storyboard.sections.map((section, index) => {
+                        const excerpt = getExcerptById(section.excerptId)
+                        if (!excerpt) return null
+
+                        const displayText = displayMode === 'title' 
+                          ? excerpt.title 
+                          : new Date(excerpt.createdAt).toLocaleDateString()
+
+                        return (
+                          <React.Fragment key={section.id}>
+                            {/* Excerpt Card */}
+                            <div
+                              draggable
+                              onDragStart={() => handleSectionDragStart(section)}
+                              className="bg-white border-2 border-gray-200 hover:border-gray-300 rounded-lg p-3 cursor-move transition-all hover:shadow-lg group"
+                            >
+                              {/* Header */}
+                              <div className="flex items-start justify-between mb-2">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  <span className="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-1 rounded shrink-0">
+                                    {String(index + 1).padStart(2, '0')}
+                                  </span>
+                                  <h3 className="font-medium text-gray-900 text-sm truncate" title={displayText}>
+                                    {displayText}
+                                  </h3>
+                                </div>
+                                <button
+                                  onClick={() => removeSection(section.id)}
+                                  className="text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                                  title="Remove from storyboard"
+                                >
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              </div>
+
+                              {/* Metadata */}
+                              <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                                <span>{excerpt.wordCount}w</span>
+                                {excerpt.author && (
+                                  <span className="truncate" title={excerpt.author}>by {excerpt.author}</span>
+                                )}
+                              </div>
+
+                              {/* Content Preview */}
+                              <p className="text-xs text-gray-600 line-clamp-2 mb-3" title={excerpt.content.replace(/<[^>]*>/g, '').substring(0, 100)}>
+                                {excerpt.content.replace(/<[^>]*>/g, '').substring(0, 60)}...
+                              </p>
+
+                              {/* Tags */}
+                              {excerpt.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-1 mb-2">
+                                  {excerpt.tags.slice(0, 2).map(tag => (
+                                    <span key={tag} className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
+                                      {tag}
+                                    </span>
+                                  ))}
+                                  {excerpt.tags.length > 2 && (
+                                    <span className="text-xs text-gray-400">+{excerpt.tags.length - 2}</span>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Notes */}
+                              <textarea
+                                value={section.notes || ''}
+                                onChange={(e) => updateSectionNotes(section.id, e.target.value)}
+                                placeholder="Notes..."
+                                className="w-full px-2 py-1 text-xs border border-gray-200 rounded resize-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
+                                rows={2}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          </React.Fragment>
+                        )
+                      })}
+                    </div>
+
+                    {/* Final drop zone */}
+                    <div
+                      className={`h-3 rounded-lg border-2 border-dashed transition-all flex items-center justify-center ${
+                        dragOverInsertionIndex === storyboard.sections.length
+                          ? 'border-blue-400 bg-blue-50'
+                          : 'border-transparent hover:border-gray-300'
+                      }`}
+                      onDragOver={(e) => handleDragOver(e, storyboard.sections.length)}
+                      onDrop={(e) => handleDrop(e, storyboard.sections.length)}
+                    >
+                      {dragOverInsertionIndex === storyboard.sections.length && (
+                        <span className="text-xs text-blue-600 font-medium">Drop here to place at end</span>
+                      )}
+                    </div>
               </div>
             )}
           </div>
