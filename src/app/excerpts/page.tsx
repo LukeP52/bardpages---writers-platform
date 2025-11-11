@@ -95,9 +95,12 @@ export default function ExcerptsPage() {
                   <span className="text-black font-bold font-mono text-lg">
                     {String(index + 1).padStart(2, '0')}
                   </span>
-                  <h2 className="text-2xl font-bold text-black tracking-tight">
+                  <Link 
+                    href={`/excerpts/${excerpt.id}/edit`}
+                    className="text-2xl font-bold text-black tracking-tight hover:underline cursor-pointer"
+                  >
                     {excerpt.title}
-                  </h2>
+                  </Link>
                 </div>
                 <div className="text-black mb-4 leading-relaxed">
                   {getExcerptPreview(excerpt.content, 200)}
@@ -105,12 +108,6 @@ export default function ExcerptsPage() {
               </div>
               
               <div className="flex gap-2 ml-6">
-                <Link
-                  href={`/excerpts/${excerpt.id}`}
-                  className="btn btn-outline"
-                >
-                  VIEW
-                </Link>
                 <Link
                   href={`/excerpts/${excerpt.id}/edit`}
                   className="btn btn-primary"
