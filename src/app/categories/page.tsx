@@ -185,78 +185,77 @@ export default function TagManagerPage() {
   return (
     <div className="container py-12">
       {/* Header */}
-      <div className="mb-12">
-        <h1 className="text-6xl font-bold text-black tracking-tight mb-2">
-          TAGS
-        </h1>
-        <p className="text-black font-mono text-sm">
-          MANAGE ALL YOUR TAGS IN ONE PLACE
-        </p>
+      <div className="flex items-center justify-between mb-8">
+        <div>
+          <h1 className="text-3xl font-bold text-black tracking-tight mb-1">
+            TAGS
+          </h1>
+          <p className="text-black font-mono text-xs">
+            MANAGE ALL YOUR TAGS IN ONE PLACE
+          </p>
+        </div>
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Add Category Form */}
-        <div className="card bg-white p-6">
-          <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
-            ADD NEW CATEGORY
-          </h3>
-          <div className="flex gap-0 mb-4">
-            <input
-              type="text"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addCategory()
-                }
-              }}
-              className="input border-r-0 flex-1"
-              placeholder="Enter category name..."
-            />
-            <button
-              onClick={addCategory}
-              className="btn btn-primary px-6"
-              disabled={!newCategoryName.trim()}
-            >
-              <PlusIcon className="w-5 h-5" />
-            </button>
+        {/* Add Category and Tag Forms */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Add Category Form */}
+          <div className="card bg-white p-4">
+            <h3 className="text-sm font-bold text-black mb-3 tracking-wide">
+              ADD NEW CATEGORY
+            </h3>
+            <div className="flex gap-0 mb-2">
+              <input
+                type="text"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addCategory()
+                  }
+                }}
+                className="input border-r-0 flex-1 text-sm"
+                placeholder="Category name..."
+              />
+              <button
+                onClick={addCategory}
+                className="btn btn-primary px-4"
+                disabled={!newCategoryName.trim()}
+              >
+                <PlusIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <p className="text-sm text-gray-600">
-            Create custom categories to better organize your tags beyond the default ones.
-          </p>
-        </div>
 
-        {/* Add Tag Form */}
-        <div className="card bg-white p-6">
-          <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
-            ADD NEW TAG
-          </h3>
-          <div className="flex gap-0 mb-4">
-            <input
-              type="text"
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addTag()
-                }
-              }}
-              className="input border-r-0 flex-1"
-              placeholder="Enter tag name..."
-            />
-            <button
-              onClick={addTag}
-              className="btn btn-primary px-6"
-              disabled={!newTag.trim()}
-            >
-              <PlusIcon className="w-5 h-5" />
-            </button>
+          {/* Add Tag Form */}
+          <div className="card bg-white p-4">
+            <h3 className="text-sm font-bold text-black mb-3 tracking-wide">
+              ADD NEW TAG
+            </h3>
+            <div className="flex gap-0 mb-2">
+              <input
+                type="text"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addTag()
+                  }
+                }}
+                className="input border-r-0 flex-1 text-sm"
+                placeholder="Tag name..."
+              />
+              <button
+                onClick={addTag}
+                className="btn btn-primary px-4"
+                disabled={!newTag.trim()}
+              >
+                <PlusIcon className="w-4 h-4" />
+              </button>
+            </div>
           </div>
-          <p className="text-sm text-gray-600">
-            When you add a tag, you'll be prompted to assign it to a category.
-          </p>
         </div>
 
         {/* All Tags List */}

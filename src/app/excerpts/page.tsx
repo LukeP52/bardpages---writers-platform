@@ -292,12 +292,12 @@ export default function ExcerptsPage() {
   return (
     <div className="container py-12">
       {/* Header */}
-      <div className="flex items-center justify-between mb-12">
+      <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-6xl font-bold text-black tracking-tight mb-2">
+          <h1 className="text-3xl font-bold text-black tracking-tight mb-1">
             EXCERPTS
           </h1>
-          <p className="text-black font-mono text-sm">
+          <p className="text-black font-mono text-xs">
             YOUR STORY FRAGMENTS
           </p>
         </div>
