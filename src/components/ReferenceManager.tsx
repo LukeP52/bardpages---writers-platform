@@ -83,10 +83,17 @@ export default function ReferenceManager({
   }
 
   const addReference = () => {
+    console.log('addReference called')
+    console.log('newReference state:', newReference)
+    console.log('Validation check - title:', newReference.title, 'author:', newReference.author)
+    
     if (!newReference.title || !newReference.author) {
+      console.log('Validation failed - missing title or author')
       toast.error('Please provide at least title and author')
       return
     }
+
+    console.log('Validation passed, creating reference...')
 
     const reference: Reference = {
       id: uuidv4(),
@@ -107,6 +114,10 @@ export default function ReferenceManager({
       createdAt: new Date()
     }
 
+    console.log('Created reference:', reference)
+    console.log('Current references array:', references)
+    console.log('Calling onReferencesChange with:', [...references, reference])
+
     onReferencesChange([...references, reference])
     setNewReference({
       type: 'book',
@@ -116,6 +127,8 @@ export default function ReferenceManager({
     })
     setShowAddReference(false)
     toast.success('Reference added successfully!')
+    
+    console.log('addReference completed')
   }
 
   const deleteReference = (id: string) => {
@@ -301,8 +314,11 @@ export default function ReferenceManager({
               </label>
               <input
                 type="text"
-                value={newReference.title}
-                onChange={(e) => setNewReference({ ...newReference, title: e.target.value })}
+                value={newReference.title || ''}
+                onChange={(e) => {
+                  console.log('Title changing to:', e.target.value)
+                  setNewReference({ ...newReference, title: e.target.value })
+                }}
                 className="input"
                 placeholder="Enter title..."
               />
@@ -314,8 +330,11 @@ export default function ReferenceManager({
               </label>
               <input
                 type="text"
-                value={newReference.author}
-                onChange={(e) => setNewReference({ ...newReference, author: e.target.value })}
+                value={newReference.author || ''}
+                onChange={(e) => {
+                  console.log('Author changing to:', e.target.value)
+                  setNewReference({ ...newReference, author: e.target.value })
+                }}
                 className="input"
                 placeholder="Last, F. M."
               />
