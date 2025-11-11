@@ -56,7 +56,7 @@ export default function BookPreviewPage() {
       
       if (format === 'pdf') {
         await downloadPDF(content, filename)
-        toast.success('Opening print dialog for PDF export. Select "Save as PDF" in your printer options.')
+        toast.success('Opening clean PDF format. Use Ctrl+P (Cmd+P) and select "Save as PDF".')
       } else {
         downloadFile(content, filename, format === 'html' ? 'text/html' : 'application/octet-stream')
         toast.success(`Book exported as ${format.toUpperCase()}!`)

@@ -233,43 +233,43 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
   `
 }
 
-// PDF-optimized HTML that matches the preview formatting exactly
+// Clean PDF format optimized for digital reading
 const exportToPDFPreview = (book: Book, options: ExportOptions): string => {
   const { title, content, chapters } = generateBookContent(book)
   
   const metadata = options.includeMetadata ? `
-    <!-- Title Page -->
-    <div class="text-center mb-16 border-b border-gray-200 pb-16">
-      <h1 class="text-5xl font-bold text-black mb-4">
+    <!-- Title Section -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-black mb-3">
         ${book.title}
       </h1>
-      ${book.subtitle ? `<h2 class="text-2xl text-gray-600 mb-8">${book.subtitle}</h2>` : ''}
-      <p class="text-xl text-black font-medium mb-6">
+      ${book.subtitle ? `<h2 class="text-xl text-gray-600 mb-6">${book.subtitle}</h2>` : ''}
+      <p class="text-lg text-black font-medium">
         by ${book.author}
       </p>
-      ${book.metadata.genre ? `<p class="text-sm text-gray-500 uppercase tracking-wide">${book.metadata.genre}</p>` : ''}
-      ${book.metadata.description ? `<div class="mt-8 text-gray-700 max-w-2xl mx-auto">${book.metadata.description}</div>` : ''}
+      ${book.metadata.genre ? `<p class="text-sm text-gray-500 mt-2">${book.metadata.genre}</p>` : ''}
+      ${book.metadata.description ? `<div class="mt-6 text-gray-700 max-w-2xl mx-auto text-base">${book.metadata.description}</div>` : ''}
     </div>
   ` : ''
 
-  const processImagesForPreview = (content: string): string => {
+  const processImages = (content: string): string => {
     return content.replace(/<img([^>]*?)>/g, (match, attributes) => {
       const srcMatch = attributes.match(/src\s*=\s*["']([^"']*)["']/i);
       const src = srcMatch ? srcMatch[1] : '';
       const altMatch = attributes.match(/alt\s*=\s*["']([^"']*)["']/i);
       const alt = altMatch ? altMatch[1] : '';
       
-      return `<img src="${src}"${alt ? ` alt="${alt}"` : ''} class="mx-auto my-4 max-w-full h-auto" style="max-width: 400px; height: auto;">`;
+      return `<img src="${src}"${alt ? ` alt="${alt}"` : ''} style="max-width: 100%; height: auto; margin: 1.5rem auto; display: block;">`;
     });
   };
 
-  const chaptersHTML = chapters.map(chapter => `
-    <div class="chapter ${book.formatting.chapterBreakStyle === 'page-break' ? 'break-before-page' : ''}">
-      <h2 class="text-3xl font-bold text-black mb-8 ${book.formatting.chapterBreakStyle === 'spacing' ? 'mt-16' : ''}">
+  const chaptersHTML = chapters.map((chapter, index) => `
+    <div class="chapter" style="margin-bottom: 3rem;">
+      <h2 style="font-size: 1.8rem; font-weight: bold; color: #000; margin-bottom: 1.5rem; ${index > 0 ? 'margin-top: 3rem;' : ''}">
         ${chapter.title}
       </h2>
-      <div class="prose prose-lg max-w-none" style="text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment}; word-spacing: normal; letter-spacing: normal;">
-        ${processImagesForPreview(chapter.content)}
+      <div style="text-align: ${book.formatting.textAlignment}; line-height: 1.7;">
+        ${processImages(chapter.content)}
       </div>
     </div>
   `).join('')
@@ -281,106 +281,65 @@ const exportToPDFPreview = (book: Book, options: ExportOptions): string => {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title}</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    @media print {
-      @page {
-        size: A4;
-        margin: 0.75in;
-      }
-      
-      body {
-        font-family: ${book.formatting.fontFamily}, serif;
-        font-size: ${book.formatting.fontSize}pt;
-        line-height: ${book.formatting.lineHeight};
-        color: #000 !important;
-        background: white !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-      
-      .break-before-page {
-        page-break-before: always;
-      }
-      
-      .chapter {
-        page-break-inside: avoid;
-        margin-bottom: 2rem;
-      }
-      
-      h1, h2, h3 {
-        page-break-after: avoid;
-      }
-      
-      p {
-        orphans: 3;
-        widows: 3;
-        margin: ${book.formatting.paragraphSpacing || 0.5}em 0;
-        ${book.formatting.firstLineIndent && book.formatting.firstLineIndent > 0 ? `text-indent: ${book.formatting.firstLineIndent}em;` : ''}
-      }
-      
-      img {
-        max-width: 400px;
-        height: auto;
-        page-break-inside: avoid;
-        margin: 1rem auto;
-        display: block;
-      }
-      
-      .border-gray-200 {
-        border-color: #e5e7eb !important;
-      }
-      
-      .text-gray-600 {
-        color: #4b5563 !important;
-      }
-      
-      .text-gray-500 {
-        color: #6b7280 !important;
-      }
-      
-      .text-gray-700 {
-        color: #374151 !important;
-      }
-    }
-    
-    /* Screen styles for preview */
     body {
       font-family: ${book.formatting.fontFamily}, serif;
       font-size: ${book.formatting.fontSize}pt;
       line-height: ${book.formatting.lineHeight};
+      color: #333;
       background: white;
-      color: #000;
-      padding: 3rem;
-      max-width: 8.5in;
+      max-width: 700px;
       margin: 0 auto;
+      padding: 2rem;
     }
     
-    .container {
-      background: white;
-      border: 2px solid #e5e7eb;
-      padding: 3rem;
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    p {
+      margin: ${book.formatting.paragraphSpacing || 1}em 0;
+      ${book.formatting.firstLineIndent && book.formatting.firstLineIndent > 0 ? `text-indent: ${book.formatting.firstLineIndent}em;` : ''}
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+      color: #000;
+      margin-top: 2em;
+      margin-bottom: 0.5em;
+    }
+    
+    h1 { font-size: 2.2em; }
+    h2 { font-size: 1.8em; }
+    h3 { font-size: 1.4em; }
+    
+    img {
+      max-width: 100%;
+      height: auto;
+      margin: 1.5rem auto;
+      display: block;
+    }
+    
+    .text-gray-600 { color: #666; }
+    .text-gray-500 { color: #777; }
+    .text-gray-700 { color: #555; }
+    
+    /* Clean PDF print styles */
+    @media print {
+      body {
+        margin: 0;
+        padding: 1rem;
+        background: white;
+        color: #000;
+      }
+      
+      @page {
+        margin: 1in;
+        size: letter;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    ${metadata}
-    
-    <!-- Chapters -->
-    <div class="space-y-12">
-      ${chaptersHTML}
-    </div>
-    
-    <!-- Book Info -->
-    <div class="mt-16 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-      <p>Generated from ${chapters.length} chapters</p>
-      <p>Total word count: ${chapters.reduce((total, chapter) => 
-        total + chapter.excerpts.reduce((sum, excerpt) => sum + excerpt.wordCount, 0), 0
-      ).toLocaleString()}</p>
-    </div>
-  </div>
+  ${metadata}
+  
+  <!-- Book Content -->
+  ${chaptersHTML}
 </body>
 </html>
   `
