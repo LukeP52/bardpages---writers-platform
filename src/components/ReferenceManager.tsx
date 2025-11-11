@@ -405,8 +405,10 @@ export default function ReferenceManager({
               </button>
             </div>
           </div>
-        </div>
-        )}
+              </div>
+            </div>
+          </div>
+      )}
 
       {/* Citations Summary */}
       {citations.length > 0 && (
