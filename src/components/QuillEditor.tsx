@@ -3,16 +3,57 @@
 import { useEffect, useRef } from 'react'
 import type Quill from 'quill'
 
+const DEFAULT_TOOLBAR_OPTIONS = [
+  [{ header: [1, 2, 3, 4, 5, 6, false] }],
+  [{ font: [] }],
+  [{ size: ['small', false, 'large', 'huge'] }],
+  ['bold', 'italic', 'underline', 'strike'],
+  [{ script: 'sub' }, { script: 'super' }],
+  ['blockquote', 'code-block'],
+  [{ list: 'ordered' }, { list: 'bullet' }, { list: 'check' }],
+  [{ indent: '-1' }, { indent: '+1' }],
+  [{ align: [] }],
+  [{ color: [] }, { background: [] }],
+  ['link', 'image'],
+  ['clean'],
+]
+
+const DEFAULT_FORMATS = [
+  'header',
+  'font',
+  'size',
+  'bold',
+  'italic',
+  'underline',
+  'strike',
+  'script',
+  'blockquote',
+  'code-block',
+  'list',
+  'indent',
+  'align',
+  'color',
+  'background',
+  'link',
+  'image',
+]
+
 type QuillEditorProps = {
   value?: string
   onChange?: (value: string) => void
   placeholder?: string
+  className?: string
+  modules?: Record<string, unknown>
+  formats?: string[]
 }
 
 export default function QuillEditor({
   value,
   onChange,
   placeholder,
+  className,
+  modules,
+  formats,
 }: QuillEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const quillRef = useRef<Quill | null>(null)
@@ -29,9 +70,37 @@ export default function QuillEditor({
         return
       }
 
+      const Font = QuillConstructor.import('formats/font') as any
+      if (Font && Array.isArray(Font.whitelist)) {
+        Font.whitelist = [
+          'sans-serif',
+          'serif',
+          'monospace',
+          'arial',
+          'times-new-roman',
+        ]
+      }
+      QuillConstructor.register(Font, true)
+
+      const Size = QuillConstructor.import('formats/size') as any
+      if (Size && Array.isArray(Size.whitelist)) {
+        Size.whitelist = ['small', false, 'large', 'huge']
+      }
+      QuillConstructor.register(Size, true)
+
       const quillInstance = new QuillConstructor(containerRef.current, {
         theme: 'snow',
         placeholder,
+        modules: {
+          toolbar: DEFAULT_TOOLBAR_OPTIONS,
+          history: {
+            delay: 1000,
+            maxStack: 100,
+            userOnly: true,
+          },
+          ...(modules ?? {}),
+        },
+        formats: formats ?? DEFAULT_FORMATS,
       })
 
       quillRef.current = quillInstance
@@ -72,6 +141,6 @@ export default function QuillEditor({
     }
   }, [value])
 
-  return <div ref={containerRef} />
+  return <div ref={containerRef} className={className} />
 }
 

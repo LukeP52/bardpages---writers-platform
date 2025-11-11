@@ -96,7 +96,11 @@ export default function Home() {
             value={content}
             onChange={setContent}
             placeholder="Start typing your next chapter..."
+            className="min-h-[300px]"
           />
+          <p className="mt-4 text-xs text-gray-400">
+            Full toolbar includes headings, font families, sizes, lists, color controls, links, images, code blocks, and more—ready for rich storytelling.
+          </p>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-xl font-semibold text-gray-900 mb-3">Live Preview</h3>
