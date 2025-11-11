@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
+import Navigation from '@/components/Navigation'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Bard Pages Web Project',
-  description: 'A Next.js app with TypeScript and Tailwind CSS',
+  title: 'Bard Pages - Writers Platform',
+  description: 'A comprehensive platform for writers to manage excerpts, create storyboards, and publish books',
 }
 
 export default function RootLayout({
@@ -13,8 +14,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased">
-        {children}
+      <body className="antialiased bg-gray-50">
+        <Navigation />
+        <main className="min-h-screen">
+          {children}
+        </main>
       </body>
     </html>
   )

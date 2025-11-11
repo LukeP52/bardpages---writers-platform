@@ -1,5 +1,11 @@
 {
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
-  "/page": "/"
+  "/books/page": "/books",
+  "/excerpts/[id]/edit/page": "/excerpts/[id]/edit",
+  "/excerpts/[id]/page": "/excerpts/[id]",
+  "/excerpts/new/page": "/excerpts/new",
+  "/excerpts/page": "/excerpts",
+  "/page": "/",
+  "/storyboards/page": "/storyboards"
 }

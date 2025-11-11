@@ -19,7 +19,24 @@
     "afterFiles": [],
     "fallback": []
   },
-  "dynamicRoutes": [],
+  "dynamicRoutes": [
+    {
+      "page": "/excerpts/[id]",
+      "regex": "^/excerpts/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/excerpts/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/excerpts/[id]/edit",
+      "regex": "^/excerpts/([^/]+?)/edit(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/excerpts/(?<nxtPid>[^/]+?)/edit(?:/)?$"
+    }
+  ],
   "staticRoutes": [
     {
       "page": "/",
@@ -38,6 +55,30 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/books",
+      "regex": "^/books(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/books(?:/)?$"
+    },
+    {
+      "page": "/excerpts",
+      "regex": "^/excerpts(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/excerpts(?:/)?$"
+    },
+    {
+      "page": "/excerpts/new",
+      "regex": "^/excerpts/new(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/excerpts/new(?:/)?$"
+    },
+    {
+      "page": "/storyboards",
+      "regex": "^/storyboards(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/storyboards(?:/)?$"
     }
   ],
   "dataRoutes": [],

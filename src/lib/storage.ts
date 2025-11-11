@@ -1,0 +1,98 @@
+import { Excerpt, Tag, Storyboard, Book } from '@/types'
+
+class InMemoryStorage {
+  private excerpts: Map<string, Excerpt> = new Map()
+  private tags: Map<string, Tag> = new Map()
+  private storyboards: Map<string, Storyboard> = new Map()
+  private books: Map<string, Book> = new Map()
+
+  // Excerpts
+  getExcerpts(): Excerpt[] {
+    return Array.from(this.excerpts.values()).sort((a, b) => 
+      b.updatedAt.getTime() - a.updatedAt.getTime()
+    )
+  }
+
+  getExcerpt(id: string): Excerpt | undefined {
+    return this.excerpts.get(id)
+  }
+
+  saveExcerpt(excerpt: Excerpt): void {
+    this.excerpts.set(excerpt.id, excerpt)
+  }
+
+  deleteExcerpt(id: string): boolean {
+    return this.excerpts.delete(id)
+  }
+
+  getExcerptsByTag(tagName: string): Excerpt[] {
+    return this.getExcerpts().filter(excerpt => 
+      excerpt.tags.includes(tagName)
+    )
+  }
+
+  // Tags
+  getTags(): Tag[] {
+    return Array.from(this.tags.values()).sort((a, b) => a.name.localeCompare(b.name))
+  }
+
+  getTag(id: string): Tag | undefined {
+    return this.tags.get(id)
+  }
+
+  saveTag(tag: Tag): void {
+    this.tags.set(tag.id, tag)
+  }
+
+  deleteTag(id: string): boolean {
+    return this.tags.delete(id)
+  }
+
+  getUsedTags(): string[] {
+    const usedTags = new Set<string>()
+    this.getExcerpts().forEach(excerpt => {
+      excerpt.tags.forEach(tag => usedTags.add(tag))
+    })
+    return Array.from(usedTags).sort()
+  }
+
+  // Storyboards
+  getStoryboards(): Storyboard[] {
+    return Array.from(this.storyboards.values()).sort((a, b) => 
+      b.updatedAt.getTime() - a.updatedAt.getTime()
+    )
+  }
+
+  getStoryboard(id: string): Storyboard | undefined {
+    return this.storyboards.get(id)
+  }
+
+  saveStoryboard(storyboard: Storyboard): void {
+    this.storyboards.set(storyboard.id, storyboard)
+  }
+
+  deleteStoryboard(id: string): boolean {
+    return this.storyboards.delete(id)
+  }
+
+  // Books
+  getBooks(): Book[] {
+    return Array.from(this.books.values()).sort((a, b) => 
+      b.updatedAt.getTime() - a.updatedAt.getTime()
+    )
+  }
+
+  getBook(id: string): Book | undefined {
+    return this.books.get(id)
+  }
+
+  saveBook(book: Book): void {
+    this.books.set(book.id, book)
+  }
+
+  deleteBook(id: string): boolean {
+    return this.books.delete(id)
+  }
+}
+
+export const storage = new InMemoryStorage()

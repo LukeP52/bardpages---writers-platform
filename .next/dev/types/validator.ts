@@ -36,10 +36,64 @@ type LayoutConfig<Route extends LayoutRoutes = LayoutRoutes> = {
 }
 
 
+// Validate ../../../src/app/books/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/books">> = Specific
+  const handler = {} as typeof import("../../../src/app/books/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/excerpts/[id]/edit/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/excerpts/[id]/edit">> = Specific
+  const handler = {} as typeof import("../../../src/app/excerpts/[id]/edit/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/excerpts/[id]/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/excerpts/[id]">> = Specific
+  const handler = {} as typeof import("../../../src/app/excerpts/[id]/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/excerpts/new/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/excerpts/new">> = Specific
+  const handler = {} as typeof import("../../../src/app/excerpts/new/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/excerpts/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/excerpts">> = Specific
+  const handler = {} as typeof import("../../../src/app/excerpts/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
 // Validate ../../../src/app/page.tsx
 {
   type __IsExpected<Specific extends AppPageConfig<"/">> = Specific
   const handler = {} as typeof import("../../../src/app/page.js")
+  type __Check = __IsExpected<typeof handler>
+  // @ts-ignore
+  type __Unused = __Check
+}
+
+// Validate ../../../src/app/storyboards/page.tsx
+{
+  type __IsExpected<Specific extends AppPageConfig<"/storyboards">> = Specific
+  const handler = {} as typeof import("../../../src/app/storyboards/page.js")
   type __Check = __IsExpected<typeof handler>
   // @ts-ignore
   type __Unused = __Check
