@@ -246,205 +246,223 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   }
 
   return (
-    <div className="section bg-white">
-      <div className="container max-w-4xl">
-        <div className="mb-12 flex items-center justify-between">
-          <h1 className="text-4xl font-bold text-black uppercase tracking-wide">
-            {mode === 'create' ? 'Create Excerpt' : 'Edit Excerpt'}
-          </h1>
+    <div className="section">
+      <div className="container max-w-5xl">
+        <div className="mb-16 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-2">
+              {mode === 'create' ? 'Create Excerpt' : 'Edit Excerpt'}
+            </h1>
+            <p className="text-slate-600 text-lg">
+              {mode === 'create' ? 'Start crafting your story fragment' : 'Refine your narrative piece'}
+            </p>
+          </div>
           <AddReferenceButton onClick={handleAddReference} />
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div>
-            <label htmlFor="title" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
-              Title *
-            </label>
-            <input
-              type="text"
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="input text-xl"
-              placeholder="Enter excerpt title..."
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label htmlFor="author" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
-                Author
+        <form onSubmit={handleSubmit} className="space-y-12">
+          <div className="card">
+            <div className="form-group">
+              <label htmlFor="title" className="form-label">
+                Title *
               </label>
               <input
                 type="text"
-                id="author"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                className="input"
-                placeholder="Enter author name..."
-                list="authors-list"
-              />
-              {availableAuthors.length > 0 && (
-                <datalist id="authors-list">
-                  {availableAuthors.map(authorName => (
-                    <option key={authorName} value={authorName} />
-                  ))}
-                </datalist>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="status" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
-                Status
-              </label>
-              <select
-                id="status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value as 'draft' | 'review' | 'final')}
-                className="input"
-              >
-                <option value="draft">Draft</option>
-                <option value="review">Review</option>
-                <option value="final">Final</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="date" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
-                Date
-              </label>
-              <input
-                type="date"
-                id="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="input w-full"
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="input text-lg"
+                placeholder="Enter your excerpt title..."
+                required
               />
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
-              Content *
-            </label>
-            <QuillEditor
-              value={content}
-              onChange={setContent}
-              onSelectionChange={handleSelectionChange}
-              quillRef={quillRef}
-              placeholder="Start writing your excerpt..."
-              className="min-h-[400px] border-2 border-black"
-            />
-            <div className="mt-4 text-sm text-secondary font-mono">
-              Word count: {getWordCount(content)}
-            </div>
-          </div>
+          <div className="card">
+            <h3 className="text-lg font-semibold text-slate-900 mb-6">Excerpt Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="form-group">
+                <label htmlFor="author" className="form-label">
+                  Author
+                </label>
+                <input
+                  type="text"
+                  id="author"
+                  value={author}
+                  onChange={(e) => setAuthor(e.target.value)}
+                  className="input"
+                  placeholder="Enter author name..."
+                  list="authors-list"
+                />
+                {availableAuthors.length > 0 && (
+                  <datalist id="authors-list">
+                    {availableAuthors.map(authorName => (
+                      <option key={authorName} value={authorName} />
+                    ))}
+                  </datalist>
+                )}
+              </div>
 
-          <div>
-            <label htmlFor="imageUrl" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
-              Image URL (Optional)
-            </label>
-            <input
-              type="url"
-              id="imageUrl"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="input w-full"
-              placeholder="https://example.com/image.jpg"
-            />
-            {imageUrl && (
-              <div className="mt-4">
-                <p className="text-sm font-bold text-black mb-2 uppercase tracking-wide">Preview:</p>
-                <img 
-                  src={imageUrl} 
-                  alt="Preview" 
-                  className="max-w-xs max-h-48 border-2 border-black"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement
-                    target.style.display = 'none'
-                  }}
+              <div className="form-group">
+                <label htmlFor="status" className="form-label">
+                  Status
+                </label>
+                <select
+                  id="status"
+                  value={status}
+                  onChange={(e) => setStatus(e.target.value as 'draft' | 'review' | 'final')}
+                  className="input"
+                >
+                  <option value="draft">Draft</option>
+                  <option value="review">Review</option>
+                  <option value="final">Final</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="date" className="form-label">
+                  Date
+                </label>
+                <input
+                  type="date"
+                  id="date"
+                  value={date}
+                  onChange={(e) => setDate(e.target.value)}
+                  className="input"
                 />
               </div>
-            )}
+            </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
-              Tags
-            </label>
-            
-            <div className="flex flex-wrap gap-2 mb-4">
-              {tags.map(tag => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center px-4 py-2 bg-black text-white text-sm font-mono"
-                >
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeTag(tag)}
-                    className="ml-2 text-white hover:bg-white hover:text-black w-5 h-5 flex items-center justify-center"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
-
-            <div className="flex gap-0">
-              <input
-                type="text"
-                id="new-tag"
-                name="new-tag"
-                value={newTag}
-                onChange={(e) => setNewTag(e.target.value)}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    addTag(newTag)
-                  }
-                }}
-                className="input border-r-0"
-                placeholder="Add a tag..."
-              />
-              <button
-                type="button"
-                onClick={() => addTag(newTag)}
-                className="btn btn-secondary px-8"
-              >
-                Add
-              </button>
-            </div>
-
-            {availableTags.length > 0 && (
-              <div className="mt-6">
-                <p className="text-sm text-secondary mb-3 uppercase tracking-wide">Available tags:</p>
-                <div className="flex flex-wrap gap-2">
-                  {availableTags
-                    .filter(tag => !tags.includes(tag))
-                    .map(tag => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => addTag(tag)}
-                        className="px-3 py-1 border border-black text-black text-xs font-mono hover:bg-black hover:text-white transition-colors"
-                      >
-                        + {tag}
-                      </button>
-                    ))
-                  }
-                </div>
+          <div className="card">
+            <div className="form-group">
+              <label className="form-label">
+                Content *
+              </label>
+              <div className="rounded-xl overflow-hidden border border-slate-200">
+                <QuillEditor
+                  value={content}
+                  onChange={setContent}
+                  onSelectionChange={handleSelectionChange}
+                  quillRef={quillRef}
+                  placeholder="Start writing your excerpt..."
+                  className="min-h-[400px]"
+                />
               </div>
-            )}
+              <div className="mt-3 text-sm text-slate-500 font-medium">
+                Word count: {getWordCount(content)}
+              </div>
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="form-group">
+              <label htmlFor="imageUrl" className="form-label">
+                Featured Image (Optional)
+              </label>
+              <input
+                type="url"
+                id="imageUrl"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
+                className="input"
+                placeholder="https://example.com/image.jpg"
+              />
+              {imageUrl && (
+                <div className="mt-4">
+                  <p className="text-sm font-medium text-slate-700 mb-3">Preview:</p>
+                  <img 
+                    src={imageUrl} 
+                    alt="Preview" 
+                    className="max-w-xs max-h-48 rounded-xl border border-slate-200 shadow-sm"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement
+                      target.style.display = 'none'
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="card">
+            <div className="form-group">
+              <label className="form-label">
+                Tags
+              </label>
+              
+              <div className="flex flex-wrap gap-2 mb-4">
+                {tags.map(tag => (
+                  <span
+                    key={tag}
+                    className="tag inline-flex items-center"
+                  >
+                    {tag}
+                    <button
+                      type="button"
+                      onClick={() => removeTag(tag)}
+                      className="ml-2 text-slate-400 hover:text-red-500 w-4 h-4 flex items-center justify-center"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex gap-3">
+                <input
+                  type="text"
+                  id="new-tag"
+                  name="new-tag"
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault()
+                      addTag(newTag)
+                    }
+                  }}
+                  className="input flex-1"
+                  placeholder="Add a tag..."
+                />
+                <button
+                  type="button"
+                  onClick={() => addTag(newTag)}
+                  className="btn btn-secondary"
+                >
+                  Add Tag
+                </button>
+              </div>
+
+              {availableTags.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-sm font-medium text-slate-600 mb-3">Suggested tags:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {availableTags
+                      .filter(tag => !tags.includes(tag))
+                      .map(tag => (
+                        <button
+                          key={tag}
+                          type="button"
+                          onClick={() => addTag(tag)}
+                          className="tag border-dashed border-slate-300 text-slate-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200"
+                        >
+                          + {tag}
+                        </button>
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* References List */}
           {references.length > 0 && (
-            <div>
-              <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
+            <div className="card">
+              <h3 className="text-lg font-semibold text-slate-900 mb-6">
                 References ({references.length})
-              </h2>
+              </h3>
               <ReferenceManager
                 references={references}
                 citations={citations}
@@ -454,29 +472,34 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             </div>
           )}
 
-          <div className="divider my-8"></div>
+          <div className="divider"></div>
 
-          <div className="flex justify-end space-x-4">
-            <button
-              type="button"
-              onClick={handleCancel}
-              className="btn btn-ghost"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isSubmitting || !title.trim() || !content.trim()}
-              className="btn btn-primary"
-            >
-              {isSubmitting ? (
-                <>
-                  <LoadingSpinner size="sm" color="white" className="mr-2" />
-                  Saving...
-                </>
-              ) : mode === 'create' ? 'Create Excerpt' : 'Update Excerpt'}
-            </button>
+          <div className="flex justify-between items-center">
+            <p className="text-sm text-slate-500">
+              Your work is automatically saved as you type
+            </p>
+            <div className="flex space-x-4">
+              <button
+                type="button"
+                onClick={handleCancel}
+                className="btn btn-ghost"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting || !title.trim() || !content.trim()}
+                className="btn btn-primary btn-lg"
+              >
+                {isSubmitting ? (
+                  <>
+                    <LoadingSpinner size="sm" color="white" className="mr-2" />
+                    Saving...
+                  </>
+                ) : mode === 'create' ? 'Create Excerpt' : 'Update Excerpt'}
+              </button>
+            </div>
           </div>
         </form>
 
