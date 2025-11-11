@@ -1,7 +1,11 @@
 {
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
+  "/books/[id]/edit/page": "/books/[id]/edit",
+  "/books/[id]/preview/page": "/books/[id]/preview",
+  "/books/new/page": "/books/new",
   "/books/page": "/books",
+  "/categories/page": "/categories",
   "/excerpts/[id]/edit/page": "/excerpts/[id]/edit",
   "/excerpts/[id]/page": "/excerpts/[id]",
   "/excerpts/new/page": "/excerpts/new",

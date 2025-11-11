@@ -127,13 +127,6 @@ class InMemoryStorage {
     console.log('Storage saveExcerpt called for:', excerpt.id, excerpt.title)
     console.log('Current excerpts count before save:', this.excerpts.size)
     
-    // Add any new tags from this excerpt to the premade tags
-    excerpt.tags.forEach(tag => {
-      if (tag.trim()) {
-        this.premadeTags.add(tag.trim())
-      }
-    })
-    
     this.excerpts.set(excerpt.id, excerpt)
     console.log('Current excerpts count after save:', this.excerpts.size)
     
@@ -336,6 +329,12 @@ class InMemoryStorage {
     const premadeTags = this.getPremadeTags()
     const allTags = new Set([...usedTags, ...premadeTags])
     return Array.from(allTags).sort()
+  }
+
+  clearPremadeTags(): void {
+    this.initializeFromLocalStorage()
+    this.premadeTags.clear()
+    this.saveToLocalStorage()
   }
 }
 

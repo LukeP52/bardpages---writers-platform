@@ -47,6 +47,15 @@ export default function TagManagerPage() {
     toast.success('Tag added to managed tags!')
   }
 
+  const clearAllManagedTags = () => {
+    const confirmed = window.confirm('Clear all managed tags? This will move all existing managed tags back to excerpt tags.')
+    if (confirmed) {
+      storage.clearPremadeTags()
+      loadData()
+      toast.success('All managed tags cleared!')
+    }
+  }
+
   return (
     <div className="container py-12">
       {/* Header */}
@@ -104,10 +113,18 @@ export default function TagManagerPage() {
 
             {/* Managed Tags List */}
             <div className="border-2 border-black bg-white">
-              <div className="p-6 border-b-2 border-black">
+              <div className="p-6 border-b-2 border-black flex items-center justify-between">
                 <h3 className="text-lg font-bold text-black tracking-wide">
                   MANAGED TAGS ({premadeTags.length})
                 </h3>
+                {premadeTags.length > 0 && (
+                  <button
+                    onClick={clearAllManagedTags}
+                    className="text-xs text-red-600 hover:text-red-800 underline"
+                  >
+                    CLEAR ALL
+                  </button>
+                )}
               </div>
               <div className="p-6">
                 {premadeTags.length === 0 ? (

@@ -1,7 +1,11 @@
 {
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/books/[id]/edit/page": "app/books/[id]/edit/page.js",
+  "/books/[id]/preview/page": "app/books/[id]/preview/page.js",
+  "/books/new/page": "app/books/new/page.js",
   "/books/page": "app/books/page.js",
+  "/categories/page": "app/categories/page.js",
   "/excerpts/[id]/edit/page": "app/excerpts/[id]/edit/page.js",
   "/excerpts/[id]/page": "app/excerpts/[id]/page.js",
   "/excerpts/new/page": "app/excerpts/new/page.js",
