@@ -203,9 +203,10 @@ export default function TagManagerPage() {
               </div>
               <button
                 onClick={migrateExistingTags}
-                className="text-xs text-blue-600 hover:text-blue-800 underline"
+                className="text-xs text-gray-400 hover:text-gray-600 underline opacity-70 hover:opacity-100 transition-opacity"
+                title="Sync any missing tags from excerpts"
               >
-                SYNC EXCERPT TAGS
+                sync
               </button>
             </div>
           </div>
