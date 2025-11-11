@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Excerpt } from '@/types'
 import { storage } from '@/lib/storage'
 
 export default function ExcerptsPage() {
+  const router = useRouter()
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
   const [filteredExcerpts, setFilteredExcerpts] = useState<Excerpt[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
@@ -77,6 +79,10 @@ export default function ExcerptsPage() {
     setDateTo('')
   }
 
+  const handleEditExcerpt = (excerptId: string) => {
+    router.push(`/excerpts/${excerptId}/edit`)
+  }
+
   const getExcerptPreview = (content: string, maxLength = 150) => {
     const textContent = content.replace(/<[^>]*>/g, '').trim()
     return textContent.length > maxLength
@@ -95,12 +101,12 @@ export default function ExcerptsPage() {
                   <span className="text-black font-bold font-mono text-lg">
                     {String(index + 1).padStart(2, '0')}
                   </span>
-                  <Link 
-                    href={`/excerpts/${excerpt.id}/edit`}
-                    className="text-2xl font-bold text-black tracking-tight hover:underline cursor-pointer"
+                  <button 
+                    onClick={() => handleEditExcerpt(excerpt.id)}
+                    className="text-2xl font-bold text-black tracking-tight hover:underline cursor-pointer text-left"
                   >
                     {excerpt.title}
-                  </Link>
+                  </button>
                 </div>
                 <div className="text-black mb-4 leading-relaxed">
                   {getExcerptPreview(excerpt.content, 200)}
@@ -108,12 +114,12 @@ export default function ExcerptsPage() {
               </div>
               
               <div className="flex gap-2 ml-6">
-                <Link
-                  href={`/excerpts/${excerpt.id}/edit`}
+                <button
+                  onClick={() => handleEditExcerpt(excerpt.id)}
                   className="btn btn-primary"
                 >
                   EDIT
-                </Link>
+                </button>
               </div>
             </div>
             
