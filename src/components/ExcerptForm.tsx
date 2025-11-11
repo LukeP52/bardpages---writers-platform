@@ -248,16 +248,13 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   return (
     <div className="section">
       <div className="container max-w-5xl">
-        <div className="mb-16 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-2">
-              {mode === 'create' ? 'Create Excerpt' : 'Edit Excerpt'}
-            </h1>
-            <p className="text-slate-600 text-lg">
-              {mode === 'create' ? 'Start crafting your story fragment' : 'Refine your narrative piece'}
-            </p>
-          </div>
-          <AddReferenceButton onClick={handleAddReference} />
+        <div className="mb-16">
+          <h1 className="text-4xl lg:text-5xl font-bold text-slate-900 mb-2">
+            {mode === 'create' ? 'Create Excerpt' : 'Edit Excerpt'}
+          </h1>
+          <p className="text-slate-600 text-lg">
+            {mode === 'create' ? 'Start crafting your story fragment' : 'Refine your narrative piece'}
+          </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-12">
@@ -336,10 +333,13 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
 
           <div className="card">
             <div className="form-group">
-              <label className="form-label">
-                Content *
-              </label>
-              <div className="rounded-xl overflow-hidden border border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <label className="form-label mb-0">
+                  Content *
+                </label>
+                <AddReferenceButton onClick={handleAddReference} />
+              </div>
+              <div className="rounded-xl overflow-hidden border border-slate-200 mt-2">
                 <QuillEditor
                   value={content}
                   onChange={setContent}
