@@ -1,7 +1,6 @@
 'use client'
 
-import { Editor } from '@tinymce/tinymce-react'
-import { useRef, useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface RichTextEditorProps {
   value: string
@@ -18,16 +17,24 @@ export default function RichTextEditor({
   height = 400,
   readonly = false
 }: RichTextEditorProps) {
-  const editorRef = useRef<any>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isMounted, setIsMounted] = useState(false)
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  const handleEditorChange = (content: string) => {
-    onChange(content)
+  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value)
   }
+
+  // Auto-resize textarea to fit content
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
+    }
+  }, [value])
 
   if (!isMounted) {
     return (
@@ -42,39 +49,56 @@ export default function RichTextEditor({
 
   return (
     <div className="rich-text-editor">
-      <Editor
-        apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key"}
-        onInit={(evt, editor) => editorRef.current = editor}
-        value={value}
-        onEditorChange={handleEditorChange}
-        init={{
-          height,
-          menubar: false,
-          plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'charmap',
-            'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'table', 'help', 'wordcount'
-          ],
-          toolbar: readonly ? false : 
-            'undo redo | blocks | ' +
-            'bold italic forecolor | alignleft aligncenter ' +
-            'alignright alignjustify | bullist numlist outdent indent | ' +
-            'removeformat | help',
-          content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px }',
-          placeholder,
-          resize: false,
-          branding: false,
-          elementpath: false,
-          statusbar: true,
-          setup: (editor: any) => {
-            editor.on('init', () => {
-              if (readonly) {
-                editor.mode.set('readonly')
-              }
-            })
-          }
-        }}
-      />
+      <div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+        {/* Simple toolbar for basic formatting */}
+        {!readonly && (
+          <div className="bg-gray-50 border-b border-gray-300 px-3 py-2">
+            <div className="flex gap-2 text-sm">
+              <button
+                type="button"
+                className="px-2 py-1 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded transition-colors"
+                title="This is a placeholder editor - replace with your preferred rich text editor"
+              >
+                <strong>B</strong>
+              </button>
+              <button
+                type="button"
+                className="px-2 py-1 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded transition-colors"
+                title="This is a placeholder editor - replace with your preferred rich text editor"
+              >
+                <em>I</em>
+              </button>
+              <div className="border-l border-gray-300 mx-2"></div>
+              <span className="text-gray-500 text-xs py-1">
+                Placeholder Editor - Replace with your preferred rich text editor
+              </span>
+            </div>
+          </div>
+        )}
+        
+        <textarea
+          ref={textareaRef}
+          value={value}
+          onChange={handleChange}
+          placeholder={placeholder}
+          readOnly={readonly}
+          className="w-full p-4 resize-none border-0 focus:outline-none font-mono text-sm leading-relaxed"
+          style={{ 
+            minHeight: height,
+            maxHeight: readonly ? height : 'none'
+          }}
+        />
+      </div>
+      
+      {/* Word count */}
+      <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
+        <span>Word count: {value.trim().split(/\s+/).filter(word => word.length > 0).length}</span>
+        {!readonly && (
+          <span className="text-xs text-blue-600">
+            💡 This is a basic text editor. Replace RichTextEditor component with your preferred editor.
+          </span>
+        )}
+      </div>
     </div>
   )
 }
