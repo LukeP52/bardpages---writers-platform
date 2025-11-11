@@ -16,6 +16,31 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const cachedExcerpt = sessionStorage.getItem(
+        `editing_excerpt_${params.id}`
+      )
+      if (cachedExcerpt) {
+        try {
+          const parsed = JSON.parse(cachedExcerpt)
+          setExcerpt({
+            ...parsed,
+            createdAt: parsed.createdAt
+              ? new Date(parsed.createdAt)
+              : new Date(),
+            updatedAt: parsed.updatedAt
+              ? new Date(parsed.updatedAt)
+              : new Date(),
+          })
+          setIsLoading(false)
+          sessionStorage.removeItem(`editing_excerpt_${params.id}`)
+          return
+        } catch (error) {
+          console.warn('Failed to parse cached excerpt data:', error)
+        }
+      }
+    }
+
     const loadedExcerpt = storage.getExcerpt(params.id)
     if (!loadedExcerpt) {
       setIsLoading(false)
@@ -24,7 +49,7 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
     }
     setExcerpt(loadedExcerpt)
     setIsLoading(false)
-  }, [params.id, router])
+  }, [params.id])
 
   if (isLoading) {
     return (

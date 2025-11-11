@@ -84,6 +84,24 @@ export default function ExcerptsPage() {
       : textContent
   }
 
+  const cacheExcerptForEditing = (excerpt: Excerpt) => {
+    if (typeof window === 'undefined') {
+      return
+    }
+    try {
+      sessionStorage.setItem(
+        `editing_excerpt_${excerpt.id}`,
+        JSON.stringify({
+          ...excerpt,
+          createdAt: excerpt.createdAt.toISOString(),
+          updatedAt: excerpt.updatedAt.toISOString(),
+        })
+      )
+    } catch (error) {
+      console.warn('Unable to cache excerpt for editing:', error)
+    }
+  }
+
   const renderExcerpts = () => (
     <div className="space-y-6">
       {filteredExcerpts.map((excerpt, index) => (
@@ -97,6 +115,7 @@ export default function ExcerptsPage() {
                   </span>
                   <Link 
                     href={`/excerpts/${excerpt.id}/edit`}
+                    onClick={() => cacheExcerptForEditing(excerpt)}
                     className="text-2xl font-bold text-black tracking-tight hover:underline cursor-pointer"
                   >
                     {excerpt.title}
@@ -110,6 +129,7 @@ export default function ExcerptsPage() {
               <div className="flex gap-2 ml-6">
                 <Link
                   href={`/excerpts/${excerpt.id}/edit`}
+                  onClick={() => cacheExcerptForEditing(excerpt)}
                   className="btn btn-primary"
                 >
                   EDIT
