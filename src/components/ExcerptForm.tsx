@@ -38,6 +38,22 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     setAvailableAuthors(storage.getUsedAuthors())
   }, [])
 
+  useEffect(() => {
+    if (excerpt) {
+      setTitle(excerpt.title ?? '')
+      setContent(excerpt.content ?? '')
+      setAuthor(excerpt.author ?? '')
+      setStatus(excerpt.status ?? 'draft')
+      setTags(excerpt.tags ?? [])
+      setImageUrl(excerpt.imageUrl ?? '')
+      setDate(
+        excerpt.createdAt
+          ? new Date(excerpt.createdAt).toISOString().split('T')[0]
+          : new Date().toISOString().split('T')[0]
+      )
+    }
+  }, [excerpt])
+
   const getWordCount = (html: string): number => {
     const text = html.replace(/<[^>]*>/g, '').trim()
     return text ? text.split(/\s+/).length : 0
