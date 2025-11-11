@@ -155,7 +155,7 @@ export default function BooksPage() {
                       </div>
                     </div>
                   
-                  <div className="flex gap-2 ml-6">
+                    <div className="flex gap-2 ml-6">
                     <Link
                       href={`/books/${book.id}/edit`}
                       className="btn btn-outline"
@@ -168,8 +168,8 @@ export default function BooksPage() {
                     >
                       PREVIEW
                     </Link>
+                    </div>
                   </div>
-                </div>
                 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div className="border border-black p-4">
@@ -200,7 +200,7 @@ export default function BooksPage() {
                     </div>
                   </div>
                 
-                <div className="border-t-2 border-black pt-4">
+                  <div className="border-t-2 border-black pt-4">
                   <div className="flex items-center justify-between">
                     <div className="text-black font-bold text-sm tracking-wide">
                       CREATED: {book.createdAt.toLocaleDateString().toUpperCase()}
@@ -219,12 +219,12 @@ export default function BooksPage() {
                         EXPORT EPUB
                       </button>
                     </div>
-                    </div>
+                  </div>
                   </div>
                 </div>
-              )
-            }
-          ))}
+              </div>
+            )
+          })}
         </div>
       )}
     </div>
