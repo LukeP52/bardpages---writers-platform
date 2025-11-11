@@ -258,10 +258,10 @@ export default function StoryboardEditPage() {
     setSelectedExcerpts(new Set())
   }
 
-  const addAllVisible = () => {
-    if (!storyboard || filteredAvailableExcerpts.length === 0) return
+  const addAllExcerpts = () => {
+    if (!storyboard || availableExcerpts.length === 0) return
 
-    filteredAvailableExcerpts.forEach((excerpt, index) => {
+    availableExcerpts.forEach((excerpt, index) => {
       setTimeout(() => {
         addExcerptToStoryboard(excerpt)
       }, index * 100) // Stagger the additions slightly
@@ -454,12 +454,12 @@ export default function StoryboardEditPage() {
                 </button>
               </>
             )}
-            {filteredAvailableExcerpts.length > 0 && (
+            {availableExcerpts.length > 0 && (
               <button
-                onClick={addAllVisible}
+                onClick={addAllExcerpts}
                 className="text-sm bg-purple-50 hover:bg-purple-100 text-purple-600 px-3 py-2 rounded transition-colors"
               >
-                Add All
+                Add All ({availableExcerpts.length})
               </button>
             )}
           </div>
