@@ -8,27 +8,14 @@ import toast from 'react-hot-toast'
 export default function TagManagerPage() {
   const [allTags, setAllTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState('')
+  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     loadData()
   }, [])
 
   const loadData = () => {
-    // Debug what's happening with tags
-    const excerpts = storage.getExcerpts()
-    const usedTags = storage.getUsedTags() 
-    const premadeTags = storage.getPremadeTags()
     const allTags = storage.getAllTags()
-    
-    console.log('=== TAG DEBUG ===')
-    console.log('Total excerpts:', excerpts.length)
-    console.log('Excerpts with tags:', excerpts.filter(e => e.tags && e.tags.length > 0))
-    console.log('All excerpt tags found:', excerpts.flatMap(e => e.tags || []))
-    console.log('UsedTags method result:', usedTags)
-    console.log('PremadeTags method result:', premadeTags)
-    console.log('GetAllTags method result:', allTags)
-    console.log('=== END DEBUG ===')
-    
     setAllTags(allTags)
   }
 
@@ -77,6 +64,87 @@ export default function TagManagerPage() {
     
     loadData()
     toast.success(`Migrated ${allExcerptTags.size} tags from excerpts!`)
+  }
+
+  const categorizeTag = (tag: string): string => {
+    const tagLower = tag.toLowerCase()
+    
+    // Date/Time patterns
+    if (/\b(century|year|decade|era|period|ancient|medieval|renaissance|modern|bc|ad|ce|bce|\d{4}s?|\d{1,2}th)\b/i.test(tagLower)) {
+      return 'Dates & Eras'
+    }
+    
+    // Geography/Regions
+    if (/\b(america|europe|asia|africa|ocean|sea|mountain|river|city|country|continent|north|south|east|west|empire|kingdom|nation|state|province|region|territory)\b/i.test(tagLower)) {
+      return 'Geography & Regions'
+    }
+    
+    // Wars/Military/Battles
+    if (/\b(war|battle|fight|combat|military|army|navy|soldier|general|victory|defeat|siege|campaign|revolution|rebellion|conflict|invasion|conquest)\b/i.test(tagLower)) {
+      return 'Wars & Military'
+    }
+    
+    // Politics/Government
+    if (/\b(politic|government|king|queen|emperor|president|minister|parliament|congress|election|democracy|republic|monarchy|dictatorship|leader|ruler|power|authority)\b/i.test(tagLower)) {
+      return 'Politics & Government'
+    }
+    
+    // Religion/Philosophy
+    if (/\b(religion|christian|muslim|jewish|buddhist|hindu|god|church|temple|mosque|faith|belief|philosophy|moral|ethic|spiritual)\b/i.test(tagLower)) {
+      return 'Religion & Philosophy'
+    }
+    
+    // Culture/Society
+    if (/\b(culture|society|social|custom|tradition|art|music|literature|education|family|marriage|festival|ceremony|ritual)\b/i.test(tagLower)) {
+      return 'Culture & Society'
+    }
+    
+    // Economics/Trade
+    if (/\b(trade|economic|money|gold|silver|merchant|market|commerce|business|wealth|poor|rich|tax|resource|agriculture|industry)\b/i.test(tagLower)) {
+      return 'Economics & Trade'
+    }
+    
+    // Science/Technology
+    if (/\b(science|technology|invention|discovery|medicine|astronomy|navigation|engineering|mathematics|innovation)\b/i.test(tagLower)) {
+      return 'Science & Technology'
+    }
+    
+    // People/Biography
+    if (/\b(biography|person|people|character|hero|villain|famous|notable|explorer|inventor|artist|writer|poet)\b/i.test(tagLower)) {
+      return 'People & Biography'
+    }
+    
+    // Default category
+    return 'Other'
+  }
+
+  const groupTagsByCategory = () => {
+    const categories: { [key: string]: string[] } = {}
+    
+    allTags.forEach(tag => {
+      const category = categorizeTag(tag)
+      if (!categories[category]) {
+        categories[category] = []
+      }
+      categories[category].push(tag)
+    })
+    
+    // Sort tags within each category
+    Object.keys(categories).forEach(category => {
+      categories[category].sort()
+    })
+    
+    return categories
+  }
+
+  const toggleCategory = (category: string) => {
+    const newExpanded = new Set(expandedCategories)
+    if (newExpanded.has(category)) {
+      newExpanded.delete(category)
+    } else {
+      newExpanded.add(category)
+    }
+    setExpandedCategories(newExpanded)
   }
 
   return (
@@ -151,36 +219,61 @@ export default function TagManagerPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {allTags.map((tag) => {
-                  const excerpts = storage.getExcerpts()
-                  const usageCount = excerpts.filter(excerpt => excerpt.tags.includes(tag)).length
-                  
-                  return (
-                    <div
-                      key={tag}
-                      className="flex items-center justify-between p-4 border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+              <div className="space-y-4">
+                {Object.entries(groupTagsByCategory()).map(([category, tags]) => (
+                  <div key={category} className="border border-gray-200 rounded">
+                    <button
+                      onClick={() => toggleCategory(category)}
+                      className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
                     >
-                      <div className="flex-1">
-                        <span className="tag text-sm">
-                          {tag}
+                      <div className="flex items-center gap-3">
+                        <span className="font-bold text-black text-sm tracking-wide">
+                          {category.toUpperCase()}
                         </span>
-                        {usageCount > 0 && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Used in {usageCount} excerpt{usageCount !== 1 ? 's' : ''}
-                          </div>
-                        )}
+                        <span className="text-xs text-gray-600 bg-gray-200 px-2 py-1 rounded">
+                          {tags.length}
+                        </span>
                       </div>
-                      <button
-                        onClick={() => deleteTag(tag)}
-                        className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded transition-colors"
-                        title="Delete tag"
-                      >
-                        <XMarkIcon className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )
-                })}
+                      <span className="text-gray-500 text-sm">
+                        {expandedCategories.has(category) ? '−' : '+'}
+                      </span>
+                    </button>
+                    
+                    {expandedCategories.has(category) && (
+                      <div className="p-4 bg-white">
+                        <div className="flex flex-wrap gap-2">
+                          {tags.map((tag) => {
+                            const excerpts = storage.getExcerpts()
+                            const usageCount = excerpts.filter(excerpt => excerpt.tags.includes(tag)).length
+                            
+                            return (
+                              <div
+                                key={tag}
+                                className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded px-3 py-2 group transition-colors"
+                              >
+                                <span className="text-xs font-mono text-gray-800">
+                                  {tag}
+                                </span>
+                                {usageCount > 0 && (
+                                  <span className="text-xs text-gray-500 bg-gray-200 px-1 rounded">
+                                    {usageCount}
+                                  </span>
+                                )}
+                                <button
+                                  onClick={() => deleteTag(tag)}
+                                  className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                                  title="Delete tag"
+                                >
+                                  <XMarkIcon className="w-3 h-3" />
+                                </button>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
           </div>
@@ -189,13 +282,14 @@ export default function TagManagerPage() {
         {/* Usage Instructions */}
         <div className="border-2 border-black bg-white p-6">
           <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
-            HOW TAGS WORK
+            HOW CATEGORIZED TAGS WORK
           </h3>
           <div className="text-sm text-gray-700 space-y-2">
-            <p>• <strong>All tags</strong> appear as quick-select buttons when creating or editing excerpts</p>
-            <p>• <strong>Add tags manually</strong> using the form above, or they'll be created automatically when you add them to excerpts</p>
-            <p>• <strong>Usage count</strong> shows how many excerpts use each tag</p>
-            <p>• <strong>Deleting a tag</strong> removes it from the quick-select list but keeps it in existing excerpts</p>
+            <p>• <strong>Auto-categorization:</strong> Tags are automatically sorted into categories like "Wars & Military", "Geography & Regions", etc.</p>
+            <p>• <strong>Expand categories:</strong> Click on a category to see its tags. Numbers show how many tags are in each category.</p>
+            <p>• <strong>Compact display:</strong> Tags are smaller and more efficient, showing usage count in excerpts</p>
+            <p>• <strong>Quick-select:</strong> All tags appear as buttons when creating excerpts, regardless of category</p>
+            <p>• <strong>Smart deletion:</strong> Hover over tags to see delete option (removes from quick-select but keeps in existing excerpts)</p>
           </div>
         </div>
       </div>
