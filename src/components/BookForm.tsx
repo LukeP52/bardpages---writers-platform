@@ -47,8 +47,8 @@ export default function BookForm({ book, mode }: BookFormProps) {
   const [textAlignment, setTextAlignment] = useState(book?.formatting.textAlignment || 'left')
   
   // Advanced Options
-  const [dropCapEnabled, setDropCapEnabled] = useState(book?.formatting.dropCapEnabled || false)
-  const [headerFooterEnabled, setHeaderFooterEnabled] = useState(book?.formatting.headerFooterEnabled || true)
+  const [dropCapEnabled, setDropCapEnabled] = useState<boolean>(book?.formatting.dropCapEnabled || false)
+  const [headerFooterEnabled, setHeaderFooterEnabled] = useState<boolean>(book?.formatting.headerFooterEnabled !== undefined ? book.formatting.headerFooterEnabled : true)
   const [pageNumbers, setPageNumbers] = useState(book?.formatting.pageNumbers || 'bottom-center')
   
   const [availableStoryboards, setAvailableStoryboards] = useState<Storyboard[]>([])
