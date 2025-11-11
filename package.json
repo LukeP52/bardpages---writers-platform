@@ -13,10 +13,14 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@heroicons/react": "^2.2.0",
+    "framer-motion": "^12.23.24",
     "next": "^16.0.1",
     "quill": "^2.0.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
+    "react-hot-toast": "^2.6.0",
     "uuid": "^13.0.0"
   },
   "devDependencies": {

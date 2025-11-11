@@ -10,13 +10,13 @@
   }
 
   body {
-    background-color: white;
-    color: #000000;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: #fafafa;
+    color: #1f2937;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     font-feature-settings: 'cv11', 'ss01';
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    line-height: 1.5;
+    line-height: 1.6;
   }
   
   html {
@@ -25,155 +25,192 @@
 
   /* Typography scale */
   h1, h2, h3, h4, h5, h6 {
-    font-weight: 700;
-    color: #000000;
+    font-weight: 600;
+    color: #111827;
     letter-spacing: -0.025em;
+    line-height: 1.2;
   }
 
   /* Smooth focus styles */
   :focus {
-    outline: 2px solid #000000;
+    outline: 2px solid #3b82f6;
     outline-offset: 2px;
   }
 
   /* Selection styles */
   ::selection {
-    background-color: #000000;
+    background-color: #3b82f6;
     color: white;
   }
 }
 
 @layer components {
-  /* Sharp button system */
+  /* Modern button system */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 12px 24px;
+    padding: 10px 20px;
     font-size: 14px;
-    font-weight: 600;
+    font-weight: 500;
     text-decoration: none;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
+    border-radius: 8px;
     cursor: pointer;
-    transition: all 0.15s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    min-height: 48px;
+    transition: all 0.2s ease;
+    letter-spacing: 0;
+    min-height: 40px;
   }
 
   .btn-primary {
-    background-color: #000000;
+    background-color: #3b82f6;
     color: white;
-    border-color: #000000;
+    border-color: #3b82f6;
   }
 
   .btn-primary:hover {
-    background-color: white;
-    color: #000000;
-    border-color: #000000;
+    background-color: #2563eb;
+    border-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
   }
 
   .btn-secondary {
     background-color: white;
-    color: #000000;
-    border-color: #000000;
+    color: #374151;
+    border-color: #d1d5db;
   }
 
   .btn-secondary:hover {
-    background-color: #000000;
+    background-color: #f9fafb;
+    border-color: #9ca3af;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn-success {
+    background-color: #10b981;
     color: white;
+    border-color: #10b981;
+  }
+
+  .btn-success:hover {
+    background-color: #059669;
+    border-color: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
   }
 
   .btn-ghost {
     background-color: transparent;
-    color: #000000;
+    color: #6b7280;
     border-color: transparent;
   }
 
   .btn-ghost:hover {
-    background-color: #000000;
-    color: white;
-    border-color: #000000;
+    background-color: #f3f4f6;
+    color: #374151;
   }
 
   /* Button size variants */
   .btn-sm {
-    padding: 8px 16px;
-    font-size: 12px;
-    min-height: 36px;
+    padding: 6px 12px;
+    font-size: 13px;
+    min-height: 32px;
   }
 
-  /* Sharp input system */
+  .btn-lg {
+    padding: 14px 28px;
+    font-size: 16px;
+    min-height: 48px;
+  }
+
+  /* Modern input system */
   .input {
     width: 100%;
-    padding: 16px;
-    border: 2px solid #e5e5e5;
+    padding: 12px 16px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
     background-color: white;
-    color: #000000;
-    font-size: 16px;
-    transition: border-color 0.15s ease;
+    color: #1f2937;
+    font-size: 14px;
+    transition: all 0.2s ease;
   }
 
   .input:focus {
-    border-color: #000000;
+    border-color: #3b82f6;
+    ring: 2px;
+    ring-color: rgba(59, 130, 246, 0.1);
     outline: none;
   }
 
   .input::placeholder {
-    color: #666666;
+    color: #9ca3af;
   }
 
   /* Card system */
   .card {
     background-color: white;
-    border: 1px solid #e5e5e5;
-    transition: all 0.15s ease;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
   .card:hover {
-    border-color: #000000;
+    border-color: #d1d5db;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
   }
 
-  .card-dark {
-    background-color: #000000;
-    color: white;
-    border-color: #000000;
+  .card-interactive {
+    cursor: pointer;
   }
 
-  .card-dark:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  .card-interactive:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.1);
   }
 
   /* Navigation */
   .nav-link {
-    color: #666666;
+    color: #6b7280;
     text-decoration: none;
     font-weight: 500;
-    transition: color 0.15s ease;
+    transition: all 0.2s ease;
     padding: 8px 16px;
+    border-radius: 6px;
   }
 
   .nav-link:hover {
-    color: #000000;
+    color: #374151;
+    background-color: #f3f4f6;
   }
 
   .nav-link.active {
-    color: #000000;
-    border-bottom: 2px solid #000000;
+    color: #3b82f6;
+    background-color: #dbeafe;
   }
 
   /* Typography utilities */
   .text-primary {
-    color: #000000;
+    color: #111827;
   }
 
   .text-secondary {
-    color: #666666;
+    color: #6b7280;
   }
 
   .text-muted {
-    color: #999999;
+    color: #9ca3af;
+  }
+
+  .text-accent {
+    color: #3b82f6;
+  }
+
+  .text-success {
+    color: #10b981;
   }
 
   /* Layout utilities */
@@ -184,7 +221,7 @@
   }
 
   .section {
-    padding: 80px 0;
+    padding: 60px 0;
   }
 
   .section-sm {
@@ -195,10 +232,25 @@
   .divider {
     width: 100%;
     height: 1px;
-    background-color: #e5e5e5;
+    background-color: #e5e7eb;
   }
 
-  .divider-dark {
-    background-color: #000000;
+  /* Animations */
+  .fade-in {
+    animation: fadeIn 0.5s ease-in;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
   }
 }

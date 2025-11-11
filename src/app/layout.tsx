@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
-import Navigation from '@/components/Navigation'
+import Sidebar from '@/components/Sidebar'
+import { Toaster } from 'react-hot-toast'
 import './globals.css'
 import 'quill/dist/quill.snow.css'
 
@@ -15,11 +16,34 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="antialiased bg-gray-50">
-        <Navigation />
-        <main className="min-h-screen">
-          {children}
-        </main>
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+      <body className="antialiased bg-gray-50 font-inter">
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar />
+          <main className="flex-1 overflow-auto bg-white">
+            <div className="min-h-full">
+              {children}
+            </div>
+          </main>
+        </div>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#363636',
+              color: '#fff',
+              borderRadius: '8px',
+            },
+          }}
+        />
       </body>
     </html>
   )
