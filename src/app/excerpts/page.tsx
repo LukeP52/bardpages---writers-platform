@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Excerpt } from '@/types'
 import { storage } from '@/lib/storage'
 import { v4 as uuidv4 } from 'uuid'
+import toast from 'react-hot-toast'
 
 export default function ExcerptsPage() {
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
@@ -76,6 +77,21 @@ export default function ExcerptsPage() {
     setSearchQuery('')
     setDateFrom('')
     setDateTo('')
+  }
+
+  const handleDeleteExcerpt = (excerpt: Excerpt) => {
+    const confirmed = window.confirm(`Are you sure you want to delete "${excerpt.title}"? This action cannot be undone.`)
+    
+    if (confirmed) {
+      storage.deleteExcerpt(excerpt.id)
+      
+      // Refresh the excerpts list
+      const updatedExcerpts = storage.getExcerpts()
+      setExcerpts(updatedExcerpts)
+      setFilteredExcerpts(updatedExcerpts)
+      
+      toast.success('Excerpt deleted successfully!')
+    }
   }
 
   const getExcerptPreview = (content: string, maxLength = 150) => {
@@ -221,6 +237,12 @@ export default function ExcerptsPage() {
                 >
                   EDIT
                 </a>
+                <button
+                  onClick={() => handleDeleteExcerpt(excerpt)}
+                  className="btn btn-outline border-red-500 text-red-600 hover:bg-red-500 hover:text-white"
+                >
+                  DELETE
+                </button>
               </div>
             </div>
             
