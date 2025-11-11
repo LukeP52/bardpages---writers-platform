@@ -94,7 +94,31 @@ class InMemoryStorage {
 
   getExcerpt(id: string): Excerpt | undefined {
     this.initializeFromLocalStorage()
-    return this.excerpts.get(id)
+    const existing = this.excerpts.get(id)
+    if (existing) {
+      return existing
+    }
+
+    if (typeof window !== 'undefined') {
+      try {
+        const stored = localStorage.getItem('bardpages_excerpts')
+        if (stored) {
+          const parsedExcerpts = JSON.parse(stored)
+          parsedExcerpts.forEach((excerpt: any) => {
+            this.excerpts.set(excerpt.id, {
+              ...excerpt,
+              createdAt: new Date(excerpt.createdAt),
+              updatedAt: new Date(excerpt.updatedAt),
+            })
+          })
+          return this.excerpts.get(id)
+        }
+      } catch (error) {
+        console.error('Error loading excerpt from localStorage:', error)
+      }
+    }
+
+    return undefined
   }
 
   saveExcerpt(excerpt: Excerpt): void {
