@@ -87,9 +87,11 @@ class InMemoryStorage {
   // Excerpts
   getExcerpts(): Excerpt[] {
     this.initializeFromLocalStorage()
-    return Array.from(this.excerpts.values()).sort((a, b) => 
+    const excerpts = Array.from(this.excerpts.values()).sort((a, b) => 
       b.updatedAt.getTime() - a.updatedAt.getTime()
     )
+    console.log('Storage getExcerpts called, returning:', excerpts.length, 'excerpts')
+    return excerpts
   }
 
   getExcerpt(id: string): Excerpt | undefined {

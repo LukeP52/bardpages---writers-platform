@@ -25,6 +25,9 @@ export default function ExcerptsPage() {
     const usedTags = storage.getUsedTags()
     const usedAuthors = storage.getUsedAuthors()
     
+    console.log('Loaded excerpts:', loadedExcerpts)
+    console.log('Number of excerpts:', loadedExcerpts.length)
+    
     setExcerpts(loadedExcerpts)
     setFilteredExcerpts(loadedExcerpts)
     setAvailableTags(usedTags)
@@ -80,6 +83,8 @@ export default function ExcerptsPage() {
   }
 
   const handleEditExcerpt = (excerptId: string) => {
+    console.log('Edit button clicked for excerpt ID:', excerptId)
+    console.log('Navigating to:', `/excerpts/${excerptId}/edit`)
     router.push(`/excerpts/${excerptId}/edit`)
   }
 
