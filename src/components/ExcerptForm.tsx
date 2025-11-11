@@ -21,10 +21,12 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [author, setAuthor] = useState(excerpt?.author || '')
   const [status, setStatus] = useState<'draft' | 'review' | 'final'>(excerpt?.status || 'draft')
   const [date, setDate] = useState(() => {
-    if (excerpt?.createdAt) {
-      return new Date(excerpt.createdAt).toISOString().split('T')[0]
+    const dateObj = excerpt?.createdAt ? new Date(excerpt.createdAt) : new Date()
+    return {
+      month: dateObj.getMonth() + 1,
+      day: dateObj.getDate(),
+      year: dateObj.getFullYear()
     }
-    return new Date().toISOString().split('T')[0]
   })
   const [tags, setTags] = useState<string[]>(excerpt?.tags || [])
   const [newTag, setNewTag] = useState('')
@@ -66,7 +68,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
 
     try {
       const now = new Date()
-      const selectedDate = new Date(date)
+      const selectedDate = new Date(date.year, date.month - 1, date.day)
       const excerptData: Excerpt = {
         id: excerpt?.id || uuidv4(),
         title: title.trim(),
@@ -160,16 +162,53 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             </div>
 
             <div>
-              <label htmlFor="date" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
+              <label className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
                 Date
               </label>
-              <input
-                type="date"
-                id="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="input"
-              />
+              <div className="grid grid-cols-3 gap-2">
+                <select
+                  value={date.month}
+                  onChange={(e) => setDate(prev => ({ ...prev, month: parseInt(e.target.value) }))}
+                  className="input text-sm"
+                >
+                  {Array.from({ length: 12 }, (_, i) => {
+                    const monthNum = i + 1
+                    const monthName = new Date(2024, i).toLocaleDateString('en', { month: 'long' })
+                    return (
+                      <option key={monthNum} value={monthNum}>
+                        {monthName}
+                      </option>
+                    )
+                  })}
+                </select>
+                
+                <select
+                  value={date.day}
+                  onChange={(e) => setDate(prev => ({ ...prev, day: parseInt(e.target.value) }))}
+                  className="input text-sm"
+                >
+                  {Array.from({ length: 31 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {i + 1}
+                    </option>
+                  ))}
+                </select>
+                
+                <select
+                  value={date.year}
+                  onChange={(e) => setDate(prev => ({ ...prev, year: parseInt(e.target.value) }))}
+                  className="input text-sm"
+                >
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const year = new Date().getFullYear() - i
+                    return (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    )
+                  })}
+                </select>
+              </div>
             </div>
           </div>
 
