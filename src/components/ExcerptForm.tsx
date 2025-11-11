@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { v4 as uuidv4 } from 'uuid'
 import QuillEditor from '@/components/QuillEditor'
@@ -35,6 +35,92 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [references, setReferences] = useState<Reference[]>(excerpt?.references || [])
   const [citations, setCitations] = useState<Citation[]>(excerpt?.citations || [])
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Auto-save functionality
+  const getDraftKey = useCallback(() => {
+    return `draft_excerpt_${excerpt?.id || 'new'}_${Date.now().toString().slice(-6)}`
+  }, [excerpt?.id])
+
+  const saveDraft = useCallback((draftData: any) => {
+    if (typeof window === 'undefined') return
+    
+    try {
+      const draftKey = `draft_excerpt_${excerpt?.id || 'new'}`
+      localStorage.setItem(draftKey, JSON.stringify({
+        ...draftData,
+        savedAt: new Date().toISOString()
+      }))
+    } catch (error) {
+      console.warn('Could not save draft:', error)
+    }
+  }, [excerpt?.id])
+
+  const loadDraft = useCallback(() => {
+    if (typeof window === 'undefined') return null
+    
+    try {
+      const draftKey = `draft_excerpt_${excerpt?.id || 'new'}`
+      const draftData = localStorage.getItem(draftKey)
+      return draftData ? JSON.parse(draftData) : null
+    } catch (error) {
+      console.warn('Could not load draft:', error)
+      return null
+    }
+  }, [excerpt?.id])
+
+  const clearDraft = useCallback(() => {
+    if (typeof window === 'undefined') return
+    
+    try {
+      const draftKey = `draft_excerpt_${excerpt?.id || 'new'}`
+      localStorage.removeItem(draftKey)
+    } catch (error) {
+      console.warn('Could not clear draft:', error)
+    }
+  }, [excerpt?.id])
+
+  // Load draft data on component mount
+  useEffect(() => {
+    const draft = loadDraft()
+    if (draft && !excerpt) {
+      // Only load draft for new excerpts, not when editing existing ones
+      setTitle(draft.title || '')
+      setContent(draft.content || '')
+      setAuthor(draft.author || '')
+      setStatus(draft.status || 'draft')
+      setTags(draft.tags || [])
+      setImageUrl(draft.imageUrl || '')
+      setReferences(draft.references || [])
+      setCitations(draft.citations || [])
+      setDate(draft.date || new Date().toISOString().split('T')[0])
+      
+      if (draft.savedAt) {
+        const savedTime = new Date(draft.savedAt).toLocaleTimeString()
+        toast.success(`Draft restored from ${savedTime}`)
+      }
+    }
+  }, [excerpt, loadDraft])
+
+  // Auto-save draft data when fields change
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (title || content || author || references.length > 0 || citations.length > 0) {
+        saveDraft({
+          title,
+          content,
+          author,
+          status,
+          tags,
+          imageUrl,
+          references,
+          citations,
+          date
+        })
+      }
+    }, 1000) // Debounce for 1 second
+
+    return () => clearTimeout(timeoutId)
+  }, [title, content, author, status, tags, imageUrl, references, citations, date, saveDraft])
 
   useEffect(() => {
     setAvailableTags(storage.getAllTags())
@@ -112,6 +198,9 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       if (!saved) {
         throw new Error('Failed to save excerpt to storage')
       }
+      
+      // Clear draft since we successfully saved
+      clearDraft()
       
       toast.success(`Excerpt ${mode === 'create' ? 'created' : 'updated'} successfully!`)
       router.push('/excerpts')
