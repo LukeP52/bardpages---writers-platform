@@ -66,24 +66,12 @@ function SortableExcerptCard({
     : new Date(excerpt.createdAt).toLocaleDateString()
 
   return (
-    <motion.div
+    <div
       ref={setNodeRef}
       style={style}
       className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-24 flex items-center justify-between ${
-        isDragging ? 'shadow-2xl ring-2 ring-blue-400' : ''
-      } ${
-        isBeingDraggedOver ? 'ring-2 ring-blue-400 ring-opacity-50 scale-105' : ''
+        isDragging ? 'opacity-50' : ''
       }`}
-      layout
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ 
-        opacity: 1,
-        scale: isBeingDraggedOver ? 1.05 : 1,
-        boxShadow: isBeingDraggedOver ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' : undefined
-      }}
-      exit={{ opacity: 0, scale: 0.8 }}
-      whileHover={{ scale: isBeingDraggedOver ? 1.05 : 1.02 }}
-      transition={{ type: "spring", stiffness: 300, damping: 30 }}
       {...attributes}
       {...listeners}
     >
@@ -115,7 +103,7 @@ function SortableExcerptCard({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-    </motion.div>
+    </div>
   )
 }
 
@@ -295,7 +283,7 @@ export default function StoryboardEditPage() {
 
   // Removed updateSectionNotes as we don't need notes anymore
 
-  // Enhanced drag and drop handlers with preview positioning
+  // Simplified drag and drop handlers using @dnd-kit's sortable behavior
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -309,19 +297,6 @@ export default function StoryboardEditPage() {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
-  }
-
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event
-    
-    if (over && storyboard) {
-      const overIndex = storyboard.sections.findIndex(section => section.id === over.id)
-      if (overIndex !== -1) {
-        setDragOverIndex(overIndex)
-      }
-    } else {
-      setDragOverIndex(null)
-    }
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -346,7 +321,6 @@ export default function StoryboardEditPage() {
     }
 
     setActiveId(null)
-    setDragOverIndex(null)
   }
 
   const applyFilters = (excerptsList = availableExcerpts) => {
@@ -914,9 +888,8 @@ export default function StoryboardEditPage() {
         <div className="h-full p-6 overflow-auto">
           <DndContext
             sensors={sensors}
-            collisionDetection={rectIntersection}
+            collisionDetection={closestCenter}
             onDragStart={handleDragStart}
-            onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
             {storyboard.sections.length === 0 ? (
@@ -953,34 +926,16 @@ export default function StoryboardEditPage() {
                       const excerpt = getExcerptById(section.excerptId)
                       if (!excerpt) return null
 
-                      // Show preview positioning indicator
-                      const shouldShowPreview = activeId && activeId !== section.id && dragOverIndex === index
-
                       return (
-                        <React.Fragment key={section.id}>
-                          {shouldShowPreview && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.8 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 0.8 }}
-                              className="bg-blue-100 border-2 border-dashed border-blue-400 rounded-xl p-4 flex items-center justify-center min-h-32"
-                            >
-                              <div className="text-center">
-                                <div className="text-blue-500 text-2xl mb-2">📍</div>
-                                <p className="text-blue-700 text-sm font-medium">Drop here</p>
-                              </div>
-                            </motion.div>
-                          )}
-                          
-                          <SortableExcerptCard
-                            section={section}
-                            excerpt={excerpt}
-                            index={index}
-                            displayMode={displayMode}
-                            onRemove={removeSection}
-                            isBeingDraggedOver={dragOverIndex === index}
-                          />
-                        </React.Fragment>
+                        <SortableExcerptCard
+                          key={section.id}
+                          section={section}
+                          excerpt={excerpt}
+                          index={index}
+                          displayMode={displayMode}
+                          onRemove={removeSection}
+                          isBeingDraggedOver={false}
+                        />
                       )
                     })}
                   </AnimatePresence>
@@ -990,25 +945,21 @@ export default function StoryboardEditPage() {
             
             <DragOverlay>
               {activeId && activeExcerpt ? (
-                <motion.div
-                  initial={{ scale: 1.1, rotate: 2 }}
-                  animate={{ scale: 1.15, rotate: 8 }}
-                  className="bg-white border-2 border-blue-500 rounded-xl p-4 shadow-2xl opacity-90 h-24 pointer-events-none"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="bg-blue-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg">
+                <div className="bg-white border-2 border-blue-500 rounded-xl p-4 shadow-2xl h-24 flex items-center justify-between transform rotate-3 scale-105">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <span className="bg-blue-500 text-white text-xs font-bold px-2.5 py-1.5 rounded-lg shrink-0">
                       {String(storyboard.sections.findIndex(s => s.id === activeId) + 1).padStart(2, '0')}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <h3 className="font-semibold text-gray-900 text-sm truncate">
-                        {(displayMode === 'title' ? activeExcerpt.title : new Date(activeExcerpt.createdAt).toLocaleDateString()).substring(0, 25)}...
+                      <h3 className="font-semibold text-gray-900 text-sm leading-tight truncate">
+                        {(displayMode === 'title' ? activeExcerpt.title : new Date(activeExcerpt.createdAt).toLocaleDateString()).substring(0, 30)}...
                       </h3>
                       <p className="text-xs text-gray-500 mt-1">
                         {new Date(activeExcerpt.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ) : null}
             </DragOverlay>
           </DndContext>
