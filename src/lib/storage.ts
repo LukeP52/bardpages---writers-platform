@@ -5,7 +5,6 @@ class InMemoryStorage {
   private tags: Map<string, Tag> = new Map()
   private storyboards: Map<string, Storyboard> = new Map()
   private books: Map<string, Book> = new Map()
-  private premadeCategories: Set<string> = new Set()
   private premadeTags: Set<string> = new Set()
 
   // Excerpts
@@ -58,13 +57,6 @@ class InMemoryStorage {
     return Array.from(usedTags).sort()
   }
 
-  getUsedCategories(): string[] {
-    const usedCategories = new Set<string>()
-    this.getExcerpts().forEach(excerpt => {
-      if (excerpt.category) usedCategories.add(excerpt.category)
-    })
-    return Array.from(usedCategories).sort()
-  }
 
   getUsedAuthors(): string[] {
     const usedAuthors = new Set<string>()
@@ -80,15 +72,13 @@ class InMemoryStorage {
       excerpt.title.toLowerCase().includes(searchTerm) ||
       excerpt.content.toLowerCase().includes(searchTerm) ||
       excerpt.tags.some(tag => tag.toLowerCase().includes(searchTerm)) ||
-      excerpt.author?.toLowerCase().includes(searchTerm) ||
-      excerpt.category?.toLowerCase().includes(searchTerm)
+      excerpt.author?.toLowerCase().includes(searchTerm)
     )
   }
 
   filterExcerpts(filters: {
     tags?: string[]
     status?: string[]
-    categories?: string[]
     authors?: string[]
     dateFrom?: Date
     dateTo?: Date
@@ -109,12 +99,6 @@ class InMemoryStorage {
     if (filters.status && filters.status.length > 0) {
       results = results.filter(excerpt => 
         filters.status!.includes(excerpt.status)
-      )
-    }
-
-    if (filters.categories && filters.categories.length > 0) {
-      results = results.filter(excerpt => 
-        excerpt.category && filters.categories!.includes(excerpt.category)
       )
     }
 
@@ -177,27 +161,6 @@ class InMemoryStorage {
     return this.books.delete(id)
   }
 
-  // Premade Categories
-  getPremadeCategories(): string[] {
-    return Array.from(this.premadeCategories).sort()
-  }
-
-  addPremadeCategory(category: string): void {
-    if (category.trim()) {
-      this.premadeCategories.add(category.trim())
-    }
-  }
-
-  deletePremadeCategory(category: string): boolean {
-    return this.premadeCategories.delete(category)
-  }
-
-  getAllCategories(): string[] {
-    const usedCategories = this.getUsedCategories()
-    const premadeCategories = this.getPremadeCategories()
-    const allCategories = new Set([...usedCategories, ...premadeCategories])
-    return Array.from(allCategories).sort()
-  }
 
   // Premade Tags
   getPremadeTags(): string[] {

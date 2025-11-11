@@ -10,24 +10,22 @@ export default function ExcerptsPage() {
   const [filteredExcerpts, setFilteredExcerpts] = useState<Excerpt[]>([])
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
   const [selectedAuthors, setSelectedAuthors] = useState<string[]>([])
   const [availableTags, setAvailableTags] = useState<string[]>([])
-  const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [filtersExpanded, setFiltersExpanded] = useState(false)
+  const [dateFrom, setDateFrom] = useState('')
+  const [dateTo, setDateTo] = useState('')
 
   useEffect(() => {
     const loadedExcerpts = storage.getExcerpts()
     const usedTags = storage.getUsedTags()
-    const usedCategories = storage.getUsedCategories()
     const usedAuthors = storage.getUsedAuthors()
     
     setExcerpts(loadedExcerpts)
     setFilteredExcerpts(loadedExcerpts)
     setAvailableTags(usedTags)
-    setAvailableCategories(usedCategories)
     setAvailableAuthors(usedAuthors)
   }, [])
 
@@ -35,14 +33,15 @@ export default function ExcerptsPage() {
     const filters = {
       tags: selectedTags.length > 0 ? selectedTags : undefined,
       status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
-      categories: selectedCategories.length > 0 ? selectedCategories : undefined,
       authors: selectedAuthors.length > 0 ? selectedAuthors : undefined,
+      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
+      dateTo: dateTo ? new Date(dateTo) : undefined,
       search: searchQuery || undefined
     }
 
     const filtered = storage.filterExcerpts(filters)
     setFilteredExcerpts(filtered)
-  }, [selectedTags, selectedStatuses, selectedCategories, selectedAuthors, searchQuery])
+  }, [selectedTags, selectedStatuses, selectedAuthors, searchQuery, dateFrom, dateTo])
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
@@ -60,13 +59,6 @@ export default function ExcerptsPage() {
     )
   }
 
-  const toggleCategory = (category: string) => {
-    setSelectedCategories(prev =>
-      prev.includes(category)
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    )
-  }
 
   const toggleAuthor = (author: string) => {
     setSelectedAuthors(prev =>
@@ -79,9 +71,10 @@ export default function ExcerptsPage() {
   const clearAllFilters = () => {
     setSelectedTags([])
     setSelectedStatuses([])
-    setSelectedCategories([])
     setSelectedAuthors([])
     setSearchQuery('')
+    setDateFrom('')
+    setDateTo('')
   }
 
   const getExcerptPreview = (content: string, maxLength = 150) => {
@@ -146,11 +139,6 @@ export default function ExcerptsPage() {
                 {excerpt.author && (
                   <span>BY {excerpt.author.toUpperCase()}</span>
                 )}
-                {excerpt.category && (
-                  <span className="px-2 py-1 bg-black text-white text-xs">
-                    {excerpt.category.toUpperCase()}
-                  </span>
-                )}
               </div>
               <div className="flex items-center space-x-4">
                 <span className={`px-2 py-1 text-xs font-bold ${
@@ -208,7 +196,7 @@ export default function ExcerptsPage() {
           >
             FILTERS {filtersExpanded ? '−' : '+'}
           </button>
-          {(selectedTags.length > 0 || selectedStatuses.length > 0 || selectedCategories.length > 0 || selectedAuthors.length > 0 || searchQuery) && (
+          {(selectedTags.length > 0 || selectedStatuses.length > 0 || selectedAuthors.length > 0 || searchQuery || dateFrom || dateTo) && (
             <button
               onClick={clearAllFilters}
               className="btn btn-ghost"
@@ -266,29 +254,32 @@ export default function ExcerptsPage() {
               </div>
             )}
 
-            {/* Categories Filter */}
-            {availableCategories.length > 0 && (
-              <div>
-                <p className="text-black font-bold text-sm mb-3 tracking-wide">
-                  CATEGORIES:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {availableCategories.map(category => (
-                    <button
-                      key={category}
-                      onClick={() => toggleCategory(category)}
-                      className={`px-4 py-2 border-2 border-black text-sm font-bold tracking-wide transition-colors ${
-                        selectedCategories.includes(category) 
-                          ? 'bg-black text-white' 
-                          : 'bg-white text-black hover:bg-black hover:text-white'
-                      }`}
-                    >
-                      {category.toUpperCase()}
-                    </button>
-                  ))}
+            {/* Date Filter */}
+            <div>
+              <p className="text-black font-bold text-sm mb-3 tracking-wide">
+                DATE RANGE:
+              </p>
+              <div className="flex gap-4">
+                <div>
+                  <label className="block text-xs font-mono text-gray-600 mb-1">FROM:</label>
+                  <input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    className="input w-40"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-mono text-gray-600 mb-1">TO:</label>
+                  <input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    className="input w-40"
+                  />
                 </div>
               </div>
-            )}
+            </div>
 
             {/* Tags Filter */}
             {availableTags.length > 0 && (
@@ -315,7 +306,7 @@ export default function ExcerptsPage() {
         )}
 
         {/* Active Filters Summary */}
-        {(selectedTags.length > 0 || selectedStatuses.length > 0 || selectedCategories.length > 0 || selectedAuthors.length > 0) && (
+        {(selectedTags.length > 0 || selectedStatuses.length > 0 || selectedAuthors.length > 0 || dateFrom || dateTo) && (
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-sm font-bold text-black tracking-wide">ACTIVE FILTERS:</span>
             {selectedStatuses.map(status => (
@@ -328,11 +319,16 @@ export default function ExcerptsPage() {
                 Author: {author}
               </span>
             ))}
-            {selectedCategories.map(category => (
-              <span key={category} className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
-                Category: {category}
+            {dateFrom && (
+              <span className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
+                From: {dateFrom}
               </span>
-            ))}
+            )}
+            {dateTo && (
+              <span className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
+                To: {dateTo}
+              </span>
+            )}
             {selectedTags.map(tag => (
               <span key={tag} className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
                 Tag: {tag}

@@ -15,7 +15,7 @@ import { motion } from 'framer-motion'
 
 const navigationItems = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Category Manager', href: '/categories', icon: TagIcon },
+  { name: 'Tag Manager', href: '/categories', icon: TagIcon },
   { name: 'Excerpts', href: '/excerpts', icon: DocumentTextIcon },
   { name: 'Storyboards', href: '/storyboards', icon: FilmIcon },
   { name: 'Books', href: '/books', icon: BookOpenIcon },

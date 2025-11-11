@@ -20,17 +20,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [content, setContent] = useState(excerpt?.content || '')
   const [author, setAuthor] = useState(excerpt?.author || '')
   const [status, setStatus] = useState<'draft' | 'review' | 'final'>(excerpt?.status || 'draft')
-  const [category, setCategory] = useState(excerpt?.category || '')
   const [tags, setTags] = useState<string[]>(excerpt?.tags || [])
   const [newTag, setNewTag] = useState('')
   const [availableTags, setAvailableTags] = useState<string[]>([])
-  const [availableCategories, setAvailableCategories] = useState<string[]>([])
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
     setAvailableTags(storage.getAllTags())
-    setAvailableCategories(storage.getAllCategories())
     setAvailableAuthors(storage.getUsedAuthors())
   }, [])
 
@@ -69,7 +66,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         content: content.trim(),
         author: author.trim() || undefined,
         status,
-        category: category.trim() || undefined,
         tags,
         createdAt: excerpt?.createdAt || now,
         updatedAt: now,
@@ -117,7 +113,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label htmlFor="author" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
                 Author
@@ -154,28 +150,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
                 <option value="review">Review</option>
                 <option value="final">Final</option>
               </select>
-            </div>
-
-            <div>
-              <label htmlFor="category" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
-                Category
-              </label>
-              <input
-                type="text"
-                id="category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                className="input"
-                placeholder="Enter category..."
-                list="categories-list"
-              />
-              {availableCategories.length > 0 && (
-                <datalist id="categories-list">
-                  {availableCategories.map(categoryName => (
-                    <option key={categoryName} value={categoryName} />
-                  ))}
-                </datalist>
-              )}
             </div>
           </div>
 
