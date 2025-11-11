@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import QuillEditor from '@/components/QuillEditor'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import ReferenceManager, { AddReferenceButton } from '@/components/ReferenceManager'
+import CitationWorkflow from '@/components/CitationWorkflow'
 import { Excerpt, Reference, Citation } from '@/types'
 import { storage } from '@/lib/storage'
 import toast from 'react-hot-toast'
@@ -34,7 +35,9 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [imageUrl, setImageUrl] = useState(excerpt?.imageUrl || '')
   const [references, setReferences] = useState<Reference[]>(excerpt?.references || [])
   const [citations, setCitations] = useState<Citation[]>(excerpt?.citations || [])
-  const [showReferenceManager, setShowReferenceManager] = useState(false)
+  const [showCitationWorkflow, setShowCitationWorkflow] = useState(false)
+  const [selectedText, setSelectedText] = useState('')
+  const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Auto-save functionality
@@ -213,6 +216,32 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     }
   }
 
+  const handleTextSelection = () => {
+    const selection = window.getSelection()
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0)
+      const selectedText = selection.toString().trim()
+      
+      if (selectedText) {
+        setSelectedText(selectedText)
+        // For now, we'll use simple text positions
+        // In a real implementation, you'd want to map this to the content string positions
+        setSelectedRange({ 
+          start: range.startOffset, 
+          end: range.endOffset 
+        })
+      } else {
+        setSelectedText('')
+        setSelectedRange(null)
+      }
+    }
+  }
+
+  const handleAddReference = () => {
+    handleTextSelection()
+    setShowCitationWorkflow(true)
+  }
+
   const handleCancel = () => {
     router.back()
   }
@@ -224,7 +253,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           <h1 className="text-4xl font-bold text-black uppercase tracking-wide">
             {mode === 'create' ? 'Create Excerpt' : 'Edit Excerpt'}
           </h1>
-          <AddReferenceButton onClick={() => setShowReferenceManager(true)} />
+          <AddReferenceButton onClick={handleAddReference} />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -450,14 +479,18 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           </div>
         </form>
 
-        {/* Reference Management Modal */}
-        {showReferenceManager && (
-          <ReferenceManager
+        {/* Citation Workflow Modal */}
+        {showCitationWorkflow && (
+          <CitationWorkflow
             references={references}
             citations={citations}
+            selectedText={selectedText}
+            selectedRange={selectedRange}
+            content={content}
             onReferencesChange={setReferences}
             onCitationsChange={setCitations}
-            onClose={() => setShowReferenceManager(false)}
+            onContentChange={setContent}
+            onClose={() => setShowCitationWorkflow(false)}
           />
         )}
       </div>
