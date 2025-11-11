@@ -127,6 +127,13 @@ class InMemoryStorage {
     console.log('Storage saveExcerpt called for:', excerpt.id, excerpt.title)
     console.log('Current excerpts count before save:', this.excerpts.size)
     
+    // Add any new tags from this excerpt to the premade tags (unified tag system)
+    excerpt.tags.forEach(tag => {
+      if (tag.trim()) {
+        this.premadeTags.add(tag.trim())
+      }
+    })
+    
     this.excerpts.set(excerpt.id, excerpt)
     console.log('Current excerpts count after save:', this.excerpts.size)
     
@@ -325,10 +332,8 @@ class InMemoryStorage {
   }
 
   getAllTags(): string[] {
-    const usedTags = this.getUsedTags()
-    const premadeTags = this.getPremadeTags()
-    const allTags = new Set([...usedTags, ...premadeTags])
-    return Array.from(allTags).sort()
+    // In the unified system, all tags are stored in premadeTags
+    return this.getPremadeTags()
   }
 
   clearPremadeTags(): void {

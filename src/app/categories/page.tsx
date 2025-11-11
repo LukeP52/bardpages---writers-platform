@@ -7,8 +7,6 @@ import toast from 'react-hot-toast'
 
 export default function TagManagerPage() {
   const [allTags, setAllTags] = useState<string[]>([])
-  const [usedTags, setUsedTags] = useState<string[]>([])
-  const [premadeTags, setPremadeTags] = useState<string[]>([])
   const [newTag, setNewTag] = useState('')
 
   useEffect(() => {
@@ -16,12 +14,7 @@ export default function TagManagerPage() {
   }, [])
 
   const loadData = () => {
-    const used = storage.getUsedTags()
-    const premade = storage.getPremadeTags()
     const all = storage.getAllTags()
-    
-    setUsedTags(used)
-    setPremadeTags(premade)
     setAllTags(all)
   }
 
@@ -36,24 +29,18 @@ export default function TagManagerPage() {
   }
 
   const deleteTag = (tag: string) => {
+    // Check if this tag is used in any excerpts
+    const excerpts = storage.getExcerpts()
+    const isUsedInExcerpts = excerpts.some(excerpt => excerpt.tags.includes(tag))
+    
+    if (isUsedInExcerpts) {
+      const confirmed = window.confirm(`"${tag}" is used in excerpts. Are you sure you want to remove it? It will remain in existing excerpts but won't appear as a quick-select option.`)
+      if (!confirmed) return
+    }
+    
     storage.deletePremadeTag(tag)
     loadData()
     toast.success('Tag removed successfully!')
-  }
-
-  const promoteToManagedTag = (tag: string) => {
-    storage.addPremadeTag(tag)
-    loadData()
-    toast.success('Tag added to managed tags!')
-  }
-
-  const clearAllManagedTags = () => {
-    const confirmed = window.confirm('Clear all managed tags? This will move all existing managed tags back to excerpt tags.')
-    if (confirmed) {
-      storage.clearPremadeTags()
-      loadData()
-      toast.success('All managed tags cleared!')
-    }
   }
 
   return (
@@ -61,180 +48,108 @@ export default function TagManagerPage() {
       {/* Header */}
       <div className="mb-12">
         <h1 className="text-6xl font-bold text-black tracking-tight mb-2">
-          TAG MANAGER
+          TAGS
         </h1>
         <p className="text-black font-mono text-sm">
-          MANAGE PREMADE TAGS FOR QUICK TAGGING
+          MANAGE ALL YOUR TAGS IN ONE PLACE
         </p>
       </div>
 
-      <div className="max-w-6xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          {/* Managed Tags Section */}
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-black mb-4 tracking-tight">
-                MANAGED TAGS
-              </h2>
-              <p className="text-sm text-gray-600 mb-6">
-                Create predefined tags that will be available as quick options when creating excerpts.
-              </p>
-            </div>
-
-            {/* Add Tag Form */}
-            <div className="border-2 border-black bg-white p-6">
-              <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
-                ADD NEW TAG
-              </h3>
-              <div className="flex gap-0">
-                <input
-                  type="text"
-                  value={newTag}
-                  onChange={(e) => setNewTag(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter') {
-                      e.preventDefault()
-                      addTag()
-                    }
-                  }}
-                  className="input border-r-0 flex-1"
-                  placeholder="Enter tag name..."
-                />
-                <button
-                  onClick={addTag}
-                  className="btn btn-primary px-6"
-                  disabled={!newTag.trim()}
-                >
-                  <PlusIcon className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* Managed Tags List */}
-            <div className="border-2 border-black bg-white">
-              <div className="p-6 border-b-2 border-black flex items-center justify-between">
-                <h3 className="text-lg font-bold text-black tracking-wide">
-                  MANAGED TAGS ({premadeTags.length})
-                </h3>
-                {premadeTags.length > 0 && (
-                  <button
-                    onClick={clearAllManagedTags}
-                    className="text-xs text-red-600 hover:text-red-800 underline"
-                  >
-                    CLEAR ALL
-                  </button>
-                )}
-              </div>
-              <div className="p-6">
-                {premadeTags.length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="text-4xl font-bold text-gray-300 mb-4">00</div>
-                    <p className="text-gray-500 text-sm">
-                      No managed tags yet. Add your first tag above.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-2">
-                    {premadeTags.map((tag) => (
-                      <div
-                        key={tag}
-                        className="flex items-center justify-between p-3 border border-gray-200 bg-gray-50"
-                      >
-                        <span className="tag text-xs">
-                          {tag}
-                        </span>
-                        <button
-                          onClick={() => deleteTag(tag)}
-                          className="text-red-600 hover:text-red-800 p-1"
-                          title="Delete tag"
-                        >
-                          <XMarkIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Tags From Excerpts Section */}
-          <div className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-bold text-black mb-4 tracking-tight">
-                TAGS FROM EXCERPTS
-              </h2>
-              <p className="text-sm text-gray-600 mb-6">
-                Tags that have been used in excerpts. Click + to add them to your managed tags.
-              </p>
-            </div>
-
-            {/* Used Tags List */}
-            <div className="border-2 border-black bg-white">
-              <div className="p-6 border-b-2 border-black">
-                <h3 className="text-lg font-bold text-black tracking-wide">
-                  EXCERPT TAGS ({usedTags.filter(tag => !premadeTags.includes(tag)).length})
-                </h3>
-              </div>
-              <div className="p-6">
-                {usedTags.filter(tag => !premadeTags.includes(tag)).length === 0 ? (
-                  <div className="text-center py-8">
-                    <div className="text-4xl font-bold text-gray-300 mb-4">00</div>
-                    <p className="text-gray-500 text-sm">
-                      No excerpt tags yet. Create excerpts with tags to see them here.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 gap-2">
-                    {usedTags.filter(tag => !premadeTags.includes(tag)).map((tag) => (
-                      <div
-                        key={tag}
-                        className="flex items-center justify-between p-3 border border-gray-200 bg-blue-50"
-                      >
-                        <span className="tag text-xs bg-blue-100 text-blue-800">
-                          {tag}
-                        </span>
-                        <button
-                          onClick={() => promoteToManagedTag(tag)}
-                          className="text-green-600 hover:text-green-800 p-1"
-                          title="Add to managed tags"
-                        >
-                          <PlusIcon className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
+      <div className="max-w-4xl mx-auto space-y-8">
+        {/* Add Tag Form */}
+        <div className="border-2 border-black bg-white p-6">
+          <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
+            ADD NEW TAG
+          </h3>
+          <div className="flex gap-0">
+            <input
+              type="text"
+              value={newTag}
+              onChange={(e) => setNewTag(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addTag()
+                }
+              }}
+              className="input border-r-0 flex-1"
+              placeholder="Enter tag name..."
+            />
+            <button
+              onClick={addTag}
+              className="btn btn-primary px-6"
+              disabled={!newTag.trim()}
+            >
+              <PlusIcon className="w-5 h-5" />
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Usage Instructions */}
-      <div className="mt-12 border-2 border-black bg-white p-6">
-        <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
-          HOW TAG MANAGEMENT WORKS
-        </h3>
-        <div className="text-sm text-gray-700">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-bold mb-2">MANAGED TAGS</h4>
-              <ul className="space-y-1">
-                <li>• Appear as quick-select buttons in excerpt forms</li>
-                <li>• Created manually or promoted from excerpt tags</li>
-                <li>• Can be deleted if no longer needed</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold mb-2">EXCERPT TAGS</h4>
-              <ul className="space-y-1">
-                <li>• Created when you add tags to excerpts</li>
-                <li>• Shown in blue on the right side</li>
-                <li>• Click + to promote to managed tags</li>
-              </ul>
-            </div>
+        {/* All Tags List */}
+        <div className="border-2 border-black bg-white">
+          <div className="p-6 border-b-2 border-black">
+            <h3 className="text-lg font-bold text-black tracking-wide">
+              ALL TAGS ({allTags.length})
+            </h3>
+            <p className="text-sm text-gray-600 mt-2">
+              Tags from excerpts and manually added tags. All tags appear as quick-select options when creating excerpts.
+            </p>
+          </div>
+          <div className="p-6">
+            {allTags.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="text-6xl font-bold text-gray-300 mb-6">00</div>
+                <h3 className="text-xl font-bold text-black mb-4">NO TAGS YET</h3>
+                <p className="text-gray-500 text-sm max-w-md mx-auto mb-6">
+                  Add your first tag above, or create excerpts with tags to see them here.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {allTags.map((tag) => {
+                  const excerpts = storage.getExcerpts()
+                  const usageCount = excerpts.filter(excerpt => excerpt.tags.includes(tag)).length
+                  
+                  return (
+                    <div
+                      key={tag}
+                      className="flex items-center justify-between p-4 border border-gray-200 bg-gray-50 hover:bg-gray-100 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <span className="tag text-sm">
+                          {tag}
+                        </span>
+                        {usageCount > 0 && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Used in {usageCount} excerpt{usageCount !== 1 ? 's' : ''}
+                          </div>
+                        )}
+                      </div>
+                      <button
+                        onClick={() => deleteTag(tag)}
+                        className="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded transition-colors"
+                        title="Delete tag"
+                      >
+                        <XMarkIcon className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Usage Instructions */}
+        <div className="border-2 border-black bg-white p-6">
+          <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
+            HOW TAGS WORK
+          </h3>
+          <div className="text-sm text-gray-700 space-y-2">
+            <p>• <strong>All tags</strong> appear as quick-select buttons when creating or editing excerpts</p>
+            <p>• <strong>Add tags manually</strong> using the form above, or they'll be created automatically when you add them to excerpts</p>
+            <p>• <strong>Usage count</strong> shows how many excerpts use each tag</p>
+            <p>• <strong>Deleting a tag</strong> removes it from the quick-select list but keeps it in existing excerpts</p>
           </div>
         </div>
       </div>
