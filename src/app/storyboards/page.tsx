@@ -58,58 +58,68 @@ export default function StoryboardsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Storyboards</h1>
+    <div className="container py-12">
+      <div className="flex items-center justify-between mb-12">
+        <div>
+          <h1 className="text-6xl font-bold text-black tracking-tight mb-2">
+            STORYBOARDS
+          </h1>
+          <p className="text-black font-mono text-sm">
+            ORGANIZE YOUR EXCERPTS
+          </p>
+        </div>
+        
         <button
           onClick={() => setShowCreateForm(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+          className="btn btn-primary"
         >
-          + New Storyboard
+          + NEW STORYBOARD
         </button>
       </div>
 
       {/* Create Storyboard Form */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4">Create New Storyboard</h2>
-            <div className="space-y-4">
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+          <div className="bg-white border-4 border-black p-8 w-full max-w-lg">
+            <h2 className="text-3xl font-bold text-black mb-6 tracking-tight">
+              CREATE STORYBOARD
+            </h2>
+            <div className="space-y-6">
               <div>
-                <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-                  Title
+                <label htmlFor="title" className="block text-black font-bold text-sm mb-2 tracking-wide">
+                  TITLE
                 </label>
                 <input
                   type="text"
                   id="title"
                   value={newStoryboardTitle}
                   onChange={(e) => setNewStoryboardTitle(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Enter storyboard title"
+                  className="input w-full"
+                  placeholder="ENTER STORYBOARD TITLE"
                   autoFocus
                 />
               </div>
               <div>
-                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                  Description (optional)
+                <label htmlFor="description" className="block text-black font-bold text-sm mb-2 tracking-wide">
+                  DESCRIPTION (OPTIONAL)
                 </label>
                 <textarea
                   id="description"
                   value={newStoryboardDescription}
                   onChange={(e) => setNewStoryboardDescription(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="input w-full resize-none"
                   rows={3}
-                  placeholder="Describe your storyboard"
+                  placeholder="DESCRIBE YOUR STORYBOARD"
                 />
               </div>
             </div>
-            <div className="flex gap-3 mt-6">
+            <div className="flex gap-4 mt-8">
               <button
                 onClick={createStoryboard}
                 disabled={!newStoryboardTitle.trim()}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="btn btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Create Storyboard
+                CREATE
               </button>
               <button
                 onClick={() => {
@@ -117,81 +127,124 @@ export default function StoryboardsPage() {
                   setNewStoryboardTitle('')
                   setNewStoryboardDescription('')
                 }}
-                className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-lg hover:bg-gray-300 transition-colors"
+                className="btn btn-outline flex-1"
               >
-                Cancel
+                CANCEL
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Storyboards Grid */}
+      {/* Content */}
       {storyboards.length === 0 ? (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">📋</div>
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No storyboards yet</h3>
-          <p className="text-gray-500 mb-6">
-            Create your first storyboard to start organizing your excerpts into structured stories.
-          </p>
-          <button
-            onClick={() => setShowCreateForm(true)}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            Create Your First Storyboard
-          </button>
+        <div className="text-center py-16">
+          <div className="border-2 border-black bg-white p-12">
+            <div className="text-8xl font-bold text-black mb-6">
+              00
+            </div>
+            <h3 className="text-2xl font-bold text-black mb-4 tracking-tight">
+              NO STORYBOARDS YET
+            </h3>
+            <p className="text-black mb-8 max-w-md mx-auto">
+              Create your first storyboard to start organizing your excerpts into structured stories.
+            </p>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className="btn btn-primary"
+            >
+              CREATE FIRST STORYBOARD
+            </button>
+          </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {storyboards.map((storyboard) => (
-            <div key={storyboard.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow border border-gray-200">
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="text-xl font-semibold text-gray-900 line-clamp-2 flex-1">
-                    {storyboard.title}
-                  </h3>
-                  <div className="flex gap-1 ml-3">
+        <div className="space-y-6">
+          {storyboards.map((storyboard, index) => (
+            <div key={storyboard.id} className="border-2 border-black bg-white">
+              <div className="p-8">
+                <div className="flex items-start justify-between mb-6">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-4 mb-2">
+                      <span className="text-black font-bold font-mono text-lg">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <h2 className="text-2xl font-bold text-black tracking-tight">
+                        {storyboard.title}
+                      </h2>
+                    </div>
+                    {storyboard.description && (
+                      <p className="text-black mb-4 leading-relaxed ml-12">
+                        {storyboard.description}
+                      </p>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-2 ml-6">
                     <Link
                       href={`/storyboards/${storyboard.id}`}
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      className="btn btn-outline"
                     >
-                      Edit
+                      EDIT
                     </Link>
-                    <span className="text-gray-400">|</span>
                     <button
                       onClick={() => deleteStoryboard(storyboard.id)}
-                      className="text-red-600 hover:text-red-800 text-sm font-medium"
+                      className="btn btn-outline hover:bg-red-50 hover:border-red-600 hover:text-red-600"
                     >
-                      Delete
+                      DELETE
                     </button>
                   </div>
                 </div>
                 
-                {storyboard.description && (
-                  <p className="text-gray-600 text-sm mb-3 line-clamp-2">
-                    {storyboard.description}
-                  </p>
-                )}
-                
-                <div className="space-y-2 mb-4">
-                  <div className="flex justify-between text-sm text-gray-500">
-                    <span>{storyboard.sections.length} sections</span>
-                    <span>{getStoryboardWordCount(storyboard)} words</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                  <div className="border border-black p-4">
+                    <div className="text-black font-bold text-sm mb-1 tracking-wide">
+                      SECTIONS
+                    </div>
+                    <div className="text-2xl font-bold text-black">
+                      {storyboard.sections.length}
+                    </div>
                   </div>
                   
-                  {storyboard.sections.length > 0 && (
-                    <div className="text-xs text-gray-400">
-                      Recent: {storyboard.sections.slice(0, 2).map(section => {
-                        const excerpt = getExcerptById(section.excerptId)
-                        return excerpt?.title || 'Untitled'
-                      }).join(', ')}{storyboard.sections.length > 2 && ` +${storyboard.sections.length - 2} more`}
+                  <div className="border border-black p-4">
+                    <div className="text-black font-bold text-sm mb-1 tracking-wide">
+                      TOTAL WORDS
                     </div>
-                  )}
+                    <div className="text-2xl font-bold text-black">
+                      {getStoryboardWordCount(storyboard)}
+                    </div>
+                  </div>
+                  
+                  <div className="border border-black p-4">
+                    <div className="text-black font-bold text-sm mb-1 tracking-wide">
+                      LAST UPDATED
+                    </div>
+                    <div className="text-sm font-mono text-black">
+                      {storyboard.updatedAt.toLocaleDateString().toUpperCase()}
+                    </div>
+                  </div>
                 </div>
                 
-                <div className="text-sm text-gray-500">
-                  Updated {storyboard.updatedAt.toLocaleDateString()}
-                </div>
+                {storyboard.sections.length > 0 && (
+                  <div className="border-t-2 border-black pt-4">
+                    <div className="text-black font-bold text-sm mb-2 tracking-wide">
+                      RECENT EXCERPTS:
+                    </div>
+                    <div className="text-black font-mono text-sm">
+                      {storyboard.sections.slice(0, 3).map((section, idx) => {
+                        const excerpt = getExcerptById(section.excerptId)
+                        return (
+                          <span key={section.excerptId}>
+                            {excerpt?.title || 'UNTITLED'}
+                            {idx < Math.min(2, storyboard.sections.length - 1) && ', '}
+                          </span>
+                        )
+                      })}
+                      {storyboard.sections.length > 3 && (
+                        <span> + {storyboard.sections.length - 3} MORE</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           ))}

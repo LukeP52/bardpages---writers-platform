@@ -96,6 +96,13 @@
     border-color: #000000;
   }
 
+  /* Button size variants */
+  .btn-sm {
+    padding: 8px 16px;
+    font-size: 12px;
+    min-height: 36px;
+  }
+
   /* Sharp input system */
   .input {
     width: 100%;
