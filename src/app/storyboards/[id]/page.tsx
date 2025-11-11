@@ -15,6 +15,9 @@ import {
   DragOverlay,
   DragStartEvent,
   DragEndEvent,
+  DragOverEvent,
+  rectIntersection,
+  pointerWithin,
 } from '@dnd-kit/core'
 import {
   arrayMove,
@@ -35,7 +38,8 @@ function SortableExcerptCard({
   index, 
   displayMode, 
   onRemove, 
-  onNotesChange 
+  onNotesChange,
+  isBeingDraggedOver = false
 }: {
   section: StoryboardSection
   excerpt: Excerpt
@@ -43,6 +47,7 @@ function SortableExcerptCard({
   displayMode: 'title' | 'date'
   onRemove: (id: string) => void
   onNotesChange: (id: string, notes: string) => void
+  isBeingDraggedOver?: boolean
 }) {
   const {
     attributes,
@@ -68,12 +73,18 @@ function SortableExcerptCard({
       style={style}
       className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-fit ${
         isDragging ? 'opacity-50 shadow-2xl scale-105' : ''
+      } ${
+        isBeingDraggedOver ? 'ring-2 ring-blue-400 ring-opacity-50 scale-105' : ''
       }`}
       layout
       initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ opacity: 1, scale: 1 }}
+      animate={{ 
+        opacity: 1, 
+        scale: isBeingDraggedOver ? 1.05 : 1,
+        boxShadow: isBeingDraggedOver ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' : undefined
+      }}
       exit={{ opacity: 0, scale: 0.8 }}
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ scale: isBeingDraggedOver ? 1.05 : 1.02 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       {...attributes}
       {...listeners}
@@ -145,6 +156,22 @@ function SortableExcerptCard({
   )
 }
 
+// Close dropdown when clicking outside
+function useClickOutside(ref: React.RefObject<HTMLDivElement | null>, handler: () => void) {
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        handler()
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [ref, handler])
+}
+
 export default function StoryboardEditPage() {
   const params = useParams()
   const router = useRouter()
@@ -166,6 +193,14 @@ export default function StoryboardEditPage() {
   const [showExcerptsDropdown, setShowExcerptsDropdown] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [tagCategories, setTagCategories] = useState<Record<string, string[]>>({})
+  const [openCategoryDropdowns, setOpenCategoryDropdowns] = useState<Set<string>>(new Set())
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const categoryDropdownRef = React.useRef<HTMLDivElement>(null)
+
+  // Close category dropdowns when clicking outside
+  useClickOutside(categoryDropdownRef, () => {
+    setOpenCategoryDropdowns(new Set())
+  })
 
   // Tag categorization function (same as in categories page)
   const categorizeTag = (tag: string): string => {
@@ -308,7 +343,7 @@ export default function StoryboardEditPage() {
     })
   }
 
-  // Modern drag and drop handlers
+  // Enhanced drag and drop handlers with preview positioning
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
@@ -322,6 +357,19 @@ export default function StoryboardEditPage() {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string)
+  }
+
+  const handleDragOver = (event: DragOverEvent) => {
+    const { active, over } = event
+    
+    if (over && storyboard) {
+      const overIndex = storyboard.sections.findIndex(section => section.id === over.id)
+      if (overIndex !== -1) {
+        setDragOverIndex(overIndex)
+      }
+    } else {
+      setDragOverIndex(null)
+    }
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -346,6 +394,7 @@ export default function StoryboardEditPage() {
     }
 
     setActiveId(null)
+    setDragOverIndex(null)
   }
 
   const applyFilters = (excerptsList = availableExcerpts) => {
@@ -488,6 +537,32 @@ export default function StoryboardEditPage() {
   const addExcerptFromDropdown = (excerpt: Excerpt) => {
     addExcerptToStoryboard(excerpt)
     setShowExcerptsDropdown(false)
+  }
+
+  const toggleCategoryDropdown = (category: string) => {
+    setOpenCategoryDropdowns(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(category)) {
+        newSet.delete(category)
+      } else {
+        newSet.add(category)
+      }
+      return newSet
+    })
+  }
+
+  const toggleTagInCategory = (tag: string, category: string) => {
+    setSelectedTags(prev => {
+      if (prev.includes(tag)) {
+        return prev.filter(t => t !== tag)
+      } else {
+        return [...prev, tag]
+      }
+    })
+  }
+
+  const getSelectedTagsInCategory = (categoryTags: string[]) => {
+    return categoryTags.filter(tag => selectedTags.includes(tag))
   }
 
   const getStoryboardStats = () => {
@@ -639,30 +714,82 @@ export default function StoryboardEditPage() {
           {Object.keys(tagCategories).length > 0 && (
             <div className="flex items-center gap-3 flex-wrap">
               <span className="text-sm font-medium text-gray-700">Categories:</span>
-              <div className="flex flex-wrap gap-2">
-                {Object.entries(tagCategories).map(([category, tags]) => (
-                  <div key={category} className="relative">
-                    <select
-                      multiple
-                      value={selectedTags.filter(tag => tags.includes(tag))}
-                      onChange={(e) => {
-                        const selectedInThisCategory = Array.from(e.target.selectedOptions, option => option.value)
-                        const otherSelectedTags = selectedTags.filter(tag => !tags.includes(tag))
-                        setSelectedTags([...otherSelectedTags, ...selectedInThisCategory])
-                      }}
-                      className="px-3 py-1 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none bg-white min-w-32"
-                    >
-                      {tags.map(tag => (
-                        <option key={tag} value={tag}>
-                          {tag}
-                        </option>
-                      ))}
-                    </select>
-                    <label className="absolute -top-2 left-2 bg-white px-1 text-xs font-medium text-gray-600">
-                      {category} ({tags.filter(tag => selectedTags.includes(tag)).length}/{tags.length})
-                    </label>
-                  </div>
-                ))}
+              <div ref={categoryDropdownRef} className="flex flex-wrap gap-2">
+                {Object.entries(tagCategories).map(([category, tags]) => {
+                  const selectedInCategory = getSelectedTagsInCategory(tags)
+                  return (
+                    <div key={category} className="relative">
+                      <button
+                        onClick={() => toggleCategoryDropdown(category)}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg transition-colors ${
+                          selectedInCategory.length > 0
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                        }`}
+                      >
+                        <span className="font-medium">{category}</span>
+                        {selectedInCategory.length > 0 && (
+                          <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                            {selectedInCategory.length}
+                          </span>
+                        )}
+                        <svg className={`w-4 h-4 transition-transform ${
+                          openCategoryDropdowns.has(category) ? 'rotate-180' : ''
+                        }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                      
+                      <AnimatePresence>
+                        {openCategoryDropdowns.has(category) && (
+                          <motion.div
+                            initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                            className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-64 max-h-80 overflow-y-auto"
+                          >
+                            <div className="p-3">
+                              <div className="flex items-center justify-between mb-3 pb-2 border-b">
+                                <h4 className="font-medium text-gray-900">{category}</h4>
+                                <span className="text-xs text-gray-500">{selectedInCategory.length}/{tags.length} selected</span>
+                              </div>
+                              <div className="space-y-2">
+                                {tags.map(tag => (
+                                  <label key={tag} className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedTags.includes(tag)}
+                                      onChange={() => toggleTagInCategory(tag, category)}
+                                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                                    />
+                                    <span className="text-sm text-gray-700 flex-1">{tag}</span>
+                                    <span className="text-xs text-gray-400">
+                                      {excerpts.filter(e => e.tags.includes(tag)).length}
+                                    </span>
+                                  </label>
+                                ))}
+                              </div>
+                              
+                              {selectedInCategory.length > 0 && (
+                                <div className="mt-3 pt-3 border-t">
+                                  <button
+                                    onClick={() => {
+                                      setSelectedTags(prev => prev.filter(tag => !tags.includes(tag)))
+                                    }}
+                                    className="w-full text-xs text-red-600 hover:text-red-700 transition-colors"
+                                  >
+                                    Clear {category} ({selectedInCategory.length})
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}
@@ -837,6 +964,7 @@ export default function StoryboardEditPage() {
             sensors={sensors}
             collisionDetection={closestCenter}
             onDragStart={handleDragStart}
+            onDragOver={handleDragOver}
             onDragEnd={handleDragEnd}
           >
             {storyboard.sections.length === 0 ? (
@@ -873,16 +1001,35 @@ export default function StoryboardEditPage() {
                       const excerpt = getExcerptById(section.excerptId)
                       if (!excerpt) return null
 
+                      // Show preview positioning indicator
+                      const shouldShowPreview = activeId && activeId !== section.id && dragOverIndex === index
+
                       return (
-                        <SortableExcerptCard
-                          key={section.id}
-                          section={section}
-                          excerpt={excerpt}
-                          index={index}
-                          displayMode={displayMode}
-                          onRemove={removeSection}
-                          onNotesChange={updateSectionNotes}
-                        />
+                        <React.Fragment key={section.id}>
+                          {shouldShowPreview && (
+                            <motion.div
+                              initial={{ opacity: 0, scale: 0.8 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              className="bg-blue-100 border-2 border-dashed border-blue-400 rounded-xl p-4 flex items-center justify-center min-h-32"
+                            >
+                              <div className="text-center">
+                                <div className="text-blue-500 text-2xl mb-2">📍</div>
+                                <p className="text-blue-700 text-sm font-medium">Drop here</p>
+                              </div>
+                            </motion.div>
+                          )}
+                          
+                          <SortableExcerptCard
+                            section={section}
+                            excerpt={excerpt}
+                            index={index}
+                            displayMode={displayMode}
+                            onRemove={removeSection}
+                            onNotesChange={updateSectionNotes}
+                            isBeingDraggedOver={dragOverIndex === index}
+                          />
+                        </React.Fragment>
                       )
                     })}
                   </AnimatePresence>
@@ -892,7 +1039,11 @@ export default function StoryboardEditPage() {
             
             <DragOverlay>
               {activeId && activeExcerpt ? (
-                <div className="bg-white border-2 border-blue-400 rounded-xl p-4 shadow-2xl opacity-90 rotate-6 scale-105">
+                <motion.div
+                  initial={{ scale: 1, rotate: 0 }}
+                  animate={{ scale: 1.1, rotate: 6 }}
+                  className="bg-white border-2 border-blue-400 rounded-xl p-4 shadow-2xl opacity-95"
+                >
                   <div className="flex items-center gap-3 mb-2">
                     <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">
                       {String(storyboard.sections.findIndex(s => s.id === activeId) + 1).padStart(2, '0')}
@@ -902,7 +1053,11 @@ export default function StoryboardEditPage() {
                     </h3>
                   </div>
                   <p className="text-xs text-gray-600">{activeExcerpt.wordCount} words</p>
-                </div>
+                  <div className="mt-2 flex items-center gap-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-xs text-blue-600 font-medium">Moving...</span>
+                  </div>
+                </motion.div>
               ) : null}
             </DragOverlay>
           </DndContext>
