@@ -155,6 +155,8 @@ export default function ExcerptsPage() {
       author: 'Debug System',
       status: 'draft',
       tags: ['debug', 'test'],
+      references: [],
+      citations: [],
       createdAt: new Date(),
       updatedAt: new Date(),
       wordCount: 12
