@@ -83,21 +83,10 @@ export default function ReferenceManager({
   }
 
   const addReference = () => {
-    console.log('=== addReference called ===')
-    console.log('newReference state:', newReference)
-    console.log('Title:', `"${newReference.title}"`, 'Length:', newReference.title?.length)
-    console.log('Author:', `"${newReference.author}"`, 'Length:', newReference.author?.length)
-    console.log('Title check:', !!newReference.title)
-    console.log('Author check:', !!newReference.author)
-    console.log('Combined validation:', !!(newReference.title && newReference.author))
-    
     if (!newReference.title || !newReference.author) {
-      console.log('❌ Validation FAILED - missing title or author')
       toast.error('Please provide at least title and author')
       return
     }
-
-    console.log('Validation passed, creating reference...')
 
     const reference: Reference = {
       id: uuidv4(),
@@ -118,10 +107,6 @@ export default function ReferenceManager({
       createdAt: new Date()
     }
 
-    console.log('Created reference:', reference)
-    console.log('Current references array:', references)
-    console.log('Calling onReferencesChange with:', [...references, reference])
-
     onReferencesChange([...references, reference])
     setNewReference({
       type: 'book',
@@ -131,8 +116,6 @@ export default function ReferenceManager({
     })
     setShowAddReference(false)
     toast.success('Reference added successfully!')
-    
-    console.log('addReference completed')
   }
 
   const deleteReference = (id: string) => {
@@ -268,21 +251,35 @@ export default function ReferenceManager({
         </div>
       </div>
 
-      {/* Add Reference Form */}
-      {showAddReference && (() => {
-        console.log('Add Reference Form is rendering')
-        console.log('Current newReference state:', newReference)
-        return (
-          <div className="border-2 border-black bg-white p-6">
-            <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
-              ADD NEW REFERENCE
-            </h3>
+      {/* Add Reference Modal */}
+      {showAddReference && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white border-2 border-black max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="sticky top-0 bg-white border-b-2 border-black p-6">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-bold text-black tracking-wide">
+                    ADD NEW REFERENCE
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setShowAddReference(false)}
+                    className="text-black hover:bg-black hover:text-white p-2 font-bold text-xl"
+                  >
+                    ×
+                  </button>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">
+                  Fields marked with <span className="text-red-500 font-bold">*</span> are required
+                </p>
+              </div>
+              
+              <div className="p-6">
           
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                  Type *
+                  Type
                 </label>
                 <select
                   value={newReference.type}
@@ -302,7 +299,7 @@ export default function ReferenceManager({
 
               <div>
                 <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                  Year *
+                  Year
                 </label>
                 <input
                   type="number"
@@ -317,33 +314,33 @@ export default function ReferenceManager({
 
             <div>
               <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Title *
+                Title <span className="text-red-500 text-lg">*</span>
               </label>
               <input
                 type="text"
                 value={newReference.title || ''}
                 onChange={(e) => {
-                  console.log('Title changing to:', e.target.value)
                   setNewReference({ ...newReference, title: e.target.value })
                 }}
-                className="input"
-                placeholder="Enter title..."
+                className={`input ${!newReference.title ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
+                placeholder="Enter title (required)..."
+                required
               />
             </div>
 
             <div>
               <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Author *
+                Author <span className="text-red-500 text-lg">*</span>
               </label>
               <input
                 type="text"
                 value={newReference.author || ''}
                 onChange={(e) => {
-                  console.log('Author changing to:', e.target.value)
                   setNewReference({ ...newReference, author: e.target.value })
                 }}
-                className="input"
-                placeholder="Last, F. M."
+                className={`input ${!newReference.author ? 'border-red-300 bg-red-50' : 'border-gray-300'}`}
+                placeholder="Last, F. M. (required)..."
+                required
               />
             </div>
 
@@ -393,18 +390,7 @@ export default function ReferenceManager({
             <div className="flex gap-4 pt-4">
               <button
                 type="button"
-                onClick={() => {
-                  console.log('🔘 Add Reference button clicked!')
-                  console.log('Button disabled state:', (!newReference.title || !newReference.author))
-                  console.log('Title exists:', !!newReference.title, 'Author exists:', !!newReference.author)
-                  console.log('newReference at button click:', newReference)
-                  if (!newReference.title || !newReference.author) {
-                    console.log('❌ Button should be disabled but was clickable')
-                    alert('Button validation check: Title and Author are required')
-                    return
-                  }
-                  addReference()
-                }}
+                onClick={addReference}
                 className="btn btn-primary"
                 disabled={!newReference.title || !newReference.author}
               >
@@ -412,10 +398,7 @@ export default function ReferenceManager({
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  console.log('Cancel button clicked!')
-                  setShowAddReference(false)
-                }}
+                onClick={() => setShowAddReference(false)}
                 className="btn btn-ghost"
               >
                 Cancel
@@ -423,8 +406,7 @@ export default function ReferenceManager({
             </div>
           </div>
         </div>
-        )
-      })()}
+        )}
 
       {/* Citations Summary */}
       {citations.length > 0 && (
