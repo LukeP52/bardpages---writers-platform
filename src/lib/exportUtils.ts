@@ -79,10 +79,21 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
     </div>
   ` : ''
 
+  // Process images in chapter content to ensure proper sizing
+  const processImagesInContent = (content: string): string => {
+    return content.replace(/<img([^>]*?)>/g, (match, attributes) => {
+      // Add Word-friendly image attributes if not already present
+      if (!attributes.includes('style=')) {
+        return `<img${attributes} style="max-width: 100%; height: auto; display: block; margin: 1em auto;">`;
+      }
+      return match;
+    });
+  };
+
   const chaptersHTML = chapters.map(chapter => `
     <div class="chapter">
       <h2>${chapter.title}</h2>
-      <div class="chapter-content">${chapter.content}</div>
+      <div class="chapter-content">${processImagesInContent(chapter.content)}</div>
     </div>
   `).join('')
 
@@ -92,6 +103,8 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="ProgId" content="Word.Document">
+  <meta name="Generator" content="Microsoft Word">
   <title>${title}</title>
   <style>
     body {
@@ -153,6 +166,22 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
       letter-spacing: normal;
     }
     
+    /* Image sizing for Word compatibility */
+    img {
+      max-width: 100%;
+      height: auto;
+      display: block;
+      margin: 1em auto;
+      page-break-inside: avoid;
+    }
+    
+    /* Ensure images don't exceed page width minus margins */
+    .chapter-content img {
+      max-width: calc(100% - 2em);
+      width: auto;
+      height: auto;
+    }
+    
     /* Word-friendly styles */
     .chapter-content p {
       text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
@@ -165,6 +194,23 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
       
       p {
         text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
+      }
+      
+      /* Enhanced image handling for print/Word */
+      img {
+        max-width: 6.5in !important; /* Standard page width minus margins */
+        width: auto !important;
+        height: auto !important;
+        page-break-inside: avoid;
+        margin: 12pt auto;
+        display: block;
+      }
+      
+      /* For very large images, ensure they fit within printable area */
+      .chapter-content img {
+        max-width: 6in !important;
+        max-height: 9in !important;
+        object-fit: contain;
       }
     }
   </style>
