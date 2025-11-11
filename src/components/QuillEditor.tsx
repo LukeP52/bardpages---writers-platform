@@ -41,7 +41,7 @@ export default function QuillEditor({
       }
 
       quillRef.current.on('text-change', () => {
-        if (onChange) {
+        if (onChange && quillRef.current) {
           onChange(quillRef.current.root.innerHTML)
         }
       })
