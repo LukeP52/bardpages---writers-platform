@@ -16,13 +16,21 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
+    console.log('Edit page loading for excerpt ID:', params.id)
+    
     if (typeof window !== 'undefined') {
-      const cachedExcerpt = sessionStorage.getItem(
-        `editing_excerpt_${params.id}`
-      )
+      const cacheKey = `editing_excerpt_${params.id}`
+      console.log('Looking for cached excerpt with key:', cacheKey)
+      
+      const cachedExcerpt = sessionStorage.getItem(cacheKey)
+      console.log('Cached excerpt found:', cachedExcerpt ? 'YES' : 'NO')
+      
       if (cachedExcerpt) {
         try {
+          console.log('Parsing cached excerpt data...')
           const parsed = JSON.parse(cachedExcerpt)
+          console.log('Parsed cached data:', parsed)
+          
           setExcerpt({
             ...parsed,
             createdAt: parsed.createdAt
@@ -33,7 +41,8 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
               : new Date(),
           })
           setIsLoading(false)
-          sessionStorage.removeItem(`editing_excerpt_${params.id}`)
+          sessionStorage.removeItem(cacheKey)
+          console.log('Successfully loaded from cache')
           return
         } catch (error) {
           console.warn('Failed to parse cached excerpt data:', error)
@@ -41,8 +50,12 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
       }
     }
 
+    console.log('No cache found, trying localStorage...')
     const loadedExcerpt = storage.getExcerpt(params.id)
+    console.log('localStorage excerpt found:', loadedExcerpt ? 'YES' : 'NO')
+    
     if (!loadedExcerpt) {
+      console.log('No excerpt found anywhere, showing error')
       setIsLoading(false)
       setExcerpt(null)
       return

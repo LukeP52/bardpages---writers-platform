@@ -90,14 +90,21 @@ export default function ExcerptsPage() {
       return
     }
     try {
-      sessionStorage.setItem(
-        `editing_excerpt_${excerpt.id}`,
-        JSON.stringify({
-          ...excerpt,
-          createdAt: excerpt.createdAt.toISOString(),
-          updatedAt: excerpt.updatedAt.toISOString(),
-        })
-      )
+      const cacheKey = `editing_excerpt_${excerpt.id}`
+      const cacheData = {
+        ...excerpt,
+        createdAt: excerpt.createdAt.toISOString(),
+        updatedAt: excerpt.updatedAt.toISOString(),
+      }
+      
+      console.log('Caching excerpt with key:', cacheKey)
+      console.log('Cache data:', cacheData)
+      
+      sessionStorage.setItem(cacheKey, JSON.stringify(cacheData))
+      
+      // Verify it was saved
+      const saved = sessionStorage.getItem(cacheKey)
+      console.log('Cache verification:', saved ? 'SUCCESS' : 'FAILED')
     } catch (error) {
       console.warn('Unable to cache excerpt for editing:', error)
     }
