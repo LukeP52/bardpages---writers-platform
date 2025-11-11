@@ -97,7 +97,16 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         imageUrl: imageUrl.trim() || undefined
       }
 
+      console.log('Saving excerpt:', excerptData.id, excerptData.title)
       storage.saveExcerpt(excerptData)
+      
+      // Verify it was saved
+      const saved = storage.getExcerpt(excerptData.id)
+      console.log('Verification - saved excerpt retrieved:', saved ? 'SUCCESS' : 'FAILED')
+      
+      if (!saved) {
+        throw new Error('Failed to save excerpt to storage')
+      }
       
       toast.success(`Excerpt ${mode === 'create' ? 'created' : 'updated'} successfully!`)
       router.push('/excerpts')

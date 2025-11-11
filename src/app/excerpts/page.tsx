@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Excerpt } from '@/types'
 import { storage } from '@/lib/storage'
+import { v4 as uuidv4 } from 'uuid'
 
 export default function ExcerptsPage() {
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
@@ -102,6 +103,49 @@ export default function ExcerptsPage() {
     }
   }
 
+  const debugStorage = () => {
+    console.log('=== STORAGE DEBUG ===')
+    const loadedExcerpts = storage.getExcerpts()
+    console.log('Excerpts from storage:', loadedExcerpts.length)
+    loadedExcerpts.forEach((excerpt, i) => {
+      console.log(`${i + 1}. ${excerpt.title} (ID: ${excerpt.id})`)
+    })
+
+    // Check localStorage directly
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('bardpages_excerpts')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        console.log('localStorage direct check:', parsed.length, 'excerpts')
+      } else {
+        console.log('localStorage direct check: NO DATA')
+      }
+    }
+    console.log('=== END DEBUG ===')
+  }
+
+  const createTestExcerpt = () => {
+    const testExcerpt: Excerpt = {
+      id: uuidv4(),
+      title: 'Debug Test Excerpt',
+      content: 'This is a test excerpt created for debugging storage issues.',
+      author: 'Debug System',
+      status: 'draft',
+      tags: ['debug', 'test'],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      wordCount: 12
+    }
+    
+    console.log('Creating test excerpt with ID:', testExcerpt.id)
+    storage.saveExcerpt(testExcerpt)
+    
+    // Force refresh the state
+    const updated = storage.getExcerpts()
+    setExcerpts(updated)
+    setFilteredExcerpts(updated)
+  }
+
   const renderExcerpts = () => (
     <div className="space-y-6">
       {filteredExcerpts.map((excerpt, index) => (
@@ -189,12 +233,26 @@ export default function ExcerptsPage() {
           </p>
         </div>
         
-        <Link
-          href="/excerpts/new"
-          className="btn btn-primary"
-        >
-          + NEW EXCERPT
-        </Link>
+        <div className="flex gap-4">
+          <button
+            onClick={debugStorage}
+            className="btn btn-ghost"
+          >
+            DEBUG STORAGE
+          </button>
+          <button
+            onClick={createTestExcerpt}
+            className="btn btn-secondary"
+          >
+            CREATE TEST
+          </button>
+          <Link
+            href="/excerpts/new"
+            className="btn btn-primary"
+          >
+            + NEW EXCERPT
+          </Link>
+        </div>
       </div>
 
       {/* Search and Filters */}

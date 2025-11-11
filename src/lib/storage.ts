@@ -124,6 +124,9 @@ class InMemoryStorage {
   saveExcerpt(excerpt: Excerpt): void {
     this.initializeFromLocalStorage()
     
+    console.log('Storage saveExcerpt called for:', excerpt.id, excerpt.title)
+    console.log('Current excerpts count before save:', this.excerpts.size)
+    
     // Add any new tags from this excerpt to the premade tags
     excerpt.tags.forEach(tag => {
       if (tag.trim()) {
@@ -132,7 +135,22 @@ class InMemoryStorage {
     })
     
     this.excerpts.set(excerpt.id, excerpt)
+    console.log('Current excerpts count after save:', this.excerpts.size)
+    
     this.saveToLocalStorage()
+    
+    // Verify it's in localStorage
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('bardpages_excerpts')
+      if (stored) {
+        const parsed = JSON.parse(stored)
+        console.log('localStorage verification - total excerpts:', parsed.length)
+        const found = parsed.find((e: any) => e.id === excerpt.id)
+        console.log('localStorage verification - excerpt found:', found ? 'YES' : 'NO')
+      } else {
+        console.error('localStorage verification - NO DATA FOUND')
+      }
+    }
   }
 
   deleteExcerpt(id: string): boolean {
