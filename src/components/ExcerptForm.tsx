@@ -80,130 +80,134 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          {mode === 'create' ? 'Create New Excerpt' : 'Edit Excerpt'}
-        </h1>
-      </div>
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
-            Title *
-          </label>
-          <input
-            type="text"
-            id="title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-lg"
-            placeholder="Enter excerpt title..."
-            required
-          />
+    <div className="section bg-white">
+      <div className="container max-w-4xl">
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-black uppercase tracking-wide">
+            {mode === 'create' ? 'Create Excerpt' : 'Edit Excerpt'}
+          </h1>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Content *
-          </label>
-          <QuillEditor
-            value={content}
-            onChange={setContent}
-            placeholder="Start writing your excerpt..."
-            className="min-h-[400px]"
-          />
-          <div className="mt-2 text-sm text-gray-500">
-            Word count: {getWordCount(content)}
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Tags
-          </label>
-          
-          <div className="flex flex-wrap gap-2 mb-3">
-            {tags.map(tag => (
-              <span
-                key={tag}
-                className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full"
-              >
-                {tag}
-                <button
-                  type="button"
-                  onClick={() => removeTag(tag)}
-                  className="ml-2 text-blue-600 hover:text-blue-800"
-                >
-                  ×
-                </button>
-              </span>
-            ))}
-          </div>
-
-          <div className="flex gap-2">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div>
+            <label htmlFor="title" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
+              Title *
+            </label>
             <input
               type="text"
-              value={newTag}
-              onChange={(e) => setNewTag(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addTag(newTag)
-                }
-              }}
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Add a tag..."
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="input text-xl"
+              placeholder="Enter excerpt title..."
+              required
             />
-            <button
-              type="button"
-              onClick={() => addTag(newTag)}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-            >
-              Add
-            </button>
           </div>
 
-          {availableTags.length > 0 && (
-            <div className="mt-3">
-              <p className="text-sm text-gray-600 mb-2">Available tags:</p>
-              <div className="flex flex-wrap gap-1">
-                {availableTags
-                  .filter(tag => !tags.includes(tag))
-                  .map(tag => (
-                    <button
-                      key={tag}
-                      type="button"
-                      onClick={() => addTag(tag)}
-                      className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded hover:bg-gray-200 transition-colors"
-                    >
-                      + {tag}
-                    </button>
-                  ))
-                }
-              </div>
+          <div>
+            <label className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
+              Content *
+            </label>
+            <QuillEditor
+              value={content}
+              onChange={setContent}
+              placeholder="Start writing your excerpt..."
+              className="min-h-[400px] border-2 border-black"
+            />
+            <div className="mt-4 text-sm text-secondary font-mono">
+              Word count: {getWordCount(content)}
             </div>
-          )}
-        </div>
+          </div>
 
-        <div className="flex justify-end space-x-4 pt-6">
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-            disabled={isSubmitting}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting || !title.trim() || !content.trim()}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? 'Saving...' : mode === 'create' ? 'Create Excerpt' : 'Update Excerpt'}
-          </button>
-        </div>
-      </form>
+          <div>
+            <label className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
+              Tags
+            </label>
+            
+            <div className="flex flex-wrap gap-2 mb-4">
+              {tags.map(tag => (
+                <span
+                  key={tag}
+                  className="inline-flex items-center px-4 py-2 bg-black text-white text-sm font-mono"
+                >
+                  {tag}
+                  <button
+                    type="button"
+                    onClick={() => removeTag(tag)}
+                    className="ml-2 text-white hover:bg-white hover:text-black w-5 h-5 flex items-center justify-center"
+                  >
+                    ×
+                  </button>
+                </span>
+              ))}
+            </div>
+
+            <div className="flex gap-0">
+              <input
+                type="text"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    addTag(newTag)
+                  }
+                }}
+                className="input border-r-0"
+                placeholder="Add a tag..."
+              />
+              <button
+                type="button"
+                onClick={() => addTag(newTag)}
+                className="btn btn-secondary px-8"
+              >
+                Add
+              </button>
+            </div>
+
+            {availableTags.length > 0 && (
+              <div className="mt-6">
+                <p className="text-sm text-secondary mb-3 uppercase tracking-wide">Available tags:</p>
+                <div className="flex flex-wrap gap-2">
+                  {availableTags
+                    .filter(tag => !tags.includes(tag))
+                    .map(tag => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => addTag(tag)}
+                        className="px-3 py-1 border border-black text-black text-xs font-mono hover:bg-black hover:text-white transition-colors"
+                      >
+                        + {tag}
+                      </button>
+                    ))
+                  }
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="divider my-8"></div>
+
+          <div className="flex justify-end space-x-4">
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="btn btn-ghost"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSubmitting || !title.trim() || !content.trim()}
+              className="btn btn-primary"
+            >
+              {isSubmitting ? 'Saving...' : mode === 'create' ? 'Create Excerpt' : 'Update Excerpt'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }

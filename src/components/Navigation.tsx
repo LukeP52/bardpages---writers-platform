@@ -4,43 +4,42 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const navigationItems = [
-  { name: 'Excerpts', href: '/excerpts', icon: '📝' },
-  { name: 'Storyboards', href: '/storyboards', icon: '📋' },
-  { name: 'Books', href: '/books', icon: '📚' },
+  { name: 'Excerpts', href: '/excerpts' },
+  { name: 'Storyboards', href: '/storyboards' },
+  { name: 'Books', href: '/books' },
 ]
 
 export default function Navigation() {
   const pathname = usePathname()
 
   return (
-    <nav className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex">
-            <div className="flex-shrink-0 flex items-center">
-              <Link href="/" className="text-2xl font-bold text-blue-600">
-                Bard Pages
-              </Link>
-            </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+    <nav className="bg-white border-b-2 border-black">
+      <div className="container">
+        <div className="flex items-center justify-between h-20">
+          <div className="flex items-center space-x-12">
+            <Link href="/" className="text-2xl font-bold text-black tracking-tight">
+              BARD PAGES
+            </Link>
+            <div className="hidden md:flex items-center space-x-0">
               {navigationItems.map((item) => {
                 const isActive = pathname.startsWith(item.href)
                 return (
                   <Link
                     key={item.name}
                     href={item.href}
-                    className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
-                      isActive
-                        ? 'border-blue-500 text-gray-900'
-                        : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
-                    }`}
+                    className={`nav-link ${isActive ? 'active' : ''}`}
                   >
-                    <span className="mr-2">{item.icon}</span>
                     {item.name}
                   </Link>
                 )
               })}
             </div>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <Link href="/excerpts/new" className="btn btn-primary">
+              New Excerpt
+            </Link>
           </div>
         </div>
       </div>

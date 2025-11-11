@@ -8,113 +8,158 @@ export default function Home() {
   const [content, setContent] = useState('<p>Start writing your next excerpt...</p>')
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 sm:text-5xl md:text-6xl">
-          Welcome to{' '}
-          <span className="text-blue-600">Bard Pages</span>
-        </h1>
-        <p className="mt-3 max-w-md mx-auto text-base text-gray-500 sm:text-lg md:mt-5 md:text-xl md:max-w-3xl">
-          A comprehensive platform for writers to manage excerpts, create storyboards, and publish books.
-        </p>
-      </div>
+    <>
+      {/* Hero Section */}
+      <section className="section bg-white">
+        <div className="container">
+          <div className="text-center max-w-4xl mx-auto">
+            <h1 className="text-6xl md:text-8xl font-bold text-black mb-8 tracking-tight">
+              BARD PAGES
+            </h1>
+            <p className="text-xl text-secondary mb-12 max-w-2xl mx-auto">
+              A minimalist platform for writers to craft excerpts, build storyboards, and create books with precision.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link href="/excerpts" className="btn btn-primary">
+                Start Writing
+              </Link>
+              <Link href="/storyboards" className="btn btn-secondary">
+                View Storyboards
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
 
-      <div className="mt-16">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          <Link href="/excerpts" className="group">
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="text-4xl mb-4">📝</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Manage Excerpts
-              </h3>
-              <p className="text-gray-500">
-                Write, edit, and organize your story excerpts with rich text editing and tagging.
+      <div className="divider"></div>
+
+      {/* Features Grid */}
+      <section className="section-sm bg-white">
+        <div className="container">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-0">
+            <Link href="/excerpts" className="group">
+              <div className="card p-12 text-center border-r-0 md:border-r">
+                <div className="w-16 h-16 bg-black flex items-center justify-center mx-auto mb-6">
+                  <span className="text-white text-2xl font-bold">01</span>
+                </div>
+                <h3 className="text-2xl font-bold text-black mb-4 uppercase tracking-wide">
+                  Excerpts
+                </h3>
+                <p className="text-secondary">
+                  Write and organize your story fragments with our powerful rich text editor.
+                </p>
+              </div>
+            </Link>
+
+            <Link href="/storyboards" className="group">
+              <div className="card p-12 text-center border-r-0 md:border-r">
+                <div className="w-16 h-16 bg-black flex items-center justify-center mx-auto mb-6">
+                  <span className="text-white text-2xl font-bold">02</span>
+                </div>
+                <h3 className="text-2xl font-bold text-black mb-4 uppercase tracking-wide">
+                  Storyboards
+                </h3>
+                <p className="text-secondary">
+                  Structure your narratives by arranging excerpts into coherent storylines.
+                </p>
+              </div>
+            </Link>
+
+            <Link href="/books" className="group">
+              <div className="card p-12 text-center">
+                <div className="w-16 h-16 bg-black flex items-center justify-center mx-auto mb-6">
+                  <span className="text-white text-2xl font-bold">03</span>
+                </div>
+                <h3 className="text-2xl font-bold text-black mb-4 uppercase tracking-wide">
+                  Books
+                </h3>
+                <p className="text-secondary">
+                  Transform storyboards into formatted manuscripts ready for publication.
+                </p>
+              </div>
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <div className="divider"></div>
+
+      {/* Workflow */}
+      <section className="section-sm bg-white">
+        <div className="container">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl font-bold text-black mb-4 uppercase tracking-wide">
+              Your Workflow
+            </h2>
+            <p className="text-secondary max-w-2xl mx-auto">
+              A streamlined process designed for serious writers who demand clarity and focus.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <div className="text-center">
+              <div className="w-24 h-24 border-2 border-black flex items-center justify-center mx-auto mb-6">
+                <span className="text-black text-xl font-bold">WRITE</span>
+              </div>
+              <h3 className="text-lg font-bold text-black mb-2 uppercase tracking-wide">Create</h3>
+              <p className="text-sm text-secondary">Draft excerpts with focus</p>
+            </div>
+            <div className="text-center">
+              <div className="w-24 h-24 border-2 border-black flex items-center justify-center mx-auto mb-6">
+                <span className="text-black text-xl font-bold">BUILD</span>
+              </div>
+              <h3 className="text-lg font-bold text-black mb-2 uppercase tracking-wide">Organize</h3>
+              <p className="text-sm text-secondary">Structure into storyboards</p>
+            </div>
+            <div className="text-center">
+              <div className="w-24 h-24 border-2 border-black flex items-center justify-center mx-auto mb-6">
+                <span className="text-black text-xl font-bold">SHIP</span>
+              </div>
+              <h3 className="text-lg font-bold text-black mb-2 uppercase tracking-wide">Publish</h3>
+              <p className="text-sm text-secondary">Export finished books</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="divider"></div>
+
+      {/* Editor Demo */}
+      <section className="section bg-white">
+        <div className="container">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div>
+              <h2 className="text-3xl font-bold text-black mb-6 uppercase tracking-wide">
+                Live Editor
+              </h2>
+              <p className="text-secondary mb-8">
+                Experience our writing environment. Every keystroke is captured with precision, 
+                every format preserved with intention.
               </p>
+              <QuillEditor
+                value={content}
+                onChange={setContent}
+                placeholder="Begin your story here..."
+                className="min-h-[400px] border-2 border-black"
+              />
             </div>
-          </Link>
-
-          <Link href="/storyboards" className="group">
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="text-4xl mb-4">📋</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Create Storyboards
+            <div>
+              <h3 className="text-3xl font-bold text-black mb-6 uppercase tracking-wide">
+                Preview
               </h3>
-              <p className="text-gray-500">
-                Organize your excerpts into structured storyboards to plan your books.
+              <p className="text-secondary mb-8">
+                See your work as readers will. Clean, distraction-free, exactly as intended.
               </p>
+              <div className="border-2 border-black p-8 min-h-[400px] bg-white">
+                <div
+                  className="prose prose-lg max-w-none text-black"
+                  dangerouslySetInnerHTML={{ __html: content }}
+                />
+              </div>
             </div>
-          </Link>
-
-          <Link href="/books" className="group">
-            <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-              <div className="text-4xl mb-4">📚</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Publish Books
-              </h3>
-              <p className="text-gray-500">
-                Transform your storyboards into formatted books ready for publication.
-              </p>
-            </div>
-          </Link>
-        </div>
-      </div>
-
-      <div className="mt-16 bg-white rounded-lg shadow-md p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-4">Your Writing Workflow</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="text-center">
-            <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-              <span className="text-blue-600 font-bold">1</span>
-            </div>
-            <h3 className="font-semibold text-gray-900">Write Excerpts</h3>
-            <p className="text-sm text-gray-500 mt-1">Create and tag your story pieces</p>
-          </div>
-          <div className="text-center">
-            <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-              <span className="text-blue-600 font-bold">2</span>
-            </div>
-            <h3 className="font-semibold text-gray-900">Build Storyboards</h3>
-            <p className="text-sm text-gray-500 mt-1">Organize excerpts into book structure</p>
-          </div>
-          <div className="text-center">
-            <div className="bg-blue-100 rounded-full w-12 h-12 flex items-center justify-center mx-auto mb-3">
-              <span className="text-blue-600 font-bold">3</span>
-            </div>
-            <h3 className="font-semibold text-gray-900">Create Books</h3>
-            <p className="text-sm text-gray-500 mt-1">Format and export your final work</p>
           </div>
         </div>
-      </div>
-
-      <div className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Try the Quill Editor</h2>
-          <p className="text-sm text-gray-500 mb-4">
-            Draft an excerpt using the embedded Quill editor. Formatting updates in real time so you can see exactly how your writing will look when published.
-          </p>
-          <QuillEditor
-            value={content}
-            onChange={setContent}
-            placeholder="Start typing your next chapter..."
-            className="min-h-[300px]"
-          />
-          <p className="mt-4 text-xs text-gray-400">
-            Full toolbar includes headings, font families, sizes, lists, color controls, links, images, code blocks, and more—ready for rich storytelling.
-          </p>
-        </div>
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-xl font-semibold text-gray-900 mb-3">Live Preview</h3>
-          <p className="text-sm text-gray-500 mb-4">
-            This preview reflects the HTML generated by Quill, letting you spot formatting issues before you hit publish.
-          </p>
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 min-h-[300px] overflow-auto">
-            <div
-              className="space-y-4 text-gray-700"
-              dangerouslySetInnerHTML={{ __html: content }}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
+      </section>
+    </>
   )
 }
