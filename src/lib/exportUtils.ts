@@ -79,14 +79,27 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
     </div>
   ` : ''
 
-  // Process images in chapter content to ensure proper sizing
+  // Process images in chapter content to ensure proper sizing for Word
   const processImagesInContent = (content: string): string => {
     return content.replace(/<img([^>]*?)>/g, (match, attributes) => {
-      // Add Word-friendly image attributes if not already present
-      if (!attributes.includes('style=')) {
-        return `<img${attributes} style="max-width: 100%; height: auto; display: block; margin: 1em auto;">`;
-      }
-      return match;
+      // Extract src attribute
+      const srcMatch = attributes.match(/src\s*=\s*["']([^"']*)["']/i);
+      const src = srcMatch ? srcMatch[1] : '';
+      
+      // Extract alt attribute if present
+      const altMatch = attributes.match(/alt\s*=\s*["']([^"']*)["']/i);
+      const alt = altMatch ? altMatch[1] : '';
+      
+      // Use a table-based approach that Word handles better for image sizing
+      return `
+        <table align="center" style="margin: 1em auto; max-width: 100%;">
+          <tr>
+            <td align="center">
+              <img src="${src}"${alt ? ` alt="${alt}"` : ''} width="400" height="auto" style="max-width: 400px; height: auto; border: none;">
+            </td>
+          </tr>
+        </table>
+      `;
     });
   };
 
@@ -166,20 +179,23 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
       letter-spacing: normal;
     }
     
-    /* Image sizing for Word compatibility */
+    /* Image sizing for Word compatibility - simplified for better Word support */
     img {
-      max-width: 100%;
-      height: auto;
-      display: block;
-      margin: 1em auto;
-      page-break-inside: avoid;
+      max-width: 400px !important;
+      height: auto !important;
+      border: none !important;
     }
     
-    /* Ensure images don't exceed page width minus margins */
-    .chapter-content img {
-      max-width: calc(100% - 2em);
-      width: auto;
-      height: auto;
+    /* Table-based image containers for Word compatibility */
+    table {
+      margin: 1em auto;
+      border-collapse: collapse;
+      border: none;
+    }
+    
+    table td {
+      border: none;
+      padding: 0;
     }
     
     /* Word-friendly styles */
@@ -198,19 +214,13 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
       
       /* Enhanced image handling for print/Word */
       img {
-        max-width: 6.5in !important; /* Standard page width minus margins */
-        width: auto !important;
+        width: 4.5in !important;
+        max-width: 4.5in !important;
         height: auto !important;
-        page-break-inside: avoid;
-        margin: 12pt auto;
-        display: block;
-      }
-      
-      /* For very large images, ensure they fit within printable area */
-      .chapter-content img {
-        max-width: 6in !important;
-        max-height: 9in !important;
-        object-fit: contain;
+        display: block !important;
+        margin: 12pt auto !important;
+        border: none !important;
+        page-break-inside: avoid !important;
       }
     }
   </style>
