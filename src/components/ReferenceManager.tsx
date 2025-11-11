@@ -265,13 +265,14 @@ export default function ReferenceManager({
       </div>
 
       {/* Add Reference Form */}
-      {showAddReference && (
-        <div className="border-2 border-black bg-white p-6">
-          <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
-            ADD NEW REFERENCE
-          </h3>
-          {console.log('Add Reference Form is rendering')}
-          {console.log('Current newReference state:', newReference)}
+      {showAddReference && (() => {
+        console.log('Add Reference Form is rendering')
+        console.log('Current newReference state:', newReference)
+        return (
+          <div className="border-2 border-black bg-white p-6">
+            <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
+              ADD NEW REFERENCE
+            </h3>
           
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -412,7 +413,8 @@ export default function ReferenceManager({
             </div>
           </div>
         </div>
-      )}
+        )
+      })()}
 
       {/* Citations Summary */}
       {citations.length > 0 && (
