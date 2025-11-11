@@ -377,21 +377,68 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-12">
-          <div className="card">
-            <div className="form-group">
-              <label htmlFor="title" className="form-label">
-                Title *
-              </label>
-              <input
-                type="text"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="input text-lg"
-                placeholder="Enter your excerpt title..."
-                required
-              />
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Title and File Upload Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="card p-4">
+              <div className="form-group mb-0">
+                <label htmlFor="title" className="form-label text-sm">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="input"
+                  placeholder="Enter excerpt title..."
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="card p-4">
+              <div className="form-group mb-0">
+                <label className="form-label text-sm">
+                  Import From File
+                </label>
+                <div className="flex items-center gap-2 mt-2">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    onChange={handleFileUpload}
+                    accept={FileParser.getSupportedFormats().join(',')}
+                    className="hidden"
+                    disabled={isUploadingFile}
+                  />
+                  <button
+                    type="button"
+                    onClick={triggerFileUpload}
+                    disabled={isUploadingFile}
+                    className="btn btn-outline btn-sm disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                  >
+                    {isUploadingFile ? 'Processing...' : 'Choose File'}
+                  </button>
+                  
+                  {uploadProgress && (
+                    <span className="text-xs text-slate-600 font-medium truncate">
+                      {uploadProgress}
+                    </span>
+                  )}
+                </div>
+                
+                {isUploadingFile && (
+                  <div className="mt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-1">
+                      <div className="bg-blue-600 h-1 rounded-full animate-pulse" style={{ width: '70%' }}></div>
+                    </div>
+                  </div>
+                )}
+                
+                <p className="text-xs text-slate-500 mt-1">
+                  Supports: {FileParser.getSupportedFormats().slice(0, 3).join(', ')}...
+                </p>
+              </div>
             </div>
           </div>
 
@@ -448,51 +495,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
                   className="input"
                 />
               </div>
-            </div>
-          </div>
-
-          {/* File Upload Section */}
-          <div className="card">
-            <div className="form-group">
-              <label className="form-label">
-                Import From File
-              </label>
-              <p className="text-sm text-slate-600 mb-4">
-                Upload a document to automatically populate your excerpt. Supported formats: {FileParser.getSupportedFormats().join(', ')}
-              </p>
-              
-              <div className="flex items-center gap-4">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  onChange={handleFileUpload}
-                  accept={FileParser.getSupportedFormats().join(',')}
-                  className="hidden"
-                  disabled={isUploadingFile}
-                />
-                <button
-                  type="button"
-                  onClick={triggerFileUpload}
-                  disabled={isUploadingFile}
-                  className="btn btn-outline disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isUploadingFile ? 'Processing...' : 'Choose File'}
-                </button>
-                
-                {uploadProgress && (
-                  <span className="text-sm text-slate-600 font-medium">
-                    {uploadProgress}
-                  </span>
-                )}
-              </div>
-              
-              {isUploadingFile && (
-                <div className="mt-3">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '70%' }}></div>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
 
