@@ -58,7 +58,7 @@ export interface Category {
 
 export interface TagCategoryMapping {
   tagName: string
-  categoryId: string
+  categoryIds: string[]
 }
 
 export interface StoryboardSection {

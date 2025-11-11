@@ -9,19 +9,19 @@ import toast from 'react-hot-toast'
 
 interface CategoryAssignmentModalProps {
   tagName: string
-  currentCategoryId?: string
-  onAssign: (categoryId: string) => void
+  currentCategoryIds?: string[]
+  onAssign: (categoryIds: string[]) => void
   onClose: () => void
 }
 
 export default function CategoryAssignmentModal({
   tagName,
-  currentCategoryId,
+  currentCategoryIds = [],
   onAssign,
   onClose
 }: CategoryAssignmentModalProps) {
   const [categories, setCategories] = useState<Category[]>([])
-  const [selectedCategoryId, setSelectedCategoryId] = useState(currentCategoryId || '')
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(currentCategoryIds)
   const [showNewCategoryForm, setShowNewCategoryForm] = useState(false)
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryDescription, setNewCategoryDescription] = useState('')
@@ -42,8 +42,8 @@ export default function CategoryAssignmentModal({
   }
 
   const handleAssign = () => {
-    if (selectedCategoryId) {
-      onAssign(selectedCategoryId)
+    if (selectedCategoryIds.length > 0) {
+      onAssign(selectedCategoryIds)
       onClose()
     }
   }
@@ -63,7 +63,7 @@ export default function CategoryAssignmentModal({
     }
 
     storage.saveCategory(newCategory)
-    setSelectedCategoryId(newCategory.id)
+    setSelectedCategoryIds([...selectedCategoryIds, newCategory.id])
     setNewCategoryName('')
     setNewCategoryDescription('')
     setShowNewCategoryForm(false)
@@ -94,17 +94,21 @@ export default function CategoryAssignmentModal({
                   <label
                     key={category.id}
                     className={`flex items-center p-2 rounded border cursor-pointer transition-all ${
-                      selectedCategoryId === category.id
+                      selectedCategoryIds.includes(category.id)
                         ? 'border-gray-400 bg-gray-50'
                         : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <input
-                      type="radio"
-                      name="category"
-                      value={category.id}
-                      checked={selectedCategoryId === category.id}
-                      onChange={(e) => setSelectedCategoryId(e.target.value)}
+                      type="checkbox"
+                      checked={selectedCategoryIds.includes(category.id)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedCategoryIds([...selectedCategoryIds, category.id])
+                        } else {
+                          setSelectedCategoryIds(selectedCategoryIds.filter(id => id !== category.id))
+                        }
+                      }}
                       className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-500"
                     />
                     <div className="ml-2 flex-1">
@@ -159,7 +163,7 @@ export default function CategoryAssignmentModal({
           <div className="flex gap-2 p-4 pt-0">
             <button
               onClick={handleAssign}
-              disabled={!selectedCategoryId}
+              disabled={selectedCategoryIds.length === 0}
               className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm font-medium transition-colors"
             >
               Assign

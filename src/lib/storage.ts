@@ -7,7 +7,7 @@ class InMemoryStorage {
   private books: Map<string, Book> = new Map()
   private premadeTags: Set<string> = new Set()
   private categories: Map<string, Category> = new Map()
-  private tagCategoryMappings: Map<string, string> = new Map() // tagName -> categoryId
+  private tagCategoryMappings: Map<string, string[]> = new Map() // tagName -> categoryIds
   private isInitialized = false
 
   private initializeFromLocalStorage() {
@@ -78,7 +78,16 @@ class InMemoryStorage {
       const tagMappings = localStorage.getItem('bardpages_tag_mappings')
       if (tagMappings) {
         const parsedMappings = JSON.parse(tagMappings)
-        this.tagCategoryMappings = new Map(parsedMappings)
+        // Handle both old single-category format and new multi-category format
+        parsedMappings.forEach(([tagName, categories]: [string, string | string[]]) => {
+          if (typeof categories === 'string') {
+            // Legacy single category - convert to array
+            this.tagCategoryMappings.set(tagName, [categories])
+          } else {
+            // New multi-category format
+            this.tagCategoryMappings.set(tagName, categories)
+          }
+        })
       }
 
       // Initialize default categories if none exist
@@ -425,15 +434,19 @@ class InMemoryStorage {
 
   deleteCategory(id: string): boolean {
     this.initializeFromLocalStorage()
-    // Move all tags in this category to "Other" category
-    const otherCategory = Array.from(this.categories.values()).find(cat => cat.name === 'Other')
-    if (otherCategory) {
-      this.tagCategoryMappings.forEach((categoryId, tagName) => {
-        if (categoryId === id) {
-          this.tagCategoryMappings.set(tagName, otherCategory.id)
+    // Remove this category from all tag mappings
+    this.tagCategoryMappings.forEach((categoryIds, tagName) => {
+      const filteredIds = categoryIds.filter(catId => catId !== id)
+      if (filteredIds.length > 0) {
+        this.tagCategoryMappings.set(tagName, filteredIds)
+      } else {
+        // If no categories left, move to "Other" category
+        const otherCategory = Array.from(this.categories.values()).find(cat => cat.name === 'Other')
+        if (otherCategory) {
+          this.tagCategoryMappings.set(tagName, [otherCategory.id])
         }
-      })
-    }
+      }
+    })
     
     const result = this.categories.delete(id)
     this.saveToLocalStorage()
@@ -441,19 +454,31 @@ class InMemoryStorage {
   }
 
   // Tag-Category mappings
+  assignTagToCategories(tagName: string, categoryIds: string[]): void {
+    this.initializeFromLocalStorage()
+    this.tagCategoryMappings.set(tagName, categoryIds)
+    this.saveToLocalStorage()
+  }
+
   assignTagToCategory(tagName: string, categoryId: string): void {
     this.initializeFromLocalStorage()
-    this.tagCategoryMappings.set(tagName, categoryId)
-    this.saveToLocalStorage()
+    const existingCategories = this.tagCategoryMappings.get(tagName) || []
+    if (!existingCategories.includes(categoryId)) {
+      this.tagCategoryMappings.set(tagName, [...existingCategories, categoryId])
+      this.saveToLocalStorage()
+    }
+  }
+
+  getTagCategories(tagName: string): Category[] {
+    this.initializeFromLocalStorage()
+    const categoryIds = this.tagCategoryMappings.get(tagName) || []
+    return categoryIds.map(id => this.categories.get(id)).filter(cat => cat !== undefined) as Category[]
   }
 
   getTagCategory(tagName: string): Category | undefined {
     this.initializeFromLocalStorage()
-    const categoryId = this.tagCategoryMappings.get(tagName)
-    if (categoryId) {
-      return this.categories.get(categoryId)
-    }
-    return undefined
+    const categories = this.getTagCategories(tagName)
+    return categories[0] // Return first category for backward compatibility
   }
 
   getTagsByCategory(): Map<string, string[]> {
@@ -465,11 +490,15 @@ class InMemoryStorage {
       result.set(category.id, [])
     })
     
-    // Group tags by category
-    this.tagCategoryMappings.forEach((categoryId, tagName) => {
-      const categoryTags = result.get(categoryId) || []
-      categoryTags.push(tagName)
-      result.set(categoryId, categoryTags)
+    // Group tags by category (tags can appear in multiple categories)
+    this.tagCategoryMappings.forEach((categoryIds, tagName) => {
+      categoryIds.forEach(categoryId => {
+        const categoryTags = result.get(categoryId) || []
+        if (!categoryTags.includes(tagName)) {
+          categoryTags.push(tagName)
+          result.set(categoryId, categoryTags)
+        }
+      })
     })
     
     // Add uncategorized tags to "Other" category
@@ -494,7 +523,21 @@ class InMemoryStorage {
       this.premadeTags.add(trimmedTag)
       
       if (categoryId) {
-        this.tagCategoryMappings.set(trimmedTag, categoryId)
+        this.assignTagToCategory(trimmedTag, categoryId)
+      }
+      
+      this.saveToLocalStorage()
+    }
+  }
+
+  addPremadeTagWithCategories(tag: string, categoryIds: string[]): void {
+    this.initializeFromLocalStorage()
+    if (tag.trim()) {
+      const trimmedTag = tag.trim()
+      this.premadeTags.add(trimmedTag)
+      
+      if (categoryIds.length > 0) {
+        this.assignTagToCategories(trimmedTag, categoryIds)
       }
       
       this.saveToLocalStorage()

@@ -170,14 +170,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     }
   }
 
-  const handleCategoryAssignment = (categoryId: string) => {
+  const handleCategoryAssignment = (categoryIds: string[]) => {
     if (selectedTagForAssignment) {
-      storage.addPremadeTagWithCategory(selectedTagForAssignment, categoryId)
+      storage.addPremadeTagWithCategories(selectedTagForAssignment, categoryIds)
       setTags(prev => [...prev, selectedTagForAssignment])
       setNewTag('')
       setSelectedTagForAssignment('')
-      const category = storage.getCategory(categoryId)
-      toast.success(`Tag "${selectedTagForAssignment}" added to ${category?.name || 'category'}!`)
+      const categoryNames = categoryIds.map(id => storage.getCategory(id)?.name).filter(Boolean)
+      toast.success(`Tag "${selectedTagForAssignment}" added to ${categoryNames.length > 1 ? categoryNames.join(', ') : categoryNames[0] || 'category'}!`)
     }
   }
 
@@ -630,6 +630,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         {showCategoryAssignmentModal && (
           <CategoryAssignmentModal
             tagName={selectedTagForAssignment}
+            currentCategoryIds={storage.getTagCategories(selectedTagForAssignment).map(cat => cat.id)}
             onAssign={handleCategoryAssignment}
             onClose={() => {
               setShowCategoryAssignmentModal(false)
