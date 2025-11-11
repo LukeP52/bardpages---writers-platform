@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { v4 as uuidv4 } from 'uuid'
 import QuillEditor from '@/components/QuillEditor'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import ReferenceManager from '@/components/ReferenceManager'
+import ReferenceManager, { AddReferenceButton } from '@/components/ReferenceManager'
 import { Excerpt, Reference, Citation } from '@/types'
 import { storage } from '@/lib/storage'
 import toast from 'react-hot-toast'
@@ -34,6 +34,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [imageUrl, setImageUrl] = useState(excerpt?.imageUrl || '')
   const [references, setReferences] = useState<Reference[]>(excerpt?.references || [])
   const [citations, setCitations] = useState<Citation[]>(excerpt?.citations || [])
+  const [showReferenceManager, setShowReferenceManager] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Auto-save functionality
@@ -219,10 +220,11 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   return (
     <div className="section bg-white">
       <div className="container max-w-4xl">
-        <div className="mb-12">
+        <div className="mb-12 flex items-center justify-between">
           <h1 className="text-4xl font-bold text-black uppercase tracking-wide">
             {mode === 'create' ? 'Create Excerpt' : 'Edit Excerpt'}
           </h1>
+          <AddReferenceButton onClick={() => setShowReferenceManager(true)} />
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -407,20 +409,20 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             )}
           </div>
 
-          {/* References and Citations */}
-          <div>
-            <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
-              References & Citations
-            </h2>
-            <ReferenceManager
-              references={references}
-              citations={citations}
-              content={content}
-              onReferencesChange={setReferences}
-              onCitationsChange={setCitations}
-              onContentChange={setContent}
-            />
-          </div>
+          {/* References List */}
+          {references.length > 0 && (
+            <div>
+              <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
+                References ({references.length})
+              </h2>
+              <ReferenceManager
+                references={references}
+                citations={citations}
+                onReferencesChange={setReferences}
+                onCitationsChange={setCitations}
+              />
+            </div>
+          )}
 
           <div className="divider my-8"></div>
 
@@ -447,6 +449,17 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             </button>
           </div>
         </form>
+
+        {/* Reference Management Modal */}
+        {showReferenceManager && (
+          <ReferenceManager
+            references={references}
+            citations={citations}
+            onReferencesChange={setReferences}
+            onCitationsChange={setCitations}
+            onClose={() => setShowReferenceManager(false)}
+          />
+        )}
       </div>
     </div>
   )

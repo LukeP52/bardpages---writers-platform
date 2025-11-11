@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { PlusIcon, XMarkIcon, BookOpenIcon, GlobeAltIcon, NewspaperIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { Reference, Citation } from '@/types'
@@ -9,25 +9,20 @@ import toast from 'react-hot-toast'
 interface ReferenceManagerProps {
   references: Reference[]
   citations: Citation[]
-  content: string
   onReferencesChange: (references: Reference[]) => void
   onCitationsChange: (citations: Citation[]) => void
-  onContentChange: (content: string) => void
+  onClose?: () => void
 }
 
 export default function ReferenceManager({
   references,
   citations,
-  content,
   onReferencesChange,
   onCitationsChange,
-  onContentChange
+  onClose
 }: ReferenceManagerProps) {
   const [showAddReference, setShowAddReference] = useState(false)
   const [editingReference, setEditingReference] = useState<Reference | null>(null)
-  const [selectedText, setSelectedText] = useState('')
-  const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null)
-  const contentRef = useRef<HTMLTextAreaElement>(null)
 
   const [newReference, setNewReference] = useState<Partial<Reference>>({
     type: 'book',
@@ -36,52 +31,6 @@ export default function ReferenceManager({
     year: new Date().getFullYear()
   })
 
-  const handleTextSelection = () => {
-    if (!contentRef.current) return
-
-    const textarea = contentRef.current
-    const start = textarea.selectionStart
-    const end = textarea.selectionEnd
-
-    if (start !== end) {
-      const selected = content.substring(start, end)
-      setSelectedText(selected)
-      setSelectedRange({ start, end })
-    } else {
-      setSelectedText('')
-      setSelectedRange(null)
-    }
-  }
-
-  const addCitation = (referenceId: string) => {
-    if (!selectedRange) {
-      toast.error('Please select text to cite first')
-      return
-    }
-
-    const noteId = `cite-${Date.now()}`
-    const newCitation: Citation = {
-      id: uuidv4(),
-      referenceId,
-      startPos: selectedRange.start,
-      endPos: selectedRange.end,
-      text: selectedText,
-      noteId
-    }
-
-    // Insert citation marker in content
-    const beforeText = content.substring(0, selectedRange.end)
-    const afterText = content.substring(selectedRange.end)
-    const citationNumber = citations.length + 1
-    const newContent = `${beforeText}[${citationNumber}]${afterText}`
-
-    onContentChange(newContent)
-    onCitationsChange([...citations, newCitation])
-    
-    setSelectedText('')
-    setSelectedRange(null)
-    toast.success('Citation added successfully!')
-  }
 
   const startEditingReference = (reference: Reference) => {
     setEditingReference(reference)
@@ -179,6 +128,7 @@ export default function ReferenceManager({
     })
     setEditingReference(null)
     setShowAddReference(false)
+    if (onClose) onClose()
   }
 
   const deleteReference = (id: string) => {
@@ -186,23 +136,6 @@ export default function ReferenceManager({
     const citationsToDelete = citations.filter(citation => citation.referenceId === id)
     
     if (citationsToDelete.length > 0) {
-      // Remove citation markers from content text
-      let updatedContent = content
-      
-      // Sort citations by position (end to start) to avoid position shifts during removal
-      const sortedCitations = citationsToDelete.sort((a, b) => b.endPos - a.endPos)
-      
-      sortedCitations.forEach(citation => {
-        // Find and remove the citation marker [number] that was added after the cited text
-        const citationNumber = citations.indexOf(citation) + 1
-        const markerPattern = `\\[${citationNumber}\\]`
-        const markerRegex = new RegExp(markerPattern, 'g')
-        updatedContent = updatedContent.replace(markerRegex, '')
-      })
-      
-      // Update content with citations removed
-      onContentChange(updatedContent)
-      
       // Remove all citations that reference this reference
       const remainingCitations = citations.filter(citation => citation.referenceId !== id)
       onCitationsChange(remainingCitations)
@@ -213,7 +146,7 @@ export default function ReferenceManager({
     
     const citationCount = citationsToDelete.length
     if (citationCount > 0) {
-      toast.success(`Reference deleted and ${citationCount} citation${citationCount > 1 ? 's' : ''} removed from text`)
+      toast.success(`Reference deleted and ${citationCount} citation${citationCount > 1 ? 's' : ''} removed`)
     } else {
       toast.success('Reference deleted')
     }
@@ -247,34 +180,6 @@ export default function ReferenceManager({
 
   return (
     <div className="space-y-6">
-      {/* Text Editor with Selection */}
-      <div>
-        <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-          Content with Citations
-        </label>
-        <textarea
-          ref={contentRef}
-          value={content}
-          onChange={(e) => onContentChange(e.target.value)}
-          onSelect={handleTextSelection}
-          onMouseUp={handleTextSelection}
-          onKeyUp={handleTextSelection}
-          className="input min-h-[200px] font-mono text-sm"
-          placeholder="Write your content here. Select text and add references to create citations..."
-        />
-        
-        {selectedText && (
-          <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-sm text-blue-800">
-              <strong>Selected text:</strong> "{selectedText}"
-            </p>
-            <p className="text-xs text-blue-600 mt-1">
-              Choose a reference below to cite this text, or add a new reference.
-            </p>
-          </div>
-        )}
-      </div>
-
       {/* References List */}
       <div className="border-2 border-black bg-white">
         <div className="p-4 border-b-2 border-black flex items-center justify-between">
@@ -323,15 +228,6 @@ export default function ReferenceManager({
                       </p>
                     </div>
                     <div className="flex items-center gap-2 ml-4">
-                      {selectedText && (
-                        <button
-                          type="button"
-                          onClick={() => addCitation(reference.id)}
-                          className="btn btn-primary btn-sm"
-                        >
-                          CITE
-                        </button>
-                      )}
                       <button
                         type="button"
                         onClick={() => startEditingReference(reference)}
@@ -540,5 +436,23 @@ export default function ReferenceManager({
         </div>
       )}
     </div>
+  )
+}
+
+// Simple button component for adding references (to be placed in top right)
+interface AddReferenceButtonProps {
+  onClick: () => void
+}
+
+export function AddReferenceButton({ onClick }: AddReferenceButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="btn btn-primary"
+    >
+      <PlusIcon className="w-4 h-4 mr-2" />
+      ADD REFERENCE
+    </button>
   )
 }
