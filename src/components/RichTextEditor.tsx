@@ -43,7 +43,7 @@ export default function RichTextEditor({
   return (
     <div className="rich-text-editor">
       <Editor
-        apiKey="no-api-key"
+        apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key"}
         onInit={(evt, editor) => editorRef.current = editor}
         value={value}
         onEditorChange={handleEditorChange}
