@@ -249,22 +249,46 @@ export default function StoryboardEditPage() {
 
     const selectedExcerptList = filteredAvailableExcerpts.filter(e => selectedExcerpts.has(e.id))
     
-    selectedExcerptList.forEach((excerpt, index) => {
-      setTimeout(() => {
-        addExcerptToStoryboard(excerpt)
-      }, index * 100) // Stagger the additions slightly
+    // Create all sections first, then update storyboard once
+    const newSections = [...storyboard.sections]
+    selectedExcerptList.forEach((excerpt) => {
+      const newSection: StoryboardSection = {
+        id: uuidv4(),
+        excerptId: excerpt.id,
+        order: newSections.length,
+        notes: ''
+      }
+      newSections.push(newSection)
+    })
+
+    // Update storyboard with all new sections at once
+    saveStoryboard({
+      ...storyboard,
+      sections: newSections
     })
 
     setSelectedExcerpts(new Set())
   }
 
-  const addAllExcerpts = () => {
-    if (!storyboard || availableExcerpts.length === 0) return
+  const addAllFilteredExcerpts = () => {
+    if (!storyboard || filteredAvailableExcerpts.length === 0) return
 
-    availableExcerpts.forEach((excerpt, index) => {
-      setTimeout(() => {
-        addExcerptToStoryboard(excerpt)
-      }, index * 100) // Stagger the additions slightly
+    // Create all sections first, then update storyboard once
+    const newSections = [...storyboard.sections]
+    filteredAvailableExcerpts.forEach((excerpt) => {
+      const newSection: StoryboardSection = {
+        id: uuidv4(),
+        excerptId: excerpt.id,
+        order: newSections.length,
+        notes: ''
+      }
+      newSections.push(newSection)
+    })
+
+    // Update storyboard with all new sections at once
+    saveStoryboard({
+      ...storyboard,
+      sections: newSections
     })
   }
 
@@ -454,12 +478,12 @@ export default function StoryboardEditPage() {
                 </button>
               </>
             )}
-            {availableExcerpts.length > 0 && (
+            {filteredAvailableExcerpts.length > 0 && (
               <button
-                onClick={addAllExcerpts}
+                onClick={addAllFilteredExcerpts}
                 className="text-sm bg-purple-50 hover:bg-purple-100 text-purple-600 px-3 py-2 rounded transition-colors"
               >
-                Add All ({availableExcerpts.length})
+                Add All Filtered ({filteredAvailableExcerpts.length})
               </button>
             )}
           </div>
