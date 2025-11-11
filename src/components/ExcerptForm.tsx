@@ -20,6 +20,12 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [content, setContent] = useState(excerpt?.content || '')
   const [author, setAuthor] = useState(excerpt?.author || '')
   const [status, setStatus] = useState<'draft' | 'review' | 'final'>(excerpt?.status || 'draft')
+  const [date, setDate] = useState(() => {
+    if (excerpt?.createdAt) {
+      return new Date(excerpt.createdAt).toISOString().split('T')[0]
+    }
+    return new Date().toISOString().split('T')[0]
+  })
   const [tags, setTags] = useState<string[]>(excerpt?.tags || [])
   const [newTag, setNewTag] = useState('')
   const [availableTags, setAvailableTags] = useState<string[]>([])
@@ -60,6 +66,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
 
     try {
       const now = new Date()
+      const selectedDate = new Date(date)
       const excerptData: Excerpt = {
         id: excerpt?.id || uuidv4(),
         title: title.trim(),
@@ -67,7 +74,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         author: author.trim() || undefined,
         status,
         tags,
-        createdAt: excerpt?.createdAt || now,
+        createdAt: excerpt?.createdAt || selectedDate,
         updatedAt: now,
         wordCount: getWordCount(content)
       }
@@ -113,7 +120,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label htmlFor="author" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
                 Author
@@ -150,6 +157,19 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
                 <option value="review">Review</option>
                 <option value="final">Final</option>
               </select>
+            </div>
+
+            <div>
+              <label htmlFor="date" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
+                Date
+              </label>
+              <input
+                type="date"
+                id="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="input"
+              />
             </div>
           </div>
 
