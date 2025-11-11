@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import Navigation from '@/components/Navigation'
 import './globals.css'
+import 'quill/dist/quill.snow.css'
 
 export const metadata: Metadata = {
   title: 'Bard Pages - Writers Platform',

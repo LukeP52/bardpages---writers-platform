@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import type Quill from 'quill'
 
 interface RichTextEditorProps {
   value: string
@@ -17,26 +18,116 @@ export default function RichTextEditor({
   height = 400,
   readonly = false
 }: RichTextEditorProps) {
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const quillRef = useRef<Quill | null>(null)
   const [isMounted, setIsMounted] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  
+  // Track if we're in the middle of updating from props to avoid loops
+  const isUpdatingFromProps = useRef(false)
 
   useEffect(() => {
     setIsMounted(true)
   }, [])
 
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onChange(e.target.value)
+  useEffect(() => {
+    if (!isMounted) return
+    
+    let isCancelled = false
+
+    async function initEditor() {
+      try {
+        const QuillModule = await import('quill')
+        const QuillConstructor = QuillModule.default
+
+        if (isCancelled || !containerRef.current || quillRef.current) {
+          return
+        }
+
+        // Configure toolbar based on readonly mode
+        const toolbarOptions = readonly ? false : [
+          [{ 'header': [1, 2, 3, false] }],
+          ['bold', 'italic', 'underline', 'strike'],
+          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+          [{ 'indent': '-1'}, { 'indent': '+1' }],
+          ['link', 'blockquote'],
+          ['clean']
+        ]
+
+        quillRef.current = new QuillConstructor(containerRef.current, {
+          theme: 'snow',
+          placeholder,
+          readOnly: readonly,
+          modules: {
+            toolbar: toolbarOptions
+          }
+        })
+
+        // Set initial content
+        if (value) {
+          isUpdatingFromProps.current = true
+          quillRef.current.root.innerHTML = value
+          isUpdatingFromProps.current = false
+        }
+
+        // Listen for changes
+        quillRef.current.on('text-change', () => {
+          if (!isUpdatingFromProps.current && onChange) {
+            const html = quillRef.current?.root.innerHTML || ''
+            onChange(html)
+          }
+        })
+
+        // Set height if specified
+        if (height && containerRef.current) {
+          const editorDiv = containerRef.current.querySelector('.ql-editor') as HTMLElement
+          if (editorDiv) {
+            editorDiv.style.minHeight = `${height - 100}px` // Account for toolbar
+          }
+        }
+
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Failed to initialize Quill:', error)
+        setIsLoading(false)
+      }
+    }
+
+    initEditor()
+
+    return () => {
+      isCancelled = true
+      if (quillRef.current) {
+        quillRef.current.off('text-change')
+        quillRef.current = null
+      }
+    }
+  }, [isMounted, readonly, placeholder, height])
+
+  // Update content when value prop changes
+  useEffect(() => {
+    if (quillRef.current && !isUpdatingFromProps.current) {
+      const currentContent = quillRef.current.root.innerHTML
+      if (currentContent !== value) {
+        isUpdatingFromProps.current = true
+        const selection = quillRef.current.getSelection()
+        quillRef.current.root.innerHTML = value
+        if (selection && !readonly) {
+          // Restore selection if not readonly
+          quillRef.current.setSelection(selection)
+        }
+        isUpdatingFromProps.current = false
+      }
+    }
+  }, [value, readonly])
+
+  // Calculate word count from HTML content
+  const getWordCount = (html: string) => {
+    const text = html.replace(/<[^>]*>/g, '').trim()
+    return text.length > 0 ? text.split(/\s+/).length : 0
   }
 
-  // Auto-resize textarea to fit content
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-    }
-  }, [value])
-
-  if (!isMounted) {
+  if (!isMounted || isLoading) {
     return (
       <div 
         className="border border-gray-300 rounded-lg p-4 bg-gray-50 animate-pulse"
@@ -49,55 +140,18 @@ export default function RichTextEditor({
 
   return (
     <div className="rich-text-editor">
-      <div className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
-        {/* Simple toolbar for basic formatting */}
-        {!readonly && (
-          <div className="bg-gray-50 border-b border-gray-300 px-3 py-2">
-            <div className="flex gap-2 text-sm">
-              <button
-                type="button"
-                className="px-2 py-1 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded transition-colors"
-                title="This is a placeholder editor - replace with your preferred rich text editor"
-              >
-                <strong>B</strong>
-              </button>
-              <button
-                type="button"
-                className="px-2 py-1 text-gray-600 hover:text-gray-800 hover:bg-gray-200 rounded transition-colors"
-                title="This is a placeholder editor - replace with your preferred rich text editor"
-              >
-                <em>I</em>
-              </button>
-              <div className="border-l border-gray-300 mx-2"></div>
-              <span className="text-gray-500 text-xs py-1">
-                Placeholder Editor - Replace with your preferred rich text editor
-              </span>
-            </div>
-          </div>
-        )}
-        
-        <textarea
-          ref={textareaRef}
-          value={value}
-          onChange={handleChange}
-          placeholder={placeholder}
-          readOnly={readonly}
-          className="w-full p-4 resize-none border-0 focus:outline-none font-mono text-sm leading-relaxed"
-          style={{ 
-            minHeight: height,
-            maxHeight: readonly ? height : 'none'
-          }}
-        />
-      </div>
+      <div 
+        ref={containerRef}
+        className="border border-gray-300 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent"
+        style={{ minHeight: height }}
+      />
       
-      {/* Word count */}
+      {/* Word count and info */}
       <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
-        <span>Word count: {value.trim().split(/\s+/).filter(word => word.length > 0).length}</span>
-        {!readonly && (
-          <span className="text-xs text-blue-600">
-            💡 This is a basic text editor. Replace RichTextEditor component with your preferred editor.
-          </span>
-        )}
+        <span>Words: {getWordCount(value)}</span>
+        <span className="text-xs text-green-600">
+          ✨ Rich text editor powered by Quill
+        </span>
       </div>
     </div>
   )
