@@ -29,20 +29,20 @@ export default function QuillEditor({
         return
       }
 
-      quillRef.current = new QuillConstructor(containerRef.current, {
+      const quillInstance = new QuillConstructor(containerRef.current, {
         theme: 'snow',
         placeholder,
       })
 
+      quillRef.current = quillInstance
+
       if (typeof initialValueRef.current === 'string') {
-        quillRef.current.clipboard.dangerouslyPasteHTML(
-          initialValueRef.current
-        )
+        quillInstance.clipboard.dangerouslyPasteHTML(initialValueRef.current)
       }
 
-      quillRef.current.on('text-change', () => {
-        if (onChange && quillRef.current) {
-          onChange(quillRef.current.root.innerHTML)
+      quillInstance.on('text-change', () => {
+        if (onChange) {
+          onChange(quillInstance.root.innerHTML)
         }
       })
     }
