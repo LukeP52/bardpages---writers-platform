@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Excerpt } from '@/types'
 import { storage } from '@/lib/storage'
+import { v4 as uuidv4 } from 'uuid'
 
 export default function ExcerptsPage() {
   const router = useRouter()
@@ -85,7 +86,27 @@ export default function ExcerptsPage() {
   const handleEditExcerpt = (excerptId: string) => {
     console.log('Edit button clicked for excerpt ID:', excerptId)
     console.log('Navigating to:', `/excerpts/${excerptId}/edit`)
-    router.push(`/excerpts/${excerptId}/edit`)
+    window.location.href = `/excerpts/${excerptId}/edit`
+  }
+
+  const createTestExcerpt = () => {
+    const testExcerpt: Excerpt = {
+      id: uuidv4(),
+      title: 'Test Excerpt',
+      content: 'This is a test excerpt to verify edit functionality works.',
+      author: 'Test Author',
+      status: 'draft',
+      tags: ['test'],
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      wordCount: 10
+    }
+    
+    storage.saveExcerpt(testExcerpt)
+    console.log('Test excerpt created with ID:', testExcerpt.id)
+    
+    // Reload the page to show the new excerpt
+    window.location.reload()
   }
 
   const getExcerptPreview = (content: string, maxLength = 150) => {
@@ -180,12 +201,20 @@ export default function ExcerptsPage() {
           </p>
         </div>
         
-        <Link
-          href="/excerpts/new"
-          className="btn btn-primary"
-        >
-          + NEW EXCERPT
-        </Link>
+        <div className="flex gap-4">
+          <button
+            onClick={createTestExcerpt}
+            className="btn btn-secondary"
+          >
+            CREATE TEST EXCERPT
+          </button>
+          <Link
+            href="/excerpts/new"
+            className="btn btn-primary"
+          >
+            + NEW EXCERPT
+          </Link>
+        </div>
       </div>
 
       {/* Search and Filters */}
