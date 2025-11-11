@@ -77,6 +77,7 @@ function SortableExcerptCard({
       layout
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ 
+        opacity: 1,
         scale: isBeingDraggedOver ? 1.05 : 1,
         boxShadow: isBeingDraggedOver ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' : undefined
       }}
