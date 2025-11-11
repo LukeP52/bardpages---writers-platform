@@ -99,6 +99,14 @@ class InMemoryStorage {
 
   saveExcerpt(excerpt: Excerpt): void {
     this.initializeFromLocalStorage()
+    
+    // Add any new tags from this excerpt to the premade tags
+    excerpt.tags.forEach(tag => {
+      if (tag.trim()) {
+        this.premadeTags.add(tag.trim())
+      }
+    })
+    
     this.excerpts.set(excerpt.id, excerpt)
     this.saveToLocalStorage()
   }

@@ -8,6 +8,7 @@ export interface Excerpt {
   updatedAt: Date
   wordCount: number
   status: 'draft' | 'review' | 'final'
+  imageUrl?: string
 }
 
 export interface Tag {

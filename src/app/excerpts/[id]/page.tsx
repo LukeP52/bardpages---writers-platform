@@ -113,6 +113,16 @@ export default function ExcerptDetailPage({ params }: ExcerptDetailPageProps) {
             readonly={true}
             height={500}
           />
+          
+          {excerpt.imageUrl && (
+            <div className="mt-6 border-t border-gray-200 pt-6">
+              <img 
+                src={excerpt.imageUrl} 
+                alt={excerpt.title} 
+                className="max-w-full h-auto rounded-lg border border-gray-200"
+              />
+            </div>
+          )}
         </div>
       </div>
 

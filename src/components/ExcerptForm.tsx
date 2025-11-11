@@ -30,6 +30,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [newTag, setNewTag] = useState('')
   const [availableTags, setAvailableTags] = useState<string[]>([])
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([])
+  const [imageUrl, setImageUrl] = useState(excerpt?.imageUrl || '')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -76,7 +77,8 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         tags,
         createdAt: excerpt?.createdAt || selectedDate,
         updatedAt: now,
-        wordCount: getWordCount(content)
+        wordCount: getWordCount(content),
+        imageUrl: imageUrl.trim() || undefined
       }
 
       storage.saveExcerpt(excerptData)
@@ -186,6 +188,34 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             <div className="mt-4 text-sm text-secondary font-mono">
               Word count: {getWordCount(content)}
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="imageUrl" className="block text-sm font-bold text-black mb-4 uppercase tracking-wide">
+              Image URL (Optional)
+            </label>
+            <input
+              type="url"
+              id="imageUrl"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              className="input w-full"
+              placeholder="https://example.com/image.jpg"
+            />
+            {imageUrl && (
+              <div className="mt-4">
+                <p className="text-sm font-bold text-black mb-2 uppercase tracking-wide">Preview:</p>
+                <img 
+                  src={imageUrl} 
+                  alt="Preview" 
+                  className="max-w-xs max-h-48 border-2 border-black"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement
+                    target.style.display = 'none'
+                  }}
+                />
+              </div>
+            )}
           </div>
 
           <div>
