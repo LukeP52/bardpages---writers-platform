@@ -50,6 +50,15 @@ export default function BooksPage() {
     }
   }
 
+  const handleDeleteBook = (book: Book) => {
+    if (window.confirm(`Are you sure you want to delete "${book.title}"? This action cannot be undone.`)) {
+      storage.deleteBook(book.id)
+      const updatedBooks = storage.getBooks()
+      setBooks(updatedBooks)
+      toast.success('Book deleted successfully!')
+    }
+  }
+
 
   return (
     <div className="container py-12">
@@ -168,6 +177,12 @@ export default function BooksPage() {
                     >
                       PREVIEW
                     </Link>
+                    <button
+                      onClick={() => handleDeleteBook(book)}
+                      className="btn btn-outline hover:bg-red-50 hover:border-red-600 hover:text-red-600"
+                    >
+                      DELETE
+                    </button>
                     </div>
                   </div>
                 
