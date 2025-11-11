@@ -7,6 +7,7 @@ import QuillEditor from '@/components/QuillEditor'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import ReferenceManager, { AddReferenceButton } from '@/components/ReferenceManager'
 import CitationWorkflow from '@/components/CitationWorkflow'
+import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
 import { Excerpt, Reference, Citation } from '@/types'
 import { storage } from '@/lib/storage'
 import toast from 'react-hot-toast'
@@ -39,6 +40,8 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [selectedText, setSelectedText] = useState('')
   const [selectedRange, setSelectedRange] = useState<{ index: number; length: number } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showCategoryAssignmentModal, setShowCategoryAssignmentModal] = useState(false)
+  const [selectedTagForAssignment, setSelectedTagForAssignment] = useState('')
   const quillRef = useRef<any>(null)
 
   // Auto-save functionality
@@ -153,8 +156,28 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const addTag = (tag: string) => {
     const trimmedTag = tag.trim()
     if (trimmedTag && !tags.includes(trimmedTag)) {
-      setTags(prev => [...prev, trimmedTag])
+      // Check if this tag already exists in storage
+      const allTags = storage.getAllTags()
+      if (allTags.includes(trimmedTag)) {
+        // Tag exists, just add it
+        setTags(prev => [...prev, trimmedTag])
+        setNewTag('')
+      } else {
+        // New tag, show category assignment modal
+        setSelectedTagForAssignment(trimmedTag)
+        setShowCategoryAssignmentModal(true)
+      }
+    }
+  }
+
+  const handleCategoryAssignment = (categoryId: string) => {
+    if (selectedTagForAssignment) {
+      storage.addPremadeTagWithCategory(selectedTagForAssignment, categoryId)
+      setTags(prev => [...prev, selectedTagForAssignment])
       setNewTag('')
+      setSelectedTagForAssignment('')
+      const category = storage.getCategory(categoryId)
+      toast.success(`Tag "${selectedTagForAssignment}" added to ${category?.name || 'category'}!`)
     }
   }
 
@@ -600,6 +623,19 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             onCitationsChange={setCitations}
             onContentChange={setContent}
             onClose={() => setShowCitationWorkflow(false)}
+          />
+        )}
+
+        {/* Category Assignment Modal */}
+        {showCategoryAssignmentModal && (
+          <CategoryAssignmentModal
+            tagName={selectedTagForAssignment}
+            onAssign={handleCategoryAssignment}
+            onClose={() => {
+              setShowCategoryAssignmentModal(false)
+              setSelectedTagForAssignment('')
+              setNewTag('')
+            }}
           />
         )}
       </div>

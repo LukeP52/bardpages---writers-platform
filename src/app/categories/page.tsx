@@ -1,14 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { PlusIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, XMarkIcon, PencilIcon } from '@heroicons/react/24/outline'
+import { v4 as uuidv4 } from 'uuid'
+import { Category } from '@/types'
 import { storage } from '@/lib/storage'
+import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
 import toast from 'react-hot-toast'
 
 export default function TagManagerPage() {
   const [allTags, setAllTags] = useState<string[]>([])
+  const [categories, setCategories] = useState<Category[]>([])
   const [newTag, setNewTag] = useState('')
+  const [newCategoryName, setNewCategoryName] = useState('')
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
+  const [showCategoryAssignmentModal, setShowCategoryAssignmentModal] = useState(false)
+  const [selectedTagForAssignment, setSelectedTagForAssignment] = useState<string>('')
+  const [showNewCategoryForm, setShowNewCategoryForm] = useState(false)
 
   useEffect(() => {
     loadData()
@@ -17,15 +25,47 @@ export default function TagManagerPage() {
   const loadData = () => {
     const allTags = storage.getAllTags()
     setAllTags(allTags)
+    const allCategories = storage.getCategories()
+    setCategories(allCategories)
   }
 
 
   const addTag = () => {
     if (newTag.trim()) {
-      storage.addPremadeTag(newTag.trim())
+      setSelectedTagForAssignment(newTag.trim())
+      setShowCategoryAssignmentModal(true)
+    }
+  }
+
+  const handleCategoryAssignment = (categoryId: string) => {
+    if (selectedTagForAssignment) {
+      storage.addPremadeTagWithCategory(selectedTagForAssignment, categoryId)
       setNewTag('')
+      setSelectedTagForAssignment('')
       loadData()
-      toast.success('Tag added successfully!')
+      const category = storage.getCategory(categoryId)
+      toast.success(`Tag "${selectedTagForAssignment}" added to ${category?.name || 'category'}!`)
+    }
+  }
+
+  const handleTagReassignment = (tagName: string) => {
+    setSelectedTagForAssignment(tagName)
+    setShowCategoryAssignmentModal(true)
+  }
+
+  const addCategory = () => {
+    if (newCategoryName.trim()) {
+      const newCategory: Category = {
+        id: uuidv4(),
+        name: newCategoryName.trim(),
+        description: `Custom category: ${newCategoryName.trim()}`,
+        color: '#6B7280',
+        createdAt: new Date()
+      }
+      storage.saveCategory(newCategory)
+      setNewCategoryName('')
+      loadData()
+      toast.success(`Category "${newCategory.name}" created successfully!`)
     }
   }
 
@@ -119,22 +159,17 @@ export default function TagManagerPage() {
   }
 
   const groupTagsByCategory = () => {
-    const categories: { [key: string]: string[] } = {}
+    const tagsByCategory = storage.getTagsByCategory()
+    const result: { [key: string]: string[] } = {}
     
-    allTags.forEach(tag => {
-      const category = categorizeTag(tag)
-      if (!categories[category]) {
-        categories[category] = []
+    categories.forEach(category => {
+      const tags = tagsByCategory.get(category.id) || []
+      if (tags.length > 0) {
+        result[category.name] = tags.sort()
       }
-      categories[category].push(tag)
     })
     
-    // Sort tags within each category
-    Object.keys(categories).forEach(category => {
-      categories[category].sort()
-    })
-    
-    return categories
+    return result
   }
 
   const toggleCategory = (category: string) => {
@@ -160,12 +195,44 @@ export default function TagManagerPage() {
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8">
+        {/* Add Category Form */}
+        <div className="card bg-white p-6">
+          <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
+            ADD NEW CATEGORY
+          </h3>
+          <div className="flex gap-0 mb-4">
+            <input
+              type="text"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  addCategory()
+                }
+              }}
+              className="input border-r-0 flex-1"
+              placeholder="Enter category name..."
+            />
+            <button
+              onClick={addCategory}
+              className="btn btn-primary px-6"
+              disabled={!newCategoryName.trim()}
+            >
+              <PlusIcon className="w-5 h-5" />
+            </button>
+          </div>
+          <p className="text-sm text-gray-600">
+            Create custom categories to better organize your tags beyond the default ones.
+          </p>
+        </div>
+
         {/* Add Tag Form */}
         <div className="card bg-white p-6">
           <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
             ADD NEW TAG
           </h3>
-          <div className="flex gap-0">
+          <div className="flex gap-0 mb-4">
             <input
               type="text"
               value={newTag}
@@ -187,6 +254,9 @@ export default function TagManagerPage() {
               <PlusIcon className="w-5 h-5" />
             </button>
           </div>
+          <p className="text-sm text-gray-600">
+            When you add a tag, you'll be prompted to assign it to a category.
+          </p>
         </div>
 
         {/* All Tags List */}
@@ -261,6 +331,13 @@ export default function TagManagerPage() {
                                   </span>
                                 )}
                                 <button
+                                  onClick={() => handleTagReassignment(tag)}
+                                  className="text-blue-500 hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
+                                  title="Reassign category"
+                                >
+                                  <PencilIcon className="w-3 h-3" />
+                                </button>
+                                <button
                                   onClick={() => deleteTag(tag)}
                                   className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
                                   title="Delete tag"
@@ -286,14 +363,28 @@ export default function TagManagerPage() {
             HOW CATEGORIZED TAGS WORK
           </h3>
           <div className="text-sm text-gray-700 space-y-2">
-            <p>• <strong>Auto-categorization:</strong> Tags are automatically sorted into categories like "Wars & Military", "Geography & Regions", etc.</p>
-            <p>• <strong>Expand categories:</strong> Click on a category to see its tags. Numbers show how many tags are in each category.</p>
-            <p>• <strong>Compact display:</strong> Tags are smaller and more efficient, showing usage count in excerpts</p>
-            <p>• <strong>Quick-select:</strong> All tags appear as buttons when creating excerpts, regardless of category</p>
-            <p>• <strong>Smart deletion:</strong> Hover over tags to see delete option (removes from quick-select but keeps in existing excerpts)</p>
+            <p>• <strong>Create categories:</strong> Add custom categories to organize your tags beyond the default ones</p>
+            <p>• <strong>Category assignment:</strong> When adding tags, you'll be prompted to assign them to a category</p>
+            <p>• <strong>Reassign tags:</strong> Click the pencil icon next to any tag to move it to a different category</p>
+            <p>• <strong>Expand categories:</strong> Click on a category to see its tags. Numbers show how many tags are in each category</p>
+            <p>• <strong>Usage tracking:</strong> See how many excerpts use each tag with the usage counter</p>
+            <p>• <strong>Smart deletion:</strong> Delete tags with the × icon (removes from quick-select but keeps in existing excerpts)</p>
           </div>
         </div>
       </div>
+
+      {/* Category Assignment Modal */}
+      {showCategoryAssignmentModal && (
+        <CategoryAssignmentModal
+          tagName={selectedTagForAssignment}
+          currentCategoryId={storage.getTagCategory(selectedTagForAssignment)?.id}
+          onAssign={handleCategoryAssignment}
+          onClose={() => {
+            setShowCategoryAssignmentModal(false)
+            setSelectedTagForAssignment('')
+          }}
+        />
+      )}
     </div>
   )
 }

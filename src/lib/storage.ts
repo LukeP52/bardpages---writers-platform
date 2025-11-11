@@ -1,4 +1,4 @@
-import { Excerpt, Tag, Storyboard, Book, Reference, Citation } from '@/types'
+import { Excerpt, Tag, Storyboard, Book, Reference, Citation, Category, TagCategoryMapping } from '@/types'
 
 class InMemoryStorage {
   private excerpts: Map<string, Excerpt> = new Map()
@@ -6,6 +6,8 @@ class InMemoryStorage {
   private storyboards: Map<string, Storyboard> = new Map()
   private books: Map<string, Book> = new Map()
   private premadeTags: Set<string> = new Set()
+  private categories: Map<string, Category> = new Map()
+  private tagCategoryMappings: Map<string, string> = new Map() // tagName -> categoryId
   private isInitialized = false
 
   private initializeFromLocalStorage() {
@@ -60,6 +62,30 @@ class InMemoryStorage {
         this.premadeTags = new Set(parsedTags)
       }
 
+      // Load categories
+      const categories = localStorage.getItem('bardpages_categories')
+      if (categories) {
+        const parsedCategories = JSON.parse(categories)
+        parsedCategories.forEach((category: any) => {
+          this.categories.set(category.id, {
+            ...category,
+            createdAt: new Date(category.createdAt)
+          })
+        })
+      }
+
+      // Load tag-category mappings
+      const tagMappings = localStorage.getItem('bardpages_tag_mappings')
+      if (tagMappings) {
+        const parsedMappings = JSON.parse(tagMappings)
+        this.tagCategoryMappings = new Map(parsedMappings)
+      }
+
+      // Initialize default categories if none exist
+      if (this.categories.size === 0) {
+        this.initializeDefaultCategories()
+      }
+
       this.isInitialized = true
     } catch (error) {
       console.error('Error loading from localStorage:', error)
@@ -81,6 +107,12 @@ class InMemoryStorage {
       
       // Save premade tags
       localStorage.setItem('bardpages_premade_tags', JSON.stringify(Array.from(this.premadeTags)))
+      
+      // Save categories
+      localStorage.setItem('bardpages_categories', JSON.stringify(Array.from(this.categories.values())))
+      
+      // Save tag-category mappings
+      localStorage.setItem('bardpages_tag_mappings', JSON.stringify(Array.from(this.tagCategoryMappings.entries())))
     } catch (error) {
       console.error('Error saving to localStorage:', error)
     }
@@ -344,6 +376,129 @@ class InMemoryStorage {
     this.initializeFromLocalStorage()
     this.premadeTags.clear()
     this.saveToLocalStorage()
+  }
+
+  // Categories
+  private initializeDefaultCategories(): void {
+    const defaultCategories = [
+      { name: 'Dates & Eras', color: '#3B82F6', description: 'Historical periods, centuries, years' },
+      { name: 'Geography & Regions', color: '#10B981', description: 'Places, countries, cities, regions' },
+      { name: 'Wars & Military', color: '#EF4444', description: 'Battles, conflicts, military history' },
+      { name: 'Politics & Government', color: '#8B5CF6', description: 'Political systems, leaders, governance' },
+      { name: 'Religion & Philosophy', color: '#F59E0B', description: 'Religious themes, philosophical concepts' },
+      { name: 'Culture & Society', color: '#EC4899', description: 'Social customs, traditions, cultural aspects' },
+      { name: 'Economics & Trade', color: '#06B6D4', description: 'Commerce, economics, trade relations' },
+      { name: 'Science & Technology', color: '#84CC16', description: 'Scientific discoveries, technological advances' },
+      { name: 'People & Biography', color: '#F97316', description: 'Historical figures, biographical information' },
+      { name: 'Other', color: '#6B7280', description: 'Uncategorized tags' }
+    ]
+
+    defaultCategories.forEach((cat, index) => {
+      const category: Category = {
+        id: `default-${index + 1}`,
+        name: cat.name,
+        description: cat.description,
+        color: cat.color,
+        createdAt: new Date()
+      }
+      this.categories.set(category.id, category)
+    })
+    
+    this.saveToLocalStorage()
+  }
+
+  getCategories(): Category[] {
+    this.initializeFromLocalStorage()
+    return Array.from(this.categories.values()).sort((a, b) => a.name.localeCompare(b.name))
+  }
+
+  getCategory(id: string): Category | undefined {
+    this.initializeFromLocalStorage()
+    return this.categories.get(id)
+  }
+
+  saveCategory(category: Category): void {
+    this.initializeFromLocalStorage()
+    this.categories.set(category.id, category)
+    this.saveToLocalStorage()
+  }
+
+  deleteCategory(id: string): boolean {
+    this.initializeFromLocalStorage()
+    // Move all tags in this category to "Other" category
+    const otherCategory = Array.from(this.categories.values()).find(cat => cat.name === 'Other')
+    if (otherCategory) {
+      this.tagCategoryMappings.forEach((categoryId, tagName) => {
+        if (categoryId === id) {
+          this.tagCategoryMappings.set(tagName, otherCategory.id)
+        }
+      })
+    }
+    
+    const result = this.categories.delete(id)
+    this.saveToLocalStorage()
+    return result
+  }
+
+  // Tag-Category mappings
+  assignTagToCategory(tagName: string, categoryId: string): void {
+    this.initializeFromLocalStorage()
+    this.tagCategoryMappings.set(tagName, categoryId)
+    this.saveToLocalStorage()
+  }
+
+  getTagCategory(tagName: string): Category | undefined {
+    this.initializeFromLocalStorage()
+    const categoryId = this.tagCategoryMappings.get(tagName)
+    if (categoryId) {
+      return this.categories.get(categoryId)
+    }
+    return undefined
+  }
+
+  getTagsByCategory(): Map<string, string[]> {
+    this.initializeFromLocalStorage()
+    const result = new Map<string, string[]>()
+    
+    // Initialize all categories with empty arrays
+    this.categories.forEach(category => {
+      result.set(category.id, [])
+    })
+    
+    // Group tags by category
+    this.tagCategoryMappings.forEach((categoryId, tagName) => {
+      const categoryTags = result.get(categoryId) || []
+      categoryTags.push(tagName)
+      result.set(categoryId, categoryTags)
+    })
+    
+    // Add uncategorized tags to "Other" category
+    const otherCategory = Array.from(this.categories.values()).find(cat => cat.name === 'Other')
+    if (otherCategory) {
+      const categorizedTags = new Set(this.tagCategoryMappings.keys())
+      const allTags = this.getAllTags()
+      const uncategorizedTags = allTags.filter(tag => !categorizedTags.has(tag))
+      
+      const otherTags = result.get(otherCategory.id) || []
+      result.set(otherCategory.id, [...otherTags, ...uncategorizedTags])
+    }
+    
+    return result
+  }
+
+  // Enhanced tag creation with category assignment
+  addPremadeTagWithCategory(tag: string, categoryId?: string): void {
+    this.initializeFromLocalStorage()
+    if (tag.trim()) {
+      const trimmedTag = tag.trim()
+      this.premadeTags.add(trimmedTag)
+      
+      if (categoryId) {
+        this.tagCategoryMappings.set(trimmedTag, categoryId)
+      }
+      
+      this.saveToLocalStorage()
+    }
   }
 }
 

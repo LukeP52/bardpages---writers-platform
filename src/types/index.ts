@@ -48,6 +48,19 @@ export interface Tag {
   createdAt: Date
 }
 
+export interface Category {
+  id: string
+  name: string
+  description?: string
+  color: string
+  createdAt: Date
+}
+
+export interface TagCategoryMapping {
+  tagName: string
+  categoryId: string
+}
+
 export interface StoryboardSection {
   id: string
   excerptId: string
