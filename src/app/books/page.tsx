@@ -91,7 +91,7 @@ export default function BooksPage() {
 
       {/* Stats Dashboard */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-        <div className="border-2 border-black p-6">
+        <div className="card p-6">
           <div className="text-black font-bold text-sm mb-2 tracking-wide">
             TOTAL BOOKS
           </div>
@@ -100,7 +100,7 @@ export default function BooksPage() {
           </div>
         </div>
         
-        <div className="border-2 border-black p-6">
+        <div className="card p-6">
           <div className="text-black font-bold text-sm mb-2 tracking-wide">
             WITH STORYBOARDS
           </div>
@@ -109,7 +109,7 @@ export default function BooksPage() {
           </div>
         </div>
         
-        <div className="border-2 border-black p-6">
+        <div className="card p-6">
           <div className="text-black font-bold text-sm mb-2 tracking-wide">
             TOTAL CHAPTERS
           </div>
@@ -118,7 +118,7 @@ export default function BooksPage() {
           </div>
         </div>
         
-        <div className="border-2 border-black p-6">
+        <div className="card p-6">
           <div className="text-black font-bold text-sm mb-2 tracking-wide">
             TOTAL WORDS
           </div>
@@ -142,7 +142,7 @@ export default function BooksPage() {
           {books.map((book, index) => {
             const { chapters, wordCount } = getBookStats(book)
             return (
-              <div key={book.id} className="border-2 border-black bg-white">
+              <div key={book.id} className="card bg-white">
                 <div className="p-8">
                   <div className="flex items-start justify-between mb-6">
                     <div className="flex-1">

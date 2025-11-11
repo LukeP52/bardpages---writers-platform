@@ -161,7 +161,7 @@ export default function TagManagerPage() {
 
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Add Tag Form */}
-        <div className="border-2 border-black bg-white p-6">
+        <div className="card bg-white p-6">
           <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
             ADD NEW TAG
           </h3>
@@ -190,7 +190,7 @@ export default function TagManagerPage() {
         </div>
 
         {/* All Tags List */}
-        <div className="border-2 border-black bg-white">
+        <div className="card bg-white">
           <div className="p-6 border-b-2 border-black">
             <div className="flex items-center justify-between">
               <div>
@@ -281,7 +281,7 @@ export default function TagManagerPage() {
         </div>
 
         {/* Usage Instructions */}
-        <div className="border-2 border-black bg-white p-6">
+        <div className="card bg-white p-6">
           <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
             HOW CATEGORIZED TAGS WORK
           </h3>

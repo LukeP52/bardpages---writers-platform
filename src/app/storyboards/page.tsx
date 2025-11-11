@@ -139,7 +139,7 @@ export default function StoryboardsPage() {
       {/* Content */}
       {storyboards.length === 0 ? (
         <div className="text-center py-16">
-          <div className="border-2 border-black bg-white p-12">
+          <div className="card bg-white p-12">
             <div className="text-8xl font-bold text-black mb-6">
               00
             </div>
@@ -160,7 +160,7 @@ export default function StoryboardsPage() {
       ) : (
         <div className="space-y-6">
           {storyboards.map((storyboard, index) => (
-            <div key={storyboard.id} className="border-2 border-black bg-white">
+            <div key={storyboard.id} className="card bg-white">
               <div className="p-8">
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex-1">

@@ -111,6 +111,12 @@
       "namedRegex": "^/excerpts/new(?:/)?$"
     },
     {
+      "page": "/excerpts/test-route",
+      "regex": "^/excerpts/test\\-route(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/excerpts/test\\-route(?:/)?$"
+    },
+    {
       "page": "/storyboards",
       "regex": "^/storyboards(?:/)?$",
       "routeKeys": {},

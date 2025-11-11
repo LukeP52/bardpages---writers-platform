@@ -10,6 +10,7 @@
   "/excerpts/[id]/page": "/excerpts/[id]",
   "/excerpts/new/page": "/excerpts/new",
   "/excerpts/page": "/excerpts",
+  "/excerpts/test-route/page": "/excerpts/test-route",
   "/page": "/",
   "/storyboards/[id]/page": "/storyboards/[id]",
   "/storyboards/page": "/storyboards"

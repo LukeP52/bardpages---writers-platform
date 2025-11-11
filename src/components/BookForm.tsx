@@ -140,7 +140,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Basic Information */}
-      <div className="border-2 border-black bg-white p-6">
+      <div className="card p-6">
         <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
           Basic Information
         </h2>
@@ -215,7 +215,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
       </div>
 
       {/* Metadata */}
-      <div className="border-2 border-black bg-white p-6">
+      <div className="card p-6">
         <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
           Metadata
         </h2>
@@ -286,7 +286,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
       </div>
 
       {/* Typography & Text Formatting */}
-      <div className="border-2 border-black bg-white p-6">
+      <div className="card p-6">
         <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
           Typography & Text
         </h2>
@@ -400,7 +400,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
       </div>
 
       {/* Chapter Structure */}
-      <div className="border-2 border-black bg-white p-6">
+      <div className="card p-6">
         <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
           Book Structure
         </h2>
@@ -503,7 +503,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
       </div>
 
       {/* Page Layout */}
-      <div className="border-2 border-black bg-white p-6">
+      <div className="card p-6">
         <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
           Page Layout & Margins
         </h2>
@@ -578,7 +578,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
       </div>
 
       {/* Advanced Formatting */}
-      <div className="border-2 border-black bg-white p-6">
+      <div className="card p-6">
         <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
           Advanced Options
         </h2>

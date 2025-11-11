@@ -204,7 +204,7 @@ export default function ExcerptsPage() {
   const renderExcerpts = () => (
     <div className="space-y-6">
       {filteredExcerpts.map((excerpt, index) => (
-        <div key={excerpt.id} className="border-2 border-black bg-white">
+        <div key={excerpt.id} className="card bg-white">
           <div className="p-8">
             <div className="flex items-start justify-between mb-6">
               <div className="flex-1">
@@ -335,7 +335,7 @@ export default function ExcerptsPage() {
         </div>
 
         {filtersExpanded && (
-          <div className="border-2 border-black bg-white p-6 space-y-6">
+          <div className="card bg-white p-6 space-y-6">
             {/* Status Filter */}
             <div>
               <p className="text-black font-bold text-sm mb-3 tracking-wide">
@@ -346,7 +346,7 @@ export default function ExcerptsPage() {
                   <button
                     key={status}
                     onClick={() => toggleStatus(status)}
-                    className={`px-4 py-2 border-2 border-black text-sm font-bold tracking-wide transition-colors ${
+                    className={`px-4 py-2 card text-sm font-bold tracking-wide transition-colors ${
                       selectedStatuses.includes(status) 
                         ? 'bg-black text-white' 
                         : 'bg-white text-black hover:bg-black hover:text-white'
@@ -369,7 +369,7 @@ export default function ExcerptsPage() {
                     <button
                       key={author}
                       onClick={() => toggleAuthor(author)}
-                      className={`px-4 py-2 border-2 border-black text-sm font-bold tracking-wide transition-colors ${
+                      className={`px-4 py-2 card text-sm font-bold tracking-wide transition-colors ${
                         selectedAuthors.includes(author) 
                           ? 'bg-black text-white' 
                           : 'bg-white text-black hover:bg-black hover:text-white'
@@ -469,7 +469,7 @@ export default function ExcerptsPage() {
       {/* Content */}
       {filteredExcerpts.length === 0 ? (
         <div className="text-center py-16">
-          <div className="border-2 border-black bg-white p-12">
+          <div className="card bg-white p-12">
             <div className="text-8xl font-bold text-black mb-6">
               {excerpts.length === 0 ? '00' : '??'}
             </div>

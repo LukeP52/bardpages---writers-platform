@@ -168,23 +168,23 @@ export default function CitationWorkflow({
 
   if (step === 'citation') {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white border-2 border-black max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="sticky top-0 bg-white border-b-2 border-black p-6">
+      <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200/60">
+          <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-200/60 p-6 rounded-t-xl">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-bold text-black tracking-wide">
-                CITE SELECTED TEXT
+              <h3 className="text-lg font-semibold text-slate-900">
+                Cite Selected Text
               </h3>
               <button
                 type="button"
                 onClick={onClose}
-                className="text-black hover:bg-black hover:text-white p-2 font-bold text-xl"
+                className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-lg transition-all duration-200"
               >
                 ×
               </button>
             </div>
-            <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded">
-              <p className="text-sm text-blue-800">
+            <div className="mt-4 p-3 bg-blue-50/80 border border-blue-200/60 rounded-xl backdrop-blur-sm">
+              <p className="text-sm text-blue-800 font-medium">
                 <strong>Selected text:</strong> "{selectedText}"
               </p>
               <p className="text-xs text-blue-600 mt-1">
@@ -195,13 +195,13 @@ export default function CitationWorkflow({
           
           <div className="p-6">
             {references.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                <BookOpenIcon className="w-12 h-12 mx-auto mb-4 text-gray-300" />
-                <p>No references available. Please add a reference first.</p>
+              <div className="text-center py-8 text-slate-500">
+                <BookOpenIcon className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                <p className="text-slate-600 mb-4">No references available. Please add a reference first.</p>
                 <button
                   type="button"
                   onClick={() => setStep('reference')}
-                  className="btn btn-primary mt-4"
+                  className="btn btn-primary"
                 >
                   Add Reference
                 </button>
@@ -209,25 +209,26 @@ export default function CitationWorkflow({
             ) : (
               <div className="space-y-3">
                 {references.map((reference) => (
-                  <div key={reference.id} className="border border-gray-200 rounded p-4 bg-gray-50 hover:bg-gray-100 cursor-pointer"
+                  <div key={reference.id} className="card p-4 hover:bg-white/90 cursor-pointer transition-all duration-200 hover:transform hover:scale-[1.02]"
                        onClick={() => addCitation(reference.id)}>
                     <div className="flex items-center gap-2 mb-2">
                       {getTypeIcon(reference.type)}
-                      <span className="text-xs font-bold text-gray-600 uppercase">
+                      <span className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
                         {reference.type}
                       </span>
                     </div>
-                    <p className="text-sm font-mono text-black">
+                    <p className="text-sm text-slate-900 leading-relaxed">
                       {formatReference(reference)}
                     </p>
                   </div>
                 ))}
                 
-                <div className="border-t pt-4 mt-4">
+                <div className="divider"></div>
+                <div className="pt-4">
                   <button
                     type="button"
                     onClick={() => setStep('reference')}
-                    className="btn btn-outline w-full"
+                    className="btn btn-secondary w-full"
                   >
                     <PlusIcon className="w-4 h-4 mr-2" />
                     Add New Reference
@@ -243,27 +244,27 @@ export default function CitationWorkflow({
 
   // Reference step (same as before but simplified)
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white border-2 border-black max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b-2 border-black p-6">
+    <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto border border-slate-200/60">
+        <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-200/60 p-6 rounded-t-xl">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-bold text-black tracking-wide">
-              {editingReference ? 'EDIT REFERENCE' : 'ADD NEW REFERENCE'}
+            <h3 className="text-lg font-semibold text-slate-900">
+              {editingReference ? 'Edit Reference' : 'Add New Reference'}
             </h3>
             <button
               type="button"
               onClick={onClose}
-              className="text-black hover:bg-black hover:text-white p-2 font-bold text-xl"
+              className="text-slate-400 hover:text-slate-600 hover:bg-slate-100 p-2 rounded-lg transition-all duration-200"
             >
               ×
             </button>
           </div>
-          <p className="text-sm text-gray-600 mt-2">
-            Fields marked with <span className="text-red-500 font-bold">*</span> are required
+          <p className="text-sm text-slate-600 mt-2">
+            Fields marked with <span className="text-red-500 font-semibold">*</span> are required
           </p>
           {selectedText && (
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded">
-              <p className="text-xs text-yellow-800">
+            <div className="mt-3 p-3 bg-amber-50/80 border border-amber-200/60 rounded-xl backdrop-blur-sm">
+              <p className="text-xs text-amber-800 font-medium">
                 After adding this reference, you'll be able to cite: "{selectedText}"
               </p>
             </div>
@@ -274,7 +275,7 @@ export default function CitationWorkflow({
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                <label className="form-label">
                   Type
                 </label>
                 <select
@@ -294,7 +295,7 @@ export default function CitationWorkflow({
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                <label className="form-label">
                   Year
                 </label>
                 <input
@@ -309,8 +310,8 @@ export default function CitationWorkflow({
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Title <span className="text-red-500 text-lg">*</span>
+              <label className="form-label">
+                Title <span className="text-red-500 font-semibold">*</span>
               </label>
               <input
                 type="text"
@@ -323,8 +324,8 @@ export default function CitationWorkflow({
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Author <span className="text-red-500 text-lg">*</span>
+              <label className="form-label">
+                Author <span className="text-red-500 font-semibold">*</span>
               </label>
               <input
                 type="text"
@@ -338,7 +339,7 @@ export default function CitationWorkflow({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                <label className="form-label">
                   Publication/Publisher
                 </label>
                 <input
@@ -351,7 +352,7 @@ export default function CitationWorkflow({
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                <label className="form-label">
                   Pages
                 </label>
                 <input
@@ -366,7 +367,7 @@ export default function CitationWorkflow({
 
             {(newReference.type === 'website' || newReference.type === 'journal') && (
               <div>
-                <label className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                <label className="form-label">
                   URL
                 </label>
                 <input

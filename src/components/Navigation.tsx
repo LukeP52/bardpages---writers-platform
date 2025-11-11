@@ -13,12 +13,12 @@ export default function Navigation() {
   const pathname = usePathname()
 
   return (
-    <nav className="bg-white border-b-2 border-black">
+    <nav className="nav">
       <div className="container">
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center space-x-12">
-            <Link href="/" className="text-2xl font-bold text-black tracking-tight">
-              BARD PAGES
+            <Link href="/" className="text-2xl font-bold text-slate-900 tracking-tight">
+              BardPages
             </Link>
             <div className="hidden md:flex items-center space-x-0">
               {navigationItems.map((item) => {

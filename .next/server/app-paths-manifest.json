@@ -10,6 +10,7 @@
   "/excerpts/[id]/page": "app/excerpts/[id]/page.js",
   "/excerpts/new/page": "app/excerpts/new/page.js",
   "/excerpts/page": "app/excerpts/page.js",
+  "/excerpts/test-route/page": "app/excerpts/test-route/page.js",
   "/page": "app/page.js",
   "/storyboards/[id]/page": "app/storyboards/[id]/page.js",
   "/storyboards/page": "app/storyboards/page.js"
