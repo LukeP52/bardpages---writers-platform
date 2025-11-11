@@ -79,28 +79,34 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
     </div>
   ` : ''
 
-  // Process images in chapter content to ensure proper sizing for Word
+  // Process images to be on separate pages
   const processImagesInContent = (content: string): string => {
-    return content.replace(/<img([^>]*?)>/g, (match, attributes) => {
-      // Extract src attribute
-      const srcMatch = attributes.match(/src\s*=\s*["']([^"']*)["']/i);
-      const src = srcMatch ? srcMatch[1] : '';
+    // Split content by images and create separate pages
+    const parts = content.split(/(<img[^>]*>)/g);
+    let processedContent = '';
+    
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
       
-      // Extract alt attribute if present
-      const altMatch = attributes.match(/alt\s*=\s*["']([^"']*)["']/i);
-      const alt = altMatch ? altMatch[1] : '';
-      
-      // Use a table-based approach that Word handles better for image sizing
-      return `
-        <table align="center" style="margin: 1em auto; max-width: 100%;">
-          <tr>
-            <td align="center">
-              <img src="${src}"${alt ? ` alt="${alt}"` : ''} width="400" height="auto" style="max-width: 400px; height: auto; border: none;">
-            </td>
-          </tr>
-        </table>
-      `;
-    });
+      if (part.match(/<img[^>]*>/)) {
+        // This is an image - put it on its own page
+        const srcMatch = part.match(/src\s*=\s*["']([^"']*)["']/i);
+        const src = srcMatch ? srcMatch[1] : '';
+        const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
+        const alt = altMatch ? altMatch[1] : '';
+        
+        processedContent += `
+          <div style="page-break-before: always; page-break-after: always; text-align: center; display: flex; align-items: center; justify-content: center; min-height: 80vh;">
+            <img src="${src}"${alt ? ` alt="${alt}"` : ''} style="max-width: 90%; max-height: 90%; height: auto; border: none;">
+          </div>
+        `;
+      } else if (part.trim()) {
+        // This is text content
+        processedContent += part;
+      }
+    }
+    
+    return processedContent;
   };
 
   const chaptersHTML = chapters.map(chapter => `
@@ -253,14 +259,32 @@ const exportToPDFPreview = (book: Book, options: ExportOptions): string => {
   ` : ''
 
   const processImages = (content: string): string => {
-    return content.replace(/<img([^>]*?)>/g, (match, attributes) => {
-      const srcMatch = attributes.match(/src\s*=\s*["']([^"']*)["']/i);
-      const src = srcMatch ? srcMatch[1] : '';
-      const altMatch = attributes.match(/alt\s*=\s*["']([^"']*)["']/i);
-      const alt = altMatch ? altMatch[1] : '';
+    // Split content by images and create separate pages for PDF
+    const parts = content.split(/(<img[^>]*>)/g);
+    let processedContent = '';
+    
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
       
-      return `<img src="${src}"${alt ? ` alt="${alt}"` : ''} style="max-width: 100%; height: auto; margin: 1.5rem auto; display: block;">`;
-    });
+      if (part.match(/<img[^>]*>/)) {
+        // This is an image - put it on its own page
+        const srcMatch = part.match(/src\s*=\s*["']([^"']*)["']/i);
+        const src = srcMatch ? srcMatch[1] : '';
+        const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
+        const alt = altMatch ? altMatch[1] : '';
+        
+        processedContent += `
+          <div style="page-break-before: always; page-break-after: always; text-align: center; padding: 2rem 0; min-height: 70vh; display: flex; align-items: center; justify-content: center;">
+            <img src="${src}"${alt ? ` alt="${alt}"` : ''} style="max-width: 85%; max-height: 85%; height: auto; border: none;">
+          </div>
+        `;
+      } else if (part.trim()) {
+        // This is text content
+        processedContent += part;
+      }
+    }
+    
+    return processedContent;
   };
 
   const chaptersHTML = chapters.map((chapter, index) => `
@@ -359,24 +383,33 @@ const exportToPDF = (book: Book, options: ExportOptions): string => {
     </div>
   ` : ''
 
-  // Process images for PDF - smaller and more print-friendly
+  // Process images for PDF - full page images
   const processImagesForPDF = (content: string): string => {
-    return content.replace(/<img([^>]*?)>/g, (match, attributes) => {
-      const srcMatch = attributes.match(/src\s*=\s*["']([^"']*)["']/i);
-      const src = srcMatch ? srcMatch[1] : '';
-      const altMatch = attributes.match(/alt\s*=\s*["']([^"']*)["']/i);
-      const alt = altMatch ? altMatch[1] : '';
+    const parts = content.split(/(<img[^>]*>)/g);
+    let processedContent = '';
+    
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
       
-      return `
-        <table align="center" style="margin: 0.5em auto; max-width: 100%; page-break-inside: avoid;">
-          <tr>
-            <td align="center">
-              <img src="${src}"${alt ? ` alt="${alt}"` : ''} style="max-width: 300px; height: auto; border: none;">
-            </td>
-          </tr>
-        </table>
-      `;
-    });
+      if (part.match(/<img[^>]*>/)) {
+        // This is an image - put it on its own page
+        const srcMatch = part.match(/src\s*=\s*["']([^"']*)["']/i);
+        const src = srcMatch ? srcMatch[1] : '';
+        const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
+        const alt = altMatch ? altMatch[1] : '';
+        
+        processedContent += `
+          <div style="page-break-before: always; page-break-after: always; text-align: center; padding: 1rem 0; min-height: 8in; display: flex; align-items: center; justify-content: center;">
+            <img src="${src}"${alt ? ` alt="${alt}"` : ''} style="max-width: 80%; max-height: 80%; height: auto; border: none;">
+          </div>
+        `;
+      } else if (part.trim()) {
+        // This is text content
+        processedContent += part;
+      }
+    }
+    
+    return processedContent;
   };
 
   const chaptersHTML = chapters.map(chapter => `
