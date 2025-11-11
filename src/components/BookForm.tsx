@@ -694,8 +694,6 @@ export default function BookForm({ book, mode }: BookFormProps) {
               )}
             </div>
           </div>
-        </div>
-
           <div className="bg-gray-50 p-4 rounded border">
             <h4 className="text-sm font-bold text-black mb-3 uppercase tracking-wide">
               Formatting Preview
