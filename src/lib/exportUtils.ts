@@ -98,11 +98,10 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
       font-family: ${book.formatting.fontFamily}, serif;
       font-size: ${book.formatting.fontSize}pt;
       line-height: ${book.formatting.lineHeight};
-      margin: ${book.formatting.marginTop}in ${book.formatting.marginRight}in ${book.formatting.marginBottom}in ${book.formatting.marginLeft}in;
       color: #333;
       max-width: 800px;
       margin: 0 auto;
-      padding: 2rem;
+      padding: ${book.formatting.marginTop}in ${book.formatting.marginRight}in ${book.formatting.marginBottom}in ${book.formatting.marginLeft}in;
     }
     
     h1 { 
@@ -110,11 +109,13 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
       margin-bottom: 0.5em; 
       text-align: center;
       page-break-before: always;
+      font-weight: bold;
     }
     
     h2 { 
-      font-size: 2em; 
+      font-size: 1.8em; 
       margin: 2em 0 1em 0;
+      font-weight: bold;
       ${book.formatting.chapterBreakStyle === 'page-break' ? 'page-break-before: always;' : ''}
       ${book.formatting.chapterBreakStyle === 'spacing' ? 'margin-top: 4em;' : ''}
     }
@@ -142,17 +143,28 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
     }
     
     .chapter-content {
-      text-align: justify;
+      text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
     }
     
     p {
-      margin: 1em 0;
-      text-indent: 1em;
+      margin: ${book.formatting.paragraphSpacing || 0.5}em 0;
+      ${book.formatting.firstLineIndent && book.formatting.firstLineIndent > 0 ? `text-indent: ${book.formatting.firstLineIndent}em;` : ''}
+      word-spacing: normal;
+      letter-spacing: normal;
+    }
+    
+    /* Word-friendly styles */
+    .chapter-content p {
+      text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
     }
     
     @media print {
       body {
-        margin: 1in;
+        margin: ${book.formatting.marginTop}in ${book.formatting.marginRight}in ${book.formatting.marginBottom}in ${book.formatting.marginLeft}in;
+      }
+      
+      p {
+        text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
       }
     }
   </style>

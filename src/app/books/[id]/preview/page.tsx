@@ -182,7 +182,16 @@ export default function BookPreviewPage() {
                   {chapter.title}
                 </h2>
                 <div 
-                  className="prose prose-lg max-w-none text-justify"
+                  className={`prose prose-lg max-w-none ${
+                    book.formatting.textAlignment === 'justify' 
+                      ? 'text-left' 
+                      : `text-${book.formatting.textAlignment}`
+                  }`}
+                  style={{
+                    textAlign: book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment,
+                    wordSpacing: 'normal',
+                    letterSpacing: 'normal'
+                  }}
                   dangerouslySetInnerHTML={{ __html: chapter.content }}
                 />
               </div>
