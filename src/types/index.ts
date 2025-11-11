@@ -9,6 +9,36 @@ export interface Excerpt {
   wordCount: number
   status: 'draft' | 'review' | 'final'
   imageUrl?: string
+  references: Reference[]
+  citations: Citation[]
+}
+
+export interface Reference {
+  id: string
+  type: 'book' | 'journal' | 'website' | 'newspaper' | 'magazine' | 'thesis' | 'conference' | 'other'
+  title: string
+  author: string
+  publication?: string
+  year: number
+  volume?: string
+  issue?: string
+  pages?: string
+  url?: string
+  doi?: string
+  accessDate?: Date
+  publisher?: string
+  location?: string
+  isbn?: string
+  createdAt: Date
+}
+
+export interface Citation {
+  id: string
+  referenceId: string
+  startPos: number
+  endPos: number
+  text: string
+  noteId: string // Unique identifier for the citation number
 }
 
 export interface Tag {
@@ -83,4 +113,9 @@ export interface BookFormatting {
   dropCapEnabled: boolean
   headerFooterEnabled: boolean
   pageNumbers: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'none'
+  
+  // Reference Formatting
+  referenceStyle: 'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee' | 'vancouver'
+  citationStyle: 'footnotes' | 'endnotes' | 'inline'
+  includeReferences: boolean
 }

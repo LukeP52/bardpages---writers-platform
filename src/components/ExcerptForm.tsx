@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { v4 as uuidv4 } from 'uuid'
 import QuillEditor from '@/components/QuillEditor'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import { Excerpt } from '@/types'
+import ReferenceManager from '@/components/ReferenceManager'
+import { Excerpt, Reference, Citation } from '@/types'
 import { storage } from '@/lib/storage'
 import toast from 'react-hot-toast'
 
@@ -31,6 +32,8 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [availableTags, setAvailableTags] = useState<string[]>([])
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([])
   const [imageUrl, setImageUrl] = useState(excerpt?.imageUrl || '')
+  const [references, setReferences] = useState<Reference[]>(excerpt?.references || [])
+  const [citations, setCitations] = useState<Citation[]>(excerpt?.citations || [])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
@@ -91,6 +94,8 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         author: author.trim() || undefined,
         status,
         tags,
+        references,
+        citations,
         createdAt: excerpt?.createdAt || selectedDate,
         updatedAt: now,
         wordCount: getWordCount(content),
@@ -311,6 +316,21 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* References and Citations */}
+          <div>
+            <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
+              References & Citations
+            </h2>
+            <ReferenceManager
+              references={references}
+              citations={citations}
+              content={content}
+              onReferencesChange={setReferences}
+              onCitationsChange={setCitations}
+              onContentChange={setContent}
+            />
           </div>
 
           <div className="divider my-8"></div>

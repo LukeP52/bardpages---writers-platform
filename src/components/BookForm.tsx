@@ -52,6 +52,11 @@ export default function BookForm({ book, mode }: BookFormProps) {
   const [headerFooterEnabled, setHeaderFooterEnabled] = useState<boolean>(book?.formatting.headerFooterEnabled !== undefined ? book.formatting.headerFooterEnabled : true)
   const [pageNumbers, setPageNumbers] = useState(book?.formatting.pageNumbers || 'bottom-center')
   
+  // Reference Formatting
+  const [referenceStyle, setReferenceStyle] = useState(book?.formatting.referenceStyle || 'apa')
+  const [citationStyle, setCitationStyle] = useState(book?.formatting.citationStyle || 'footnotes')
+  const [includeReferences, setIncludeReferences] = useState<boolean>(book?.formatting.includeReferences !== undefined ? book.formatting.includeReferences : true)
+  
   const [availableStoryboards, setAvailableStoryboards] = useState<Storyboard[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -106,7 +111,11 @@ export default function BookForm({ book, mode }: BookFormProps) {
           // Advanced Options
           dropCapEnabled,
           headerFooterEnabled,
-          pageNumbers
+          pageNumbers,
+          // Reference Formatting
+          referenceStyle,
+          citationStyle,
+          includeReferences
         },
         createdAt: book?.createdAt || now,
         updatedAt: now,
@@ -624,6 +633,68 @@ export default function BookForm({ book, mode }: BookFormProps) {
               </div>
             </div>
           </div>
+          
+          {/* References & Citations */}
+          <div className="bg-gray-50 p-4 rounded border">
+            <h4 className="text-sm font-bold text-black mb-4 uppercase tracking-wide">
+              References & Citations
+            </h4>
+            
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="includeReferences"
+                  checked={includeReferences}
+                  onChange={(e) => setIncludeReferences(e.target.checked)}
+                  className="mr-3 w-4 h-4"
+                />
+                <label htmlFor="includeReferences" className="text-sm font-bold text-black uppercase tracking-wide">
+                  Include References Section
+                </label>
+              </div>
+
+              {includeReferences && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label htmlFor="referenceStyle" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                      Reference Style
+                    </label>
+                    <select
+                      id="referenceStyle"
+                      value={referenceStyle}
+                      onChange={(e) => setReferenceStyle(e.target.value as any)}
+                      className="input"
+                    >
+                      <option value="apa">APA (American Psychological Association)</option>
+                      <option value="mla">MLA (Modern Language Association)</option>
+                      <option value="chicago">Chicago Manual of Style</option>
+                      <option value="harvard">Harvard Referencing</option>
+                      <option value="ieee">IEEE (Institute of Electrical and Electronics Engineers)</option>
+                      <option value="vancouver">Vancouver (ICMJE)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label htmlFor="citationStyle" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                      Citation Style
+                    </label>
+                    <select
+                      id="citationStyle"
+                      value={citationStyle}
+                      onChange={(e) => setCitationStyle(e.target.value as any)}
+                      className="input"
+                    >
+                      <option value="footnotes">Footnotes</option>
+                      <option value="endnotes">Endnotes</option>
+                      <option value="inline">Inline Citations</option>
+                    </select>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
 
           <div className="bg-gray-50 p-4 rounded border">
             <h4 className="text-sm font-bold text-black mb-3 uppercase tracking-wide">
