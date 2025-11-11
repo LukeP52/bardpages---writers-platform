@@ -45,6 +45,8 @@ type QuillEditorProps = {
   className?: string
   modules?: Record<string, unknown>
   formats?: string[]
+  onSelectionChange?: (range: { index: number; length: number } | null, source: string) => void
+  quillRef?: React.MutableRefObject<Quill | null>
 }
 
 export default function QuillEditor({
@@ -54,6 +56,8 @@ export default function QuillEditor({
   className,
   modules,
   formats,
+  onSelectionChange,
+  quillRef: externalQuillRef,
 }: QuillEditorProps) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const quillRef = useRef<Quill | null>(null)
@@ -104,6 +108,11 @@ export default function QuillEditor({
       })
 
       quillRef.current = quillInstance
+      
+      // Expose quill instance to parent if ref provided
+      if (externalQuillRef) {
+        externalQuillRef.current = quillInstance
+      }
 
       if (typeof initialValueRef.current === 'string') {
         quillInstance.clipboard.dangerouslyPasteHTML(initialValueRef.current)
@@ -114,6 +123,12 @@ export default function QuillEditor({
           onChange(quillInstance.root.innerHTML)
         }
       })
+      
+      quillInstance.on('selection-change', (range, oldRange, source) => {
+        if (onSelectionChange) {
+          onSelectionChange(range, source)
+        }
+      })
     }
 
     void initEditor()
@@ -122,7 +137,11 @@ export default function QuillEditor({
       isMounted = false
       if (quillRef.current) {
         quillRef.current.off('text-change')
+        quillRef.current.off('selection-change')
         quillRef.current = null
+      }
+      if (externalQuillRef) {
+        externalQuillRef.current = null
       }
     }
   }, [onChange, placeholder])

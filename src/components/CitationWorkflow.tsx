@@ -10,7 +10,7 @@ interface CitationWorkflowProps {
   references: Reference[]
   citations: Citation[]
   selectedText: string
-  selectedRange: { start: number; end: number } | null
+  selectedRange: { index: number; length: number } | null
   content: string
   onReferencesChange: (references: Reference[]) => void
   onCitationsChange: (citations: Citation[]) => void
@@ -112,17 +112,27 @@ export default function CitationWorkflow({
     const newCitation: Citation = {
       id: uuidv4(),
       referenceId,
-      startPos: selectedRange.start,
-      endPos: selectedRange.end,
+      startPos: selectedRange.index,
+      endPos: selectedRange.index + selectedRange.length,
       text: selectedText,
       noteId
     }
 
-    // Insert citation marker in content
-    const beforeText = content.substring(0, selectedRange.end)
-    const afterText = content.substring(selectedRange.end)
+    // Insert citation marker in content (HTML)
     const citationNumber = citations.length + 1
-    const newContent = `${beforeText}[${citationNumber}]${afterText}`
+    const citationMarker = `<sup>[${citationNumber}]</sup>`
+    
+    // Find position in HTML content to insert citation
+    // For now, we'll append the citation marker after the selected text
+    // This is a simplified approach - in production you'd want more sophisticated HTML manipulation
+    let newContent = content
+    const textToFind = selectedText
+    const firstOccurrence = newContent.indexOf(textToFind)
+    if (firstOccurrence !== -1) {
+      const beforeText = newContent.substring(0, firstOccurrence + textToFind.length)
+      const afterText = newContent.substring(firstOccurrence + textToFind.length)
+      newContent = beforeText + citationMarker + afterText
+    }
 
     onContentChange(newContent)
     onCitationsChange([...citations, newCitation])

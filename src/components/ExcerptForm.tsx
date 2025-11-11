@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { v4 as uuidv4 } from 'uuid'
 import QuillEditor from '@/components/QuillEditor'
@@ -37,8 +37,9 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [citations, setCitations] = useState<Citation[]>(excerpt?.citations || [])
   const [showCitationWorkflow, setShowCitationWorkflow] = useState(false)
   const [selectedText, setSelectedText] = useState('')
-  const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null)
+  const [selectedRange, setSelectedRange] = useState<{ index: number; length: number } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const quillRef = useRef<any>(null)
 
   // Auto-save functionality
   const getDraftKey = useCallback(() => {
@@ -216,29 +217,27 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     }
   }
 
-  const handleTextSelection = () => {
-    const selection = window.getSelection()
-    if (selection && selection.rangeCount > 0) {
-      const range = selection.getRangeAt(0)
-      const selectedText = selection.toString().trim()
-      
-      if (selectedText) {
-        setSelectedText(selectedText)
-        // For now, we'll use simple text positions
-        // In a real implementation, you'd want to map this to the content string positions
-        setSelectedRange({ 
-          start: range.startOffset, 
-          end: range.endOffset 
-        })
-      } else {
-        setSelectedText('')
-        setSelectedRange(null)
-      }
+  const handleSelectionChange = (range: { index: number; length: number } | null, source: string) => {
+    if (range && range.length > 0 && quillRef.current) {
+      const text = quillRef.current.getText(range.index, range.length)
+      setSelectedText(text.trim())
+      setSelectedRange(range)
+    } else {
+      setSelectedText('')
+      setSelectedRange(null)
     }
   }
 
   const handleAddReference = () => {
-    handleTextSelection()
+    // Get current selection from Quill
+    if (quillRef.current) {
+      const selection = quillRef.current.getSelection()
+      if (selection && selection.length > 0) {
+        const text = quillRef.current.getText(selection.index, selection.length)
+        setSelectedText(text.trim())
+        setSelectedRange(selection)
+      }
+    }
     setShowCitationWorkflow(true)
   }
 
@@ -332,6 +331,8 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             <QuillEditor
               value={content}
               onChange={setContent}
+              onSelectionChange={handleSelectionChange}
+              quillRef={quillRef}
               placeholder="Start writing your excerpt..."
               className="min-h-[400px] border-2 border-black"
             />
