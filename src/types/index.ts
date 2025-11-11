@@ -56,12 +56,30 @@ export interface BookMetadata {
 }
 
 export interface BookFormatting {
+  // Typography & Layout
   fontFamily: string
   fontSize: number
   lineHeight: number
+  chapterBreakStyle: 'page-break' | 'section-break' | 'spacing'
+  
+  // Page Layout
   marginTop: number
   marginBottom: number
   marginLeft: number
   marginRight: number
-  chapterBreakStyle: 'page-break' | 'section-break' | 'spacing'
+  
+  // Chapter Formatting
+  chapterTitleFont: string
+  chapterTitleSize: number
+  chapterNumberStyle: 'numeric' | 'roman' | 'words' | 'none'
+  
+  // Paragraph Formatting
+  paragraphSpacing: number
+  firstLineIndent: number
+  textAlignment: 'left' | 'center' | 'right' | 'justify'
+  
+  // Advanced Options
+  dropCapEnabled: boolean
+  headerFooterEnabled: boolean
+  pageNumbers: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'none'
 }

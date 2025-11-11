@@ -24,11 +24,32 @@ export default function BookForm({ book, mode }: BookFormProps) {
   const [language, setLanguage] = useState(book?.metadata.language || 'en')
   const [isbn, setIsbn] = useState(book?.metadata.isbn || '')
   
-  // Formatting options
+  // Typography & Layout
   const [fontFamily, setFontFamily] = useState(book?.formatting.fontFamily || 'Inter')
   const [fontSize, setFontSize] = useState(book?.formatting.fontSize || 12)
   const [lineHeight, setLineHeight] = useState(book?.formatting.lineHeight || 1.6)
   const [chapterBreakStyle, setChapterBreakStyle] = useState(book?.formatting.chapterBreakStyle || 'page-break')
+  
+  // Page Layout
+  const [marginTop, setMarginTop] = useState(book?.formatting.marginTop || 1)
+  const [marginBottom, setMarginBottom] = useState(book?.formatting.marginBottom || 1)
+  const [marginLeft, setMarginLeft] = useState(book?.formatting.marginLeft || 1)
+  const [marginRight, setMarginRight] = useState(book?.formatting.marginRight || 1)
+  
+  // Chapter Formatting
+  const [chapterTitleFont, setChapterTitleFont] = useState(book?.formatting.chapterTitleFont || 'Inter')
+  const [chapterTitleSize, setChapterTitleSize] = useState(book?.formatting.chapterTitleSize || 18)
+  const [chapterNumberStyle, setChapterNumberStyle] = useState(book?.formatting.chapterNumberStyle || 'numeric')
+  
+  // Paragraph Formatting
+  const [paragraphSpacing, setParagraphSpacing] = useState(book?.formatting.paragraphSpacing || 0.5)
+  const [firstLineIndent, setFirstLineIndent] = useState(book?.formatting.firstLineIndent || 0.5)
+  const [textAlignment, setTextAlignment] = useState(book?.formatting.textAlignment || 'left')
+  
+  // Advanced Options
+  const [dropCapEnabled, setDropCapEnabled] = useState(book?.formatting.dropCapEnabled || false)
+  const [headerFooterEnabled, setHeaderFooterEnabled] = useState(book?.formatting.headerFooterEnabled || true)
+  const [pageNumbers, setPageNumbers] = useState(book?.formatting.pageNumbers || 'bottom-center')
   
   const [availableStoryboards, setAvailableStoryboards] = useState<Storyboard[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -62,14 +83,28 @@ export default function BookForm({ book, mode }: BookFormProps) {
           language,
         },
         formatting: {
+          // Typography & Layout
           fontFamily,
           fontSize,
           lineHeight,
-          marginTop: 1,
-          marginBottom: 1,
-          marginLeft: 1,
-          marginRight: 1,
-          chapterBreakStyle
+          chapterBreakStyle,
+          // Page Layout
+          marginTop,
+          marginBottom,
+          marginLeft,
+          marginRight,
+          // Chapter Formatting
+          chapterTitleFont,
+          chapterTitleSize,
+          chapterNumberStyle,
+          // Paragraph Formatting
+          paragraphSpacing,
+          firstLineIndent,
+          textAlignment,
+          // Advanced Options
+          dropCapEnabled,
+          headerFooterEnabled,
+          pageNumbers
         },
         createdAt: book?.createdAt || now,
         updatedAt: now,
@@ -239,17 +274,17 @@ export default function BookForm({ book, mode }: BookFormProps) {
         </div>
       </div>
 
-      {/* Formatting */}
+      {/* Typography & Text Formatting */}
       <div className="border-2 border-black bg-white p-6">
         <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
-          Formatting Options
+          Typography & Text
         </h2>
         
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label htmlFor="fontFamily" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Font Family
+                Body Font
               </label>
               <select
                 id="fontFamily"
@@ -260,14 +295,17 @@ export default function BookForm({ book, mode }: BookFormProps) {
                 <option value="Inter">Inter</option>
                 <option value="Times New Roman">Times New Roman</option>
                 <option value="Georgia">Georgia</option>
+                <option value="Garamond">Garamond</option>
                 <option value="Arial">Arial</option>
                 <option value="Helvetica">Helvetica</option>
+                <option value="Minion Pro">Minion Pro</option>
+                <option value="Baskerville">Baskerville</option>
               </select>
             </div>
 
             <div>
               <label htmlFor="fontSize" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Font Size (pt)
+                Body Font Size (pt)
               </label>
               <input
                 type="number"
@@ -297,20 +335,306 @@ export default function BookForm({ book, mode }: BookFormProps) {
             </div>
           </div>
 
-          <div>
-            <label htmlFor="chapterBreak" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-              Chapter Break Style
-            </label>
-            <select
-              id="chapterBreak"
-              value={chapterBreakStyle}
-              onChange={(e) => setChapterBreakStyle(e.target.value as 'page-break' | 'section-break' | 'spacing')}
-              className="input"
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label htmlFor="textAlignment" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Text Alignment
+              </label>
+              <select
+                id="textAlignment"
+                value={textAlignment}
+                onChange={(e) => setTextAlignment(e.target.value as any)}
+                className="input"
+              >
+                <option value="left">Left</option>
+                <option value="center">Center</option>
+                <option value="right">Right</option>
+                <option value="justify">Justified</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="paragraphSpacing" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Paragraph Spacing (em)
+              </label>
+              <input
+                type="number"
+                id="paragraphSpacing"
+                value={paragraphSpacing}
+                onChange={(e) => setParagraphSpacing(parseFloat(e.target.value))}
+                className="input"
+                min="0"
+                max="3.0"
+                step="0.1"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="firstLineIndent" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                First Line Indent (em)
+              </label>
+              <input
+                type="number"
+                id="firstLineIndent"
+                value={firstLineIndent}
+                onChange={(e) => setFirstLineIndent(parseFloat(e.target.value))}
+                className="input"
+                min="0"
+                max="3.0"
+                step="0.1"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Chapter Formatting */}
+      <div className="border-2 border-black bg-white p-6">
+        <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
+          Chapter Formatting
+        </h2>
+        
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div>
+              <label htmlFor="chapterTitleFont" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Chapter Title Font
+              </label>
+              <select
+                id="chapterTitleFont"
+                value={chapterTitleFont}
+                onChange={(e) => setChapterTitleFont(e.target.value)}
+                className="input"
+              >
+                <option value="Inter">Inter</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Garamond">Garamond</option>
+                <option value="Arial">Arial</option>
+                <option value="Helvetica">Helvetica</option>
+                <option value="Trajan Pro">Trajan Pro</option>
+                <option value="Copperplate">Copperplate</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="chapterTitleSize" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Chapter Title Size (pt)
+              </label>
+              <input
+                type="number"
+                id="chapterTitleSize"
+                value={chapterTitleSize}
+                onChange={(e) => setChapterTitleSize(parseInt(e.target.value))}
+                className="input"
+                min="12"
+                max="48"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="chapterNumberStyle" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Chapter Numbers
+              </label>
+              <select
+                id="chapterNumberStyle"
+                value={chapterNumberStyle}
+                onChange={(e) => setChapterNumberStyle(e.target.value as any)}
+                className="input"
+              >
+                <option value="numeric">1, 2, 3...</option>
+                <option value="roman">I, II, III...</option>
+                <option value="words">One, Two, Three...</option>
+                <option value="none">No Numbers</option>
+              </select>
+            </div>
+
+            <div>
+              <label htmlFor="chapterBreak" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Chapter Break Style
+              </label>
+              <select
+                id="chapterBreak"
+                value={chapterBreakStyle}
+                onChange={(e) => setChapterBreakStyle(e.target.value as any)}
+                className="input"
+              >
+                <option value="page-break">New Page</option>
+                <option value="section-break">Section Break</option>
+                <option value="spacing">Extra Spacing</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Page Layout */}
+      <div className="border-2 border-black bg-white p-6">
+        <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
+          Page Layout & Margins
+        </h2>
+        
+        <div className="space-y-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div>
+              <label htmlFor="marginTop" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Top Margin (in)
+              </label>
+              <input
+                type="number"
+                id="marginTop"
+                value={marginTop}
+                onChange={(e) => setMarginTop(parseFloat(e.target.value))}
+                className="input"
+                min="0.5"
+                max="3.0"
+                step="0.1"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="marginBottom" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Bottom Margin (in)
+              </label>
+              <input
+                type="number"
+                id="marginBottom"
+                value={marginBottom}
+                onChange={(e) => setMarginBottom(parseFloat(e.target.value))}
+                className="input"
+                min="0.5"
+                max="3.0"
+                step="0.1"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="marginLeft" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Left Margin (in)
+              </label>
+              <input
+                type="number"
+                id="marginLeft"
+                value={marginLeft}
+                onChange={(e) => setMarginLeft(parseFloat(e.target.value))}
+                className="input"
+                min="0.5"
+                max="3.0"
+                step="0.1"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="marginRight" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Right Margin (in)
+              </label>
+              <input
+                type="number"
+                id="marginRight"
+                value={marginRight}
+                onChange={(e) => setMarginRight(parseFloat(e.target.value))}
+                className="input"
+                min="0.5"
+                max="3.0"
+                step="0.1"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Formatting */}
+      <div className="border-2 border-black bg-white p-6">
+        <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
+          Advanced Options
+        </h2>
+        
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label htmlFor="pageNumbers" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                Page Number Position
+              </label>
+              <select
+                id="pageNumbers"
+                value={pageNumbers}
+                onChange={(e) => setPageNumbers(e.target.value as any)}
+                className="input"
+              >
+                <option value="top-left">Top Left</option>
+                <option value="top-center">Top Center</option>
+                <option value="top-right">Top Right</option>
+                <option value="bottom-left">Bottom Left</option>
+                <option value="bottom-center">Bottom Center</option>
+                <option value="bottom-right">Bottom Right</option>
+                <option value="none">No Page Numbers</option>
+              </select>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="dropCap"
+                  checked={dropCapEnabled}
+                  onChange={(e) => setDropCapEnabled(e.target.checked)}
+                  className="mr-3 w-4 h-4"
+                />
+                <label htmlFor="dropCap" className="text-sm font-bold text-black uppercase tracking-wide">
+                  Drop Caps on Chapters
+                </label>
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="headerFooter"
+                  checked={headerFooterEnabled}
+                  onChange={(e) => setHeaderFooterEnabled(e.target.checked)}
+                  className="mr-3 w-4 h-4"
+                />
+                <label htmlFor="headerFooter" className="text-sm font-bold text-black uppercase tracking-wide">
+                  Headers & Footers
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-gray-50 p-4 rounded border">
+            <h4 className="text-sm font-bold text-black mb-3 uppercase tracking-wide">
+              Formatting Preview
+            </h4>
+            <div 
+              className="bg-white p-4 border rounded min-h-[100px]"
+              style={{
+                fontFamily: fontFamily,
+                fontSize: `${fontSize}px`,
+                lineHeight: lineHeight,
+                textAlign: textAlignment as any,
+                textIndent: `${firstLineIndent}em`,
+                marginBottom: `${paragraphSpacing}em`
+              }}
             >
-              <option value="page-break">Page Break</option>
-              <option value="section-break">Section Break</option>
-              <option value="spacing">Extra Spacing</option>
-            </select>
+              <div 
+                className="font-bold mb-3"
+                style={{
+                  fontFamily: chapterTitleFont,
+                  fontSize: `${chapterTitleSize}px`
+                }}
+              >
+                {chapterNumberStyle === 'numeric' && 'Chapter 1: '}
+                {chapterNumberStyle === 'roman' && 'Chapter I: '}
+                {chapterNumberStyle === 'words' && 'Chapter One: '}
+                Sample Chapter Title
+              </div>
+              <p style={{ textIndent: dropCapEnabled ? '0' : `${firstLineIndent}em` }}>
+                {dropCapEnabled && <span style={{ fontSize: '2.5em', float: 'left', lineHeight: '1', marginRight: '3px' }}>T</span>}
+                his is a preview of how your book text will appear with the selected formatting options. You can see the font family, size, line height, and alignment in action.
+              </p>
+              <p style={{ marginTop: `${paragraphSpacing}em`, textIndent: `${firstLineIndent}em` }}>
+                This second paragraph shows paragraph spacing and indentation. The preview updates as you change the formatting settings above.
+              </p>
+            </div>
           </div>
         </div>
       </div>
