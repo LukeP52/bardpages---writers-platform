@@ -26,7 +26,6 @@ export default function StoryboardEditPage() {
   const [dateTo, setDateTo] = useState('')
   const [availableTags, setAvailableTags] = useState<string[]>([])
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([])
-  const [filtersExpanded, setFiltersExpanded] = useState(false)
   const [displayMode, setDisplayMode] = useState<'title' | 'date'>('title')
 
   useEffect(() => {
@@ -339,365 +338,411 @@ export default function StoryboardEditPage() {
   const stats = getStoryboardStats()
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8">
-        <div className="flex items-center gap-4 mb-4">
-          <button
-            onClick={() => router.push('/storyboards')}
-            className="text-blue-600 hover:text-blue-800 font-medium"
-          >
-            ← Back to Storyboards
-          </button>
-        </div>
-        
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{storyboard.title}</h1>
-        {storyboard.description && (
-          <p className="text-gray-600">{storyboard.description}</p>
-        )}
-        
-        <div className="flex gap-6 mt-4 text-sm text-gray-500">
-          <span>{stats.sections} sections</span>
-          <span>{stats.words} total words</span>
-          <span>Updated {storyboard.updatedAt.toLocaleDateString()}</span>
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Header Bar */}
+      <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => router.push('/storyboards')}
+              className="text-blue-600 hover:text-blue-800 font-medium flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+              Back to Storyboards
+            </button>
+            
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">{storyboard.title}</h1>
+              {storyboard.description && (
+                <p className="text-sm text-gray-600 mt-1">{storyboard.description}</p>
+              )}
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-6 text-sm text-gray-500">
+            <div className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <span>{stats.sections} sections</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <span>{stats.words} words</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>Updated {storyboard.updatedAt.toLocaleDateString()}</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Available Excerpts */}
-        <div className="lg:col-span-1">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Available Excerpts</h2>
-            <button
-              onClick={() => setFiltersExpanded(!filtersExpanded)}
-              className="text-sm bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded transition-colors"
-            >
-              Filters {filtersExpanded ? '−' : '+'}
-            </button>
+      {/* Filters Bar */}
+      <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          {/* Search and Date Filters */}
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search excerpts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">From:</label>
+              <input
+                type="date"
+                value={dateFrom}
+                onChange={(e) => setDateFrom(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">To:</label>
+              <input
+                type="date"
+                value={dateTo}
+                onChange={(e) => setDateTo(e.target.value)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+            </div>
           </div>
 
-          {/* Filters */}
-          {filtersExpanded && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-4 space-y-4">
-              {/* Search */}
-              <div>
-                <input
-                  type="text"
-                  placeholder="Search excerpts..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Date Range */}
-              <div className="grid grid-cols-2 gap-2">
-                <input
-                  type="date"
-                  value={dateFrom}
-                  onChange={(e) => setDateFrom(e.target.value)}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-                <input
-                  type="date"
-                  value={dateTo}
-                  onChange={(e) => setDateTo(e.target.value)}
-                  className="px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                />
-              </div>
-
-              {/* Tags */}
-              {availableTags.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-gray-700 mb-2">Tags:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {availableTags.map(tag => (
-                      <button
-                        key={tag}
-                        onClick={() => toggleTag(tag)}
-                        className={`px-2 py-1 text-xs rounded-full transition-colors ${
-                          selectedTags.includes(tag)
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        {tag}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Authors */}
-              {availableAuthors.length > 0 && (
-                <div>
-                  <p className="text-xs font-medium text-gray-700 mb-2">Authors:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {availableAuthors.map(author => (
-                      <button
-                        key={author}
-                        onClick={() => toggleAuthor(author)}
-                        className={`px-2 py-1 text-xs rounded transition-colors ${
-                          selectedAuthors.includes(author)
-                            ? 'bg-blue-500 text-white'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                        }`}
-                      >
-                        {author}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Clear Filters */}
-              {(searchQuery || selectedTags.length > 0 || selectedAuthors.length > 0 || dateFrom || dateTo) && (
-                <button
-                  onClick={clearAllFilters}
-                  className="w-full text-sm bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded transition-colors"
-                >
-                  Clear All Filters
-                </button>
-              )}
-            </div>
-          )}
-
-          {/* Bulk Actions */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={selectAllVisible}
-              disabled={filteredAvailableExcerpts.length === 0}
-              className="flex-1 text-sm bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Select All ({filteredAvailableExcerpts.length})
-            </button>
-            {selectedExcerpts.size > 0 && (
-              <>
-                <button
-                  onClick={addSelectedExcerpts}
-                  className="flex-1 text-sm bg-green-50 hover:bg-green-100 text-green-600 px-3 py-2 rounded transition-colors"
-                >
-                  Add Selected ({selectedExcerpts.size})
-                </button>
-                <button
-                  onClick={clearSelection}
-                  className="text-sm bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded transition-colors"
-                >
-                  Clear
-                </button>
-              </>
-            )}
-            {filteredAvailableExcerpts.length > 0 && (
-              <button
-                onClick={addAllFilteredExcerpts}
-                className="text-sm bg-purple-50 hover:bg-purple-100 text-purple-600 px-3 py-2 rounded transition-colors"
+          {/* Actions and Display Mode */}
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Display:</label>
+              <select
+                value={displayMode}
+                onChange={(e) => setDisplayMode(e.target.value as 'title' | 'date')}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
-                Add All Filtered ({filteredAvailableExcerpts.length})
+                <option value="title">Title</option>
+                <option value="date">Date</option>
+              </select>
+            </div>
+            
+            {(searchQuery || selectedTags.length > 0 || selectedAuthors.length > 0 || dateFrom || dateTo) && (
+              <button
+                onClick={clearAllFilters}
+                className="px-4 py-2 text-sm bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+              >
+                Clear Filters
               </button>
             )}
           </div>
-
-          <div className="space-y-3 max-h-96 overflow-y-auto">
-            {availableExcerpts.length === 0 ? (
-              <p className="text-gray-500 text-sm">
-                All excerpts are already in this storyboard.
-              </p>
-            ) : filteredAvailableExcerpts.length === 0 ? (
-              <p className="text-gray-500 text-sm">
-                No excerpts match your filter criteria.
-              </p>
-            ) : (
-              filteredAvailableExcerpts.map((excerpt) => (
-                <div
-                  key={excerpt.id}
-                  className={`bg-white border rounded-lg p-4 transition-all ${
-                    selectedExcerpts.has(excerpt.id)
-                      ? 'border-blue-500 bg-blue-50 shadow-md'
-                      : 'border-gray-200 hover:shadow-md'
-                  }`}
-                >
-                  <div className="flex items-start gap-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedExcerpts.has(excerpt.id)}
-                      onChange={() => toggleExcerptSelection(excerpt.id)}
-                      className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <div
-                      draggable
-                      onDragStart={() => handleExcerptDragStart(excerpt)}
-                      className="flex-1 cursor-move"
-                    >
-                      <h3 className="font-medium text-gray-900 mb-2 line-clamp-2">{excerpt.title}</h3>
-                      {excerpt.author && (
-                        <p className="text-xs text-gray-600 mb-1">by {excerpt.author}</p>
-                      )}
-                      <div className="flex justify-between items-center text-sm text-gray-500 mb-2">
-                        <span>{excerpt.wordCount} words</span>
-                        <span>{new Date(excerpt.createdAt).toLocaleDateString()}</span>
-                      </div>
-                      {excerpt.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-1">
-                          {excerpt.tags.slice(0, 3).map(tag => (
-                            <span key={tag} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                              {tag}
-                            </span>
-                          ))}
-                          {excerpt.tags.length > 3 && (
-                            <span className="text-xs text-gray-500">+{excerpt.tags.length - 3} more</span>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
         </div>
-
-        {/* Storyboard Sections */}
-        <div className="lg:col-span-2">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Story Structure</h2>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Display:</span>
-                <select
-                  value={displayMode}
-                  onChange={(e) => setDisplayMode(e.target.value as 'title' | 'date')}
-                  className="text-sm border border-gray-300 rounded px-2 py-1 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="title">Title</option>
-                  <option value="date">Date</option>
-                </select>
+        
+        {/* Tags and Authors Filters */}
+        <div className="mt-4 flex items-center gap-6 flex-wrap">
+          {availableTags.length > 0 && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">Tags:</span>
+              <div className="flex flex-wrap gap-2">
+                {availableTags.map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                      selectedTags.includes(tag)
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
               </div>
-              <span className="text-sm text-gray-500">Drag to reorder</span>
+            </div>
+          )}
+          
+          {availableAuthors.length > 0 && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700">Authors:</span>
+              <div className="flex flex-wrap gap-2">
+                {availableAuthors.map(author => (
+                  <button
+                    key={author}
+                    onClick={() => toggleAuthor(author)}
+                    className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                      selectedAuthors.includes(author)
+                        ? 'bg-blue-500 text-white'
+                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                    }`}
+                  >
+                    {author}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Main Dashboard Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Available Excerpts Sidebar */}
+        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+          <div className="px-4 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Available Excerpts</h2>
+              <span className="text-sm text-gray-500">{filteredAvailableExcerpts.length} items</span>
+            </div>
+            
+            {/* Bulk Actions */}
+            <div className="flex gap-2">
+              <button
+                onClick={selectAllVisible}
+                disabled={filteredAvailableExcerpts.length === 0}
+                className="flex-1 text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Select All
+              </button>
+              {selectedExcerpts.size > 0 && (
+                <>
+                  <button
+                    onClick={addSelectedExcerpts}
+                    className="flex-1 text-xs bg-green-50 hover:bg-green-100 text-green-600 px-3 py-2 rounded transition-colors"
+                  >
+                    Add ({selectedExcerpts.size})
+                  </button>
+                  <button
+                    onClick={clearSelection}
+                    className="text-xs bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded transition-colors"
+                  >
+                    Clear
+                  </button>
+                </>
+              )}
             </div>
           </div>
-
-          <div
-            className="min-h-96"
-            onDragOver={(e) => handleDragOver(e)}
-            onDragLeave={handleDragLeave}
-            onDrop={(e) => handleDrop(e)}
-          >
-            {storyboard.sections.length === 0 ? (
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                <div className="text-gray-400 mb-2">📚</div>
-                <p className="text-gray-500">
-                  Drag excerpts from the left panel to build your story structure
-                </p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {storyboard.sections.map((section, index) => {
-                  const excerpt = getExcerptById(section.excerptId)
-                  if (!excerpt) return null
-
-                  const displayText = displayMode === 'title' 
-                    ? excerpt.title 
-                    : new Date(excerpt.createdAt).toLocaleDateString()
-
-                  return (
-                    <div key={section.id} className="relative">
-                      {/* Drop zone indicator before this card */}
-                      {dragOverInsertionIndex === index && (
-                        <div className="absolute -top-2 left-0 right-0 h-1 bg-blue-400 rounded-full shadow-lg z-10" />
-                      )}
-                      
-                      {/* Excerpt Card */}
+          
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="space-y-3">
+              {availableExcerpts.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 text-2xl mb-2">📝</div>
+                  <p className="text-gray-500 text-sm">
+                    All excerpts are in this storyboard.
+                  </p>
+                </div>
+              ) : filteredAvailableExcerpts.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-400 text-2xl mb-2">🔍</div>
+                  <p className="text-gray-500 text-sm">
+                    No excerpts match your filters.
+                  </p>
+                </div>
+              ) : (
+                filteredAvailableExcerpts.map((excerpt) => (
+                  <div
+                    key={excerpt.id}
+                    className={`border rounded-lg p-3 transition-all cursor-pointer ${
+                      selectedExcerpts.has(excerpt.id)
+                        ? 'border-blue-500 bg-blue-50 shadow-sm'
+                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
+                    }`}
+                    onClick={() => toggleExcerptSelection(excerpt.id)}
+                  >
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedExcerpts.has(excerpt.id)}
+                        onChange={() => toggleExcerptSelection(excerpt.id)}
+                        className="mt-1 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      />
                       <div
                         draggable
-                        onDragStart={() => handleSectionDragStart(section)}
-                        onDragOver={(e) => handleDragOver(e, index)}
-                        onDrop={(e) => handleDrop(e, index)}
-                        className="bg-white border-2 border-gray-200 hover:border-gray-300 rounded-lg p-3 cursor-move transition-all hover:shadow-lg group relative"
+                        onDragStart={(e) => {
+                          e.stopPropagation()
+                          handleExcerptDragStart(excerpt)
+                        }}
+                        className="flex-1 cursor-move"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-2">
-                          <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <span className="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-1 rounded shrink-0">
-                              {String(index + 1).padStart(2, '0')}
-                            </span>
-                            <h3 className="font-medium text-gray-900 text-sm truncate" title={displayText}>
-                              {displayText}
-                            </h3>
-                          </div>
-                          <button
-                            onClick={() => removeSection(section.id)}
-                            className="text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-                            title="Remove from storyboard"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
+                        <h3 className="font-medium text-gray-900 text-sm mb-1 line-clamp-2">{excerpt.title}</h3>
+                        {excerpt.author && (
+                          <p className="text-xs text-gray-600 mb-1">by {excerpt.author}</p>
+                        )}
+                        <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
+                          <span>{excerpt.wordCount} words</span>
+                          <span>{new Date(excerpt.createdAt).toLocaleDateString()}</span>
                         </div>
-
-                        {/* Metadata */}
-                        <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                          <span>{excerpt.wordCount}w</span>
-                          {excerpt.author && (
-                            <span className="truncate" title={excerpt.author}>by {excerpt.author}</span>
-                          )}
-                        </div>
-
-                        {/* Content Preview */}
-                        <p className="text-xs text-gray-600 line-clamp-2 mb-3" title={excerpt.content.replace(/<[^>]*>/g, '').substring(0, 100)}>
-                          {excerpt.content.replace(/<[^>]*>/g, '').substring(0, 60)}...
-                        </p>
-
-                        {/* Tags */}
                         {excerpt.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mb-2">
+                          <div className="flex flex-wrap gap-1">
                             {excerpt.tags.slice(0, 2).map(tag => (
-                              <span key={tag} className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-xs rounded">
+                              <span key={tag} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                                 {tag}
                               </span>
                             ))}
                             {excerpt.tags.length > 2 && (
-                              <span className="text-xs text-gray-400">+{excerpt.tags.length - 2}</span>
+                              <span className="text-xs text-gray-500">+{excerpt.tags.length - 2} more</span>
                             )}
                           </div>
                         )}
-
-                        {/* Notes */}
-                        <textarea
-                          value={section.notes || ''}
-                          onChange={(e) => updateSectionNotes(section.id, e.target.value)}
-                          placeholder="Notes..."
-                          className="w-full px-2 py-1 text-xs border border-gray-200 rounded resize-none focus:ring-1 focus:ring-blue-500 focus:border-transparent"
-                          rows={2}
-                          onClick={(e) => e.stopPropagation()}
-                        />
                       </div>
                     </div>
-                  )
-                })}
-                
-                {/* Drop zone for new items at the end */}
-                <div className="relative">
-                  {dragOverInsertionIndex === storyboard.sections.length && (
-                    <div className="absolute -top-2 left-0 right-0 h-1 bg-blue-400 rounded-full shadow-lg z-10" />
-                  )}
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Storyboard Manager */}
+        <div className="flex-1 flex flex-col">
+          <div className="px-6 py-4 bg-white border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <h2 className="text-lg font-semibold text-gray-900">Story Structure</h2>
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-gray-500">Drag to reorder sections</span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex-1 p-6 overflow-auto bg-gray-50">
+            <div
+              className="h-full"
+              onDragOver={(e) => handleDragOver(e)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e)}
+            >
+              {storyboard.sections.length === 0 ? (
+                <div className="h-full flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="text-6xl text-gray-300 mb-4">📚</div>
+                    <h3 className="text-xl font-medium text-gray-600 mb-2">Start Building Your Story</h3>
+                    <p className="text-gray-500 max-w-md">
+                      Drag excerpts from the sidebar to create your story structure. You can reorder them by dragging within this area.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 auto-rows-max">
+                  {storyboard.sections.map((section, index) => {
+                    const excerpt = getExcerptById(section.excerptId)
+                    if (!excerpt) return null
+
+                    const displayText = displayMode === 'title' 
+                      ? excerpt.title 
+                      : new Date(excerpt.createdAt).toLocaleDateString()
+
+                    return (
+                      <div key={section.id} className="relative">
+                        {/* Drop zone indicator before this card */}
+                        {dragOverInsertionIndex === index && (
+                          <div className="absolute -top-2 left-0 right-0 h-1 bg-blue-400 rounded-full shadow-lg z-10" />
+                        )}
+                        
+                        {/* Excerpt Card */}
+                        <div
+                          draggable
+                          onDragStart={() => handleSectionDragStart(section)}
+                          onDragOver={(e) => handleDragOver(e, index)}
+                          onDrop={(e) => handleDrop(e, index)}
+                          className="bg-white border border-gray-200 hover:border-gray-300 rounded-lg p-4 cursor-move transition-all hover:shadow-md group h-fit"
+                        >
+                          {/* Header */}
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded shrink-0">
+                                {String(index + 1).padStart(2, '0')}
+                              </span>
+                              <h3 className="font-medium text-gray-900 text-sm leading-tight" title={displayText}>
+                                {displayText.length > 40 ? `${displayText.substring(0, 40)}...` : displayText}
+                              </h3>
+                            </div>
+                            <button
+                              onClick={() => removeSection(section.id)}
+                              className="text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100 shrink-0"
+                              title="Remove from storyboard"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          {/* Metadata */}
+                          <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
+                            <span>{excerpt.wordCount} words</span>
+                            {excerpt.author && (
+                              <span className="truncate" title={excerpt.author}>by {excerpt.author}</span>
+                            )}
+                          </div>
+
+                          {/* Content Preview */}
+                          <p className="text-xs text-gray-600 mb-3 line-clamp-3" title={excerpt.content.replace(/<[^>]*>/g, '')}>
+                            {excerpt.content.replace(/<[^>]*>/g, '').substring(0, 100)}...
+                          </p>
+
+                          {/* Tags */}
+                          {excerpt.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mb-3">
+                              {excerpt.tags.slice(0, 2).map(tag => (
+                                <span key={tag} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">
+                                  {tag}
+                                </span>
+                              ))}
+                              {excerpt.tags.length > 2 && (
+                                <span className="text-xs text-gray-400">+{excerpt.tags.length - 2}</span>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Notes */}
+                          <textarea
+                            value={section.notes || ''}
+                            onChange={(e) => updateSectionNotes(section.id, e.target.value)}
+                            placeholder="Add notes..."
+                            className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            rows={3}
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      </div>
+                    )
+                  })}
                   
-                  <div
-                    className={`border-2 border-dashed rounded-lg p-6 flex items-center justify-center transition-colors ${
-                      dragOverInsertionIndex === storyboard.sections.length 
-                        ? 'border-blue-400 bg-blue-50' 
-                        : 'border-gray-300 bg-gray-50 hover:border-gray-400'
-                    }`}
-                    onDragOver={(e) => handleDragOver(e, storyboard.sections.length)}
-                    onDrop={(e) => handleDrop(e, storyboard.sections.length)}
-                  >
-                    <div className="text-center">
-                      <div className="text-2xl text-gray-400 mb-1">+</div>
-                      <p className="text-xs text-gray-500">Drop here</p>
+                  {/* Drop zone for new items at the end */}
+                  <div className="relative">
+                    {dragOverInsertionIndex === storyboard.sections.length && (
+                      <div className="absolute -top-2 left-0 right-0 h-1 bg-blue-400 rounded-full shadow-lg z-10" />
+                    )}
+                    
+                    <div
+                      className={`border-2 border-dashed rounded-lg p-8 flex items-center justify-center transition-colors h-48 ${
+                        dragOverInsertionIndex === storyboard.sections.length 
+                          ? 'border-blue-400 bg-blue-50' 
+                          : 'border-gray-300 bg-white hover:border-gray-400'
+                      }`}
+                      onDragOver={(e) => handleDragOver(e, storyboard.sections.length)}
+                      onDrop={(e) => handleDrop(e, storyboard.sections.length)}
+                    >
+                      <div className="text-center">
+                        <div className="text-3xl text-gray-400 mb-2">+</div>
+                        <p className="text-sm text-gray-500 font-medium">Drop excerpts here</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>
