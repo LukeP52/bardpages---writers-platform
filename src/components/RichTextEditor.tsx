@@ -1,7 +1,7 @@
 'use client'
 
 import { Editor } from '@tinymce/tinymce-react'
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 interface RichTextEditorProps {
   value: string
@@ -19,14 +19,31 @@ export default function RichTextEditor({
   readonly = false
 }: RichTextEditorProps) {
   const editorRef = useRef<any>(null)
+  const [isMounted, setIsMounted] = useState(false)
+
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const handleEditorChange = (content: string) => {
     onChange(content)
   }
 
+  if (!isMounted) {
+    return (
+      <div 
+        className="border border-gray-300 rounded-lg p-4 bg-gray-50 animate-pulse"
+        style={{ height }}
+      >
+        <div className="text-gray-500">Loading editor...</div>
+      </div>
+    )
+  }
+
   return (
     <div className="rich-text-editor">
       <Editor
+        apiKey="no-api-key"
         onInit={(evt, editor) => editorRef.current = editor}
         value={value}
         onEditorChange={handleEditorChange}
@@ -34,9 +51,9 @@ export default function RichTextEditor({
           height,
           menubar: false,
           plugins: [
-            'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+            'advlist', 'autolink', 'lists', 'link', 'charmap',
             'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-            'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+            'insertdatetime', 'table', 'help', 'wordcount'
           ],
           toolbar: readonly ? false : 
             'undo redo | blocks | ' +
