@@ -38,7 +38,6 @@ function SortableExcerptCard({
   index, 
   displayMode, 
   onRemove, 
-  onNotesChange,
   isBeingDraggedOver = false
 }: {
   section: StoryboardSection
@@ -46,7 +45,6 @@ function SortableExcerptCard({
   index: number
   displayMode: 'title' | 'date'
   onRemove: (id: string) => void
-  onNotesChange: (id: string, notes: string) => void
   isBeingDraggedOver?: boolean
 }) {
   const {
@@ -71,15 +69,15 @@ function SortableExcerptCard({
     <motion.div
       ref={setNodeRef}
       style={style}
-      className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-fit ${
-        isDragging ? 'opacity-50 shadow-2xl scale-105' : ''
+      className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-24 flex items-center justify-between ${
+        isDragging ? 'opacity-0' : ''
       } ${
         isBeingDraggedOver ? 'ring-2 ring-blue-400 ring-opacity-50 scale-105' : ''
       }`}
       layout
       initial={{ opacity: 0, scale: 0.8 }}
       animate={{ 
-        opacity: 1, 
+        opacity: isDragging ? 0 : 1, 
         scale: isBeingDraggedOver ? 1.05 : 1,
         boxShadow: isBeingDraggedOver ? '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' : undefined
       }}
@@ -89,69 +87,34 @@ function SortableExcerptCard({
       {...attributes}
       {...listeners}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1.5 rounded-lg shrink-0">
-            {String(index + 1).padStart(2, '0')}
-          </span>
-          <h3 className="font-semibold text-gray-900 text-sm leading-tight" title={displayText}>
-            {displayText.length > 35 ? `${displayText.substring(0, 35)}...` : displayText}
+      {/* Minimal Content - Title and Date Only */}
+      <div className="flex items-center gap-3 min-w-0 flex-1">
+        <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1.5 rounded-lg shrink-0">
+          {String(index + 1).padStart(2, '0')}
+        </span>
+        <div className="min-w-0 flex-1">
+          <h3 className="font-semibold text-gray-900 text-sm leading-tight truncate" title={displayText}>
+            {displayText.length > 30 ? `${displayText.substring(0, 30)}...` : displayText}
           </h3>
+          <p className="text-xs text-gray-500 mt-1">
+            {new Date(excerpt.createdAt).toLocaleDateString()}
+          </p>
         </div>
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            onRemove(section.id)
-          }}
-          className="text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100 shrink-0 p-1"
-          title="Remove from storyboard"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
       </div>
-
-      {/* Metadata */}
-      <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-        <span className="font-medium">{excerpt.wordCount} words</span>
-        {excerpt.author && (
-          <span className="truncate" title={excerpt.author}>by {excerpt.author}</span>
-        )}
-      </div>
-
-      {/* Content Preview */}
-      <p className="text-xs text-gray-600 mb-3 line-clamp-3 leading-relaxed" title={excerpt.content.replace(/<[^>]*>/g, '')}>
-        {excerpt.content.replace(/<[^>]*>/g, '').substring(0, 120)}...
-      </p>
-
-      {/* Tags */}
-      {excerpt.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 mb-3">
-          {excerpt.tags.slice(0, 2).map(tag => (
-            <span key={tag} className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md font-medium">
-              {tag}
-            </span>
-          ))}
-          {excerpt.tags.length > 2 && (
-            <span className="text-xs text-gray-400 font-medium">+{excerpt.tags.length - 2}</span>
-          )}
-        </div>
-      )}
-
-      {/* Notes */}
-      <textarea
-        value={section.notes || ''}
-        onChange={(e) => {
+      
+      {/* Remove Button */}
+      <button
+        onClick={(e) => {
           e.stopPropagation()
-          onNotesChange(section.id, e.target.value)
+          onRemove(section.id)
         }}
-        placeholder="Add notes..."
-        className="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg resize-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50 focus:bg-white transition-colors"
-        rows={3}
-        onClick={(e) => e.stopPropagation()}
-      />
+        className="text-gray-400 hover:text-red-600 transition-colors opacity-0 group-hover:opacity-100 shrink-0 p-1"
+        title="Remove from storyboard"
+      >
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
     </motion.div>
   )
 }
@@ -330,18 +293,7 @@ export default function StoryboardEditPage() {
     })
   }
 
-  const updateSectionNotes = (sectionId: string, notes: string) => {
-    if (!storyboard) return
-
-    const newSections = storyboard.sections.map(section =>
-      section.id === sectionId ? { ...section, notes } : section
-    )
-
-    saveStoryboard({
-      ...storyboard,
-      sections: newSections
-    })
-  }
+  // Removed updateSectionNotes as we don't need notes anymore
 
   // Enhanced drag and drop handlers with preview positioning
   const sensors = useSensors(
@@ -1026,7 +978,6 @@ export default function StoryboardEditPage() {
                             index={index}
                             displayMode={displayMode}
                             onRemove={removeSection}
-                            onNotesChange={updateSectionNotes}
                             isBeingDraggedOver={dragOverIndex === index}
                           />
                         </React.Fragment>
@@ -1042,20 +993,20 @@ export default function StoryboardEditPage() {
                 <motion.div
                   initial={{ scale: 1, rotate: 0 }}
                   animate={{ scale: 1.1, rotate: 6 }}
-                  className="bg-white border-2 border-blue-400 rounded-xl p-4 shadow-2xl opacity-95"
+                  className="bg-white border-2 border-blue-400 rounded-xl p-4 shadow-2xl opacity-95 h-24"
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">
+                    <span className="bg-blue-500 text-white text-sm font-bold px-3 py-1.5 rounded-lg">
                       {String(storyboard.sections.findIndex(s => s.id === activeId) + 1).padStart(2, '0')}
                     </span>
-                    <h3 className="font-semibold text-gray-900 text-sm">
-                      {displayMode === 'title' ? activeExcerpt.title : new Date(activeExcerpt.createdAt).toLocaleDateString()}
-                    </h3>
-                  </div>
-                  <p className="text-xs text-gray-600">{activeExcerpt.wordCount} words</p>
-                  <div className="mt-2 flex items-center gap-1">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-xs text-blue-600 font-medium">Moving...</span>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-sm">
+                        {(displayMode === 'title' ? activeExcerpt.title : new Date(activeExcerpt.createdAt).toLocaleDateString()).substring(0, 20)}...
+                      </h3>
+                      <p className="text-xs text-gray-500">
+                        {new Date(activeExcerpt.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
                 </motion.div>
               ) : null}
