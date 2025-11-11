@@ -194,6 +194,7 @@ export default function ReferenceManager({
             REFERENCES ({references.length})
           </h3>
           <button
+            type="button"
             onClick={() => setShowAddReference(!showAddReference)}
             className="btn btn-primary btn-sm"
           >
@@ -227,6 +228,7 @@ export default function ReferenceManager({
                     <div className="flex items-center gap-2 ml-4">
                       {selectedText && (
                         <button
+                          type="button"
                           onClick={() => addCitation(reference.id)}
                           className="btn btn-primary btn-sm"
                         >
@@ -234,6 +236,7 @@ export default function ReferenceManager({
                         </button>
                       )}
                       <button
+                        type="button"
                         onClick={() => deleteReference(reference.id)}
                         className="text-red-600 hover:text-red-800 p-1"
                       >
@@ -363,6 +366,7 @@ export default function ReferenceManager({
 
             <div className="flex gap-4 pt-4">
               <button
+                type="button"
                 onClick={addReference}
                 className="btn btn-primary"
                 disabled={!newReference.title || !newReference.author}
@@ -370,6 +374,7 @@ export default function ReferenceManager({
                 Add Reference
               </button>
               <button
+                type="button"
                 onClick={() => setShowAddReference(false)}
                 className="btn btn-ghost"
               >
