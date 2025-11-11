@@ -166,51 +166,125 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
                 Date
               </label>
               <div className="grid grid-cols-3 gap-3">
-                <select
-                  value={date.month}
-                  onChange={(e) => setDate(prev => ({ ...prev, month: parseInt(e.target.value) }))}
-                  className="input text-sm"
-                >
-                  <option value={1}>Jan</option>
-                  <option value={2}>Feb</option>
-                  <option value={3}>Mar</option>
-                  <option value={4}>Apr</option>
-                  <option value={5}>May</option>
-                  <option value={6}>Jun</option>
-                  <option value={7}>Jul</option>
-                  <option value={8}>Aug</option>
-                  <option value={9}>Sep</option>
-                  <option value={10}>Oct</option>
-                  <option value={11}>Nov</option>
-                  <option value={12}>Dec</option>
-                </select>
+                <div>
+                  <input
+                    type="text"
+                    value={(() => {
+                      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+                      return months[date.month - 1] || ''
+                    })()}
+                    onChange={(e) => {
+                      const value = e.target.value.toLowerCase()
+                      const monthMap: { [key: string]: number } = {
+                        'jan': 1, 'january': 1,
+                        'feb': 2, 'february': 2,
+                        'mar': 3, 'march': 3,
+                        'apr': 4, 'april': 4,
+                        'may': 5,
+                        'jun': 6, 'june': 6,
+                        'jul': 7, 'july': 7,
+                        'aug': 8, 'august': 8,
+                        'sep': 9, 'september': 9,
+                        'oct': 10, 'october': 10,
+                        'nov': 11, 'november': 11,
+                        'dec': 12, 'december': 12
+                      }
+                      
+                      if (value === '') {
+                        setDate(prev => ({ ...prev, month: 1 }))
+                      } else {
+                        const monthNum = monthMap[value]
+                        if (monthNum) {
+                          setDate(prev => ({ ...prev, month: monthNum }))
+                        }
+                        // Allow partial typing by checking if any month starts with the typed value
+                        const partialMatch = Object.keys(monthMap).find(key => key.startsWith(value))
+                        if (partialMatch && value.length >= 2) {
+                          const monthNum = monthMap[partialMatch]
+                          if (monthNum) {
+                            setDate(prev => ({ ...prev, month: monthNum }))
+                          }
+                        }
+                      }
+                    }}
+                    className="input text-sm px-3 py-2"
+                    placeholder="Month"
+                    list="months-list"
+                  />
+                  <datalist id="months-list">
+                    <option value="Jan">January</option>
+                    <option value="Feb">February</option>
+                    <option value="Mar">March</option>
+                    <option value="Apr">April</option>
+                    <option value="May">May</option>
+                    <option value="Jun">June</option>
+                    <option value="Jul">July</option>
+                    <option value="Aug">August</option>
+                    <option value="Sep">September</option>
+                    <option value="Oct">October</option>
+                    <option value="Nov">November</option>
+                    <option value="Dec">December</option>
+                  </datalist>
+                </div>
                 
-                <select
-                  value={date.day}
-                  onChange={(e) => setDate(prev => ({ ...prev, day: parseInt(e.target.value) }))}
-                  className="input text-sm"
-                >
-                  {Array.from({ length: 31 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>
-                      {i + 1}
-                    </option>
-                  ))}
-                </select>
-                
-                <select
-                  value={date.year}
-                  onChange={(e) => setDate(prev => ({ ...prev, year: parseInt(e.target.value) }))}
-                  className="input text-sm"
-                >
-                  {Array.from({ length: 20 }, (_, i) => {
-                    const year = new Date().getFullYear() - i
-                    return (
-                      <option key={year} value={year}>
-                        {year}
+                <div>
+                  <input
+                    type="text"
+                    value={date.day}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value === '') {
+                        setDate(prev => ({ ...prev, day: 1 }))
+                      } else {
+                        const numValue = parseInt(value)
+                        if (!isNaN(numValue) && numValue >= 1 && numValue <= 31) {
+                          setDate(prev => ({ ...prev, day: numValue }))
+                        }
+                      }
+                    }}
+                    className="input text-sm px-3 py-2"
+                    placeholder="Day"
+                    list="days-list"
+                  />
+                  <datalist id="days-list">
+                    {Array.from({ length: 31 }, (_, i) => (
+                      <option key={i + 1} value={i + 1}>
+                        {i + 1}
                       </option>
-                    )
-                  })}
-                </select>
+                    ))}
+                  </datalist>
+                </div>
+                
+                <div>
+                  <input
+                    type="text"
+                    value={date.year}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      if (value === '') {
+                        setDate(prev => ({ ...prev, year: new Date().getFullYear() }))
+                      } else {
+                        const numValue = parseInt(value)
+                        if (!isNaN(numValue) && numValue >= 1900 && numValue <= 2100) {
+                          setDate(prev => ({ ...prev, year: numValue }))
+                        }
+                      }
+                    }}
+                    className="input text-sm px-4 py-2"
+                    placeholder="Year"
+                    list="years-list"
+                  />
+                  <datalist id="years-list">
+                    {Array.from({ length: 25 }, (_, i) => {
+                      const year = new Date().getFullYear() - i
+                      return (
+                        <option key={year} value={year}>
+                          {year}
+                        </option>
+                      )
+                    })}
+                  </datalist>
+                </div>
               </div>
             </div>
           </div>
