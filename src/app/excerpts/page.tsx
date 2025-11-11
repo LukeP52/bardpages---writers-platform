@@ -202,14 +202,14 @@ export default function ExcerptsPage() {
   }
 
   const renderExcerpts = () => (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {filteredExcerpts.map((excerpt, index) => (
-        <div key={excerpt.id} className="card bg-white">
-          <div className="p-8">
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex-1">
-                <div className="flex items-center gap-4 mb-2">
-                  <span className="text-black font-bold font-mono text-lg">
+        <div key={excerpt.id} className="card bg-white hover:shadow-md transition-shadow">
+          <div className="p-4">
+            <div className="flex items-start justify-between">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-3 mb-2">
+                  <span className="text-gray-600 font-bold font-mono text-sm bg-gray-100 px-2 py-1 rounded">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                   <a 
@@ -218,65 +218,67 @@ export default function ExcerptsPage() {
                       console.log('Title clicked for excerpt:', excerpt.id)
                       cacheExcerptForEditing(excerpt)
                     }}
-                    className="text-2xl font-bold text-black tracking-tight hover:underline cursor-pointer"
+                    className="text-lg font-bold text-black hover:text-blue-600 transition-colors truncate"
                   >
                     {excerpt.title}
                   </a>
+                  <span className={`px-2 py-1 text-xs font-bold rounded ${
+                    excerpt.status === 'final' ? 'bg-green-100 text-green-800' :
+                    excerpt.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {excerpt.status.toUpperCase()}
+                  </span>
                 </div>
-                <div className="text-black mb-4 leading-relaxed">
-                  {getExcerptPreview(excerpt.content, 200)}
+                
+                <div className="text-gray-700 text-sm mb-3 leading-relaxed">
+                  {getExcerptPreview(excerpt.content, 120)}
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <span>{excerpt.wordCount} words</span>
+                    {excerpt.author && (
+                      <span>by {excerpt.author}</span>
+                    )}
+                    <span>{excerpt.updatedAt.toLocaleDateString()}</span>
+                  </div>
+                  
+                  {excerpt.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {excerpt.tags.slice(0, 3).map(tag => (
+                        <span
+                          key={tag}
+                          className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {excerpt.tags.length > 3 && (
+                        <span className="text-xs text-gray-400">+{excerpt.tags.length - 3}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
               
-              <div className="flex gap-2 ml-6">
+              <div className="flex gap-2 ml-4 shrink-0">
                 <a
                   href={`/excerpts/${excerpt.id}/edit`}
                   onClick={() => {
                     console.log('EDIT button clicked for excerpt:', excerpt.id)
                     cacheExcerptForEditing(excerpt)
                   }}
-                  className="btn btn-primary"
+                  className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm"
                 >
-                  EDIT
+                  Edit
                 </a>
                 <button
                   onClick={() => handleDeleteExcerpt(excerpt)}
-                  className="btn btn-outline border-red-500 text-red-600 hover:bg-red-500 hover:text-white"
+                  className="btn btn-sm border border-red-300 text-red-600 hover:bg-red-500 hover:text-white px-3 py-1 text-sm"
                 >
-                  DELETE
+                  Delete
                 </button>
-              </div>
-            </div>
-            
-            {excerpt.tags.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-4">
-                {excerpt.tags.map(tag => (
-                  <span
-                    key={tag}
-                    className="tag"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-            
-            <div className="flex items-center justify-between text-sm font-mono text-black">
-              <div className="flex items-center space-x-4">
-                <span>{excerpt.wordCount} WORDS</span>
-                {excerpt.author && (
-                  <span>BY {excerpt.author.toUpperCase()}</span>
-                )}
-              </div>
-              <div className="flex items-center space-x-4">
-                <span className={`px-2 py-1 text-xs font-bold ${
-                  excerpt.status === 'final' ? 'bg-green-500 text-white' :
-                  excerpt.status === 'review' ? 'bg-yellow-500 text-white' :
-                  'bg-gray-500 text-white'
-                }`}>
-                  {excerpt.status.toUpperCase()}
-                </span>
-                <span>{excerpt.updatedAt.toLocaleDateString().toUpperCase()}</span>
               </div>
             </div>
           </div>
