@@ -37,6 +37,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
   const [marginRight, setMarginRight] = useState(book?.formatting.marginRight || 1)
   
   // Chapter Formatting
+  const [useChapters, setUseChapters] = useState<boolean>(book?.formatting.useChapters !== undefined ? book.formatting.useChapters : true)
   const [chapterTitleFont, setChapterTitleFont] = useState(book?.formatting.chapterTitleFont || 'Inter')
   const [chapterTitleSize, setChapterTitleSize] = useState(book?.formatting.chapterTitleSize || 18)
   const [chapterNumberStyle, setChapterNumberStyle] = useState(book?.formatting.chapterNumberStyle || 'numeric')
@@ -94,6 +95,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
           marginLeft,
           marginRight,
           // Chapter Formatting
+          useChapters,
           chapterTitleFont,
           chapterTitleSize,
           chapterNumberStyle,
@@ -388,83 +390,106 @@ export default function BookForm({ book, mode }: BookFormProps) {
         </div>
       </div>
 
-      {/* Chapter Formatting */}
+      {/* Chapter Structure */}
       <div className="border-2 border-black bg-white p-6">
         <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
-          Chapter Formatting
+          Book Structure
         </h2>
         
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div>
-              <label htmlFor="chapterTitleFont" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Chapter Title Font
-              </label>
-              <select
-                id="chapterTitleFont"
-                value={chapterTitleFont}
-                onChange={(e) => setChapterTitleFont(e.target.value)}
-                className="input"
-              >
-                <option value="Inter">Inter</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Georgia">Georgia</option>
-                <option value="Garamond">Garamond</option>
-                <option value="Arial">Arial</option>
-                <option value="Helvetica">Helvetica</option>
-                <option value="Trajan Pro">Trajan Pro</option>
-                <option value="Copperplate">Copperplate</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="chapterTitleSize" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Chapter Title Size (pt)
-              </label>
-              <input
-                type="number"
-                id="chapterTitleSize"
-                value={chapterTitleSize}
-                onChange={(e) => setChapterTitleSize(parseInt(e.target.value))}
-                className="input"
-                min="12"
-                max="48"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="chapterNumberStyle" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Chapter Numbers
-              </label>
-              <select
-                id="chapterNumberStyle"
-                value={chapterNumberStyle}
-                onChange={(e) => setChapterNumberStyle(e.target.value as any)}
-                className="input"
-              >
-                <option value="numeric">1, 2, 3...</option>
-                <option value="roman">I, II, III...</option>
-                <option value="words">One, Two, Three...</option>
-                <option value="none">No Numbers</option>
-              </select>
-            </div>
-
-            <div>
-              <label htmlFor="chapterBreak" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Chapter Break Style
-              </label>
-              <select
-                id="chapterBreak"
-                value={chapterBreakStyle}
-                onChange={(e) => setChapterBreakStyle(e.target.value as any)}
-                className="input"
-              >
-                <option value="page-break">New Page</option>
-                <option value="section-break">Section Break</option>
-                <option value="spacing">Extra Spacing</option>
-              </select>
-            </div>
+          <div className="flex items-center">
+            <input
+              type="checkbox"
+              id="useChapters"
+              checked={useChapters}
+              onChange={(e) => setUseChapters(e.target.checked)}
+              className="mr-3 w-4 h-4"
+            />
+            <label htmlFor="useChapters" className="text-sm font-bold text-black uppercase tracking-wide">
+              Use Chapters
+            </label>
+            <span className="ml-2 text-xs text-gray-600">
+              (Uncheck for poetry books, essays, reference works, etc.)
+            </span>
           </div>
+
+          {useChapters && (
+            <div className="bg-gray-50 p-4 rounded border">
+              <h3 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">
+                Chapter Formatting
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div>
+                  <label htmlFor="chapterTitleFont" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                    Chapter Title Font
+                  </label>
+                  <select
+                    id="chapterTitleFont"
+                    value={chapterTitleFont}
+                    onChange={(e) => setChapterTitleFont(e.target.value)}
+                    className="input"
+                  >
+                    <option value="Inter">Inter</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Garamond">Garamond</option>
+                    <option value="Arial">Arial</option>
+                    <option value="Helvetica">Helvetica</option>
+                    <option value="Trajan Pro">Trajan Pro</option>
+                    <option value="Copperplate">Copperplate</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="chapterTitleSize" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                    Chapter Title Size (pt)
+                  </label>
+                  <input
+                    type="number"
+                    id="chapterTitleSize"
+                    value={chapterTitleSize}
+                    onChange={(e) => setChapterTitleSize(parseInt(e.target.value))}
+                    className="input"
+                    min="12"
+                    max="48"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="chapterNumberStyle" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                    Chapter Numbers
+                  </label>
+                  <select
+                    id="chapterNumberStyle"
+                    value={chapterNumberStyle}
+                    onChange={(e) => setChapterNumberStyle(e.target.value as any)}
+                    className="input"
+                  >
+                    <option value="numeric">1, 2, 3...</option>
+                    <option value="roman">I, II, III...</option>
+                    <option value="words">One, Two, Three...</option>
+                    <option value="none">No Numbers</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="chapterBreak" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+                    Chapter Break Style
+                  </label>
+                  <select
+                    id="chapterBreak"
+                    value={chapterBreakStyle}
+                    onChange={(e) => setChapterBreakStyle(e.target.value as any)}
+                    className="input"
+                  >
+                    <option value="page-break">New Page</option>
+                    <option value="section-break">Section Break</option>
+                    <option value="spacing">Extra Spacing</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -615,18 +640,20 @@ export default function BookForm({ book, mode }: BookFormProps) {
                 marginBottom: `${paragraphSpacing}em`
               }}
             >
-              <div 
-                className="font-bold mb-3"
-                style={{
-                  fontFamily: chapterTitleFont,
-                  fontSize: `${chapterTitleSize}px`
-                }}
-              >
-                {chapterNumberStyle === 'numeric' && 'Chapter 1: '}
-                {chapterNumberStyle === 'roman' && 'Chapter I: '}
-                {chapterNumberStyle === 'words' && 'Chapter One: '}
-                Sample Chapter Title
-              </div>
+              {useChapters && (
+                <div 
+                  className="font-bold mb-3"
+                  style={{
+                    fontFamily: chapterTitleFont,
+                    fontSize: `${chapterTitleSize}px`
+                  }}
+                >
+                  {chapterNumberStyle === 'numeric' && 'Chapter 1: '}
+                  {chapterNumberStyle === 'roman' && 'Chapter I: '}
+                  {chapterNumberStyle === 'words' && 'Chapter One: '}
+                  Sample Chapter Title
+                </div>
+              )}
               <p style={{ textIndent: dropCapEnabled ? '0' : `${firstLineIndent}em` }}>
                 {dropCapEnabled && <span style={{ fontSize: '2.5em', float: 'left', lineHeight: '1', marginRight: '3px' }}>T</span>}
                 his is a preview of how your book text will appear with the selected formatting options. You can see the font family, size, line height, and alignment in action.

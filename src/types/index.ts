@@ -69,6 +69,7 @@ export interface BookFormatting {
   marginRight: number
   
   // Chapter Formatting
+  useChapters: boolean
   chapterTitleFont: string
   chapterTitleSize: number
   chapterNumberStyle: 'numeric' | 'roman' | 'words' | 'none'
