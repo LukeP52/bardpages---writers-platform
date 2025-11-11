@@ -233,6 +233,159 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
   `
 }
 
+// PDF-optimized HTML that matches the preview formatting exactly
+const exportToPDFPreview = (book: Book, options: ExportOptions): string => {
+  const { title, content, chapters } = generateBookContent(book)
+  
+  const metadata = options.includeMetadata ? `
+    <!-- Title Page -->
+    <div class="text-center mb-16 border-b border-gray-200 pb-16">
+      <h1 class="text-5xl font-bold text-black mb-4">
+        ${book.title}
+      </h1>
+      ${book.subtitle ? `<h2 class="text-2xl text-gray-600 mb-8">${book.subtitle}</h2>` : ''}
+      <p class="text-xl text-black font-medium mb-6">
+        by ${book.author}
+      </p>
+      ${book.metadata.genre ? `<p class="text-sm text-gray-500 uppercase tracking-wide">${book.metadata.genre}</p>` : ''}
+      ${book.metadata.description ? `<div class="mt-8 text-gray-700 max-w-2xl mx-auto">${book.metadata.description}</div>` : ''}
+    </div>
+  ` : ''
+
+  const processImagesForPreview = (content: string): string => {
+    return content.replace(/<img([^>]*?)>/g, (match, attributes) => {
+      const srcMatch = attributes.match(/src\s*=\s*["']([^"']*)["']/i);
+      const src = srcMatch ? srcMatch[1] : '';
+      const altMatch = attributes.match(/alt\s*=\s*["']([^"']*)["']/i);
+      const alt = altMatch ? altMatch[1] : '';
+      
+      return `<img src="${src}"${alt ? ` alt="${alt}"` : ''} class="mx-auto my-4 max-w-full h-auto" style="max-width: 400px; height: auto;">`;
+    });
+  };
+
+  const chaptersHTML = chapters.map(chapter => `
+    <div class="chapter ${book.formatting.chapterBreakStyle === 'page-break' ? 'break-before-page' : ''}">
+      <h2 class="text-3xl font-bold text-black mb-8 ${book.formatting.chapterBreakStyle === 'spacing' ? 'mt-16' : ''}">
+        ${chapter.title}
+      </h2>
+      <div class="prose prose-lg max-w-none" style="text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment}; word-spacing: normal; letter-spacing: normal;">
+        ${processImagesForPreview(chapter.content)}
+      </div>
+    </div>
+  `).join('')
+
+  return `
+<!DOCTYPE html>
+<html lang="${book.metadata.language}">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @media print {
+      @page {
+        size: A4;
+        margin: 0.75in;
+      }
+      
+      body {
+        font-family: ${book.formatting.fontFamily}, serif;
+        font-size: ${book.formatting.fontSize}pt;
+        line-height: ${book.formatting.lineHeight};
+        color: #000 !important;
+        background: white !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      
+      .break-before-page {
+        page-break-before: always;
+      }
+      
+      .chapter {
+        page-break-inside: avoid;
+        margin-bottom: 2rem;
+      }
+      
+      h1, h2, h3 {
+        page-break-after: avoid;
+      }
+      
+      p {
+        orphans: 3;
+        widows: 3;
+        margin: ${book.formatting.paragraphSpacing || 0.5}em 0;
+        ${book.formatting.firstLineIndent && book.formatting.firstLineIndent > 0 ? `text-indent: ${book.formatting.firstLineIndent}em;` : ''}
+      }
+      
+      img {
+        max-width: 400px;
+        height: auto;
+        page-break-inside: avoid;
+        margin: 1rem auto;
+        display: block;
+      }
+      
+      .border-gray-200 {
+        border-color: #e5e7eb !important;
+      }
+      
+      .text-gray-600 {
+        color: #4b5563 !important;
+      }
+      
+      .text-gray-500 {
+        color: #6b7280 !important;
+      }
+      
+      .text-gray-700 {
+        color: #374151 !important;
+      }
+    }
+    
+    /* Screen styles for preview */
+    body {
+      font-family: ${book.formatting.fontFamily}, serif;
+      font-size: ${book.formatting.fontSize}pt;
+      line-height: ${book.formatting.lineHeight};
+      background: white;
+      color: #000;
+      padding: 3rem;
+      max-width: 8.5in;
+      margin: 0 auto;
+    }
+    
+    .container {
+      background: white;
+      border: 2px solid #e5e7eb;
+      padding: 3rem;
+      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    ${metadata}
+    
+    <!-- Chapters -->
+    <div class="space-y-12">
+      ${chaptersHTML}
+    </div>
+    
+    <!-- Book Info -->
+    <div class="mt-16 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
+      <p>Generated from ${chapters.length} chapters</p>
+      <p>Total word count: ${chapters.reduce((total, chapter) => 
+        total + chapter.excerpts.reduce((sum, excerpt) => sum + excerpt.wordCount, 0), 0
+      ).toLocaleString()}</p>
+    </div>
+  </div>
+</body>
+</html>
+  `
+}
+
 // PDF-specific HTML with print optimizations
 const exportToPDF = (book: Book, options: ExportOptions): string => {
   const { title, content, chapters } = generateBookContent(book)
@@ -387,7 +540,7 @@ export const exportBook = async (book: Book, options: ExportOptions): Promise<st
     case 'html':
       return exportToHTML(book, options)
     case 'pdf':
-      return exportToPDF(book, options)
+      return exportToPDFPreview(book, options)
     case 'epub':
       // For now, return HTML - in a real app, you'd use a library like epub-gen
       return exportToHTML(book, options)
@@ -414,101 +567,68 @@ export const downloadFile = (content: string, filename: string, mimeType: string
 
 export const downloadPDF = async (content: string, filename: string) => {
   try {
-    // Dynamic import to avoid SSR issues
-    const jsPDF = (await import('jspdf')).default
-    const html2canvas = (await import('html2canvas')).default
-    
-    // Create a temporary container with the content
-    const tempContainer = document.createElement('div')
-    tempContainer.style.position = 'absolute'
-    tempContainer.style.left = '-9999px'
-    tempContainer.style.top = '-9999px'
-    tempContainer.style.width = '700px' // Fixed width for consistent rendering
-    tempContainer.style.backgroundColor = 'white'
-    tempContainer.style.fontFamily = 'Times New Roman, serif'
-    tempContainer.style.fontSize = '12pt'
-    tempContainer.style.lineHeight = '1.6'
-    tempContainer.style.padding = '40px'
-    tempContainer.innerHTML = content
-    document.body.appendChild(tempContainer)
-    
-    // Wait for fonts and content to load
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // Capture the content as canvas
-    const canvas = await html2canvas(tempContainer, {
-      scale: 1.5, // Good balance of quality and file size
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      width: tempContainer.scrollWidth,
-      height: tempContainer.scrollHeight,
-      logging: false
-    })
-    
-    // Remove temp container
-    document.body.removeChild(tempContainer)
-    
-    // Create PDF with proper multi-page handling
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF('portrait', 'pt', 'letter')
-    
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-    const margin = 40 // 40pt margins
-    const contentWidth = pdfWidth - (margin * 2)
-    const contentHeight = pdfHeight - (margin * 2)
-    
-    const imgWidth = canvas.width
-    const imgHeight = canvas.height
-    
-    // Calculate how much content fits on each page
-    const ratio = contentWidth / imgWidth
-    const scaledHeight = imgHeight * ratio
-    
-    let yPosition = 0
-    let pageNumber = 1
-    
-    while (yPosition < scaledHeight) {
-      const pageContent = Math.min(contentHeight, scaledHeight - yPosition)
-      
-      // Add image section to current page
-      pdf.addImage(
-        imgData, 
-        'PNG', 
-        margin, 
-        margin - (yPosition / ratio), 
-        contentWidth, 
-        scaledHeight
-      )
-      
-      yPosition += pageContent
-      
-      // Add new page if there's more content
-      if (yPosition < scaledHeight) {
-        pdf.addPage()
-        pageNumber++
-      }
-    }
-    
-    // Save the PDF
-    pdf.save(filename)
-    
-  } catch (error) {
-    console.error('PDF generation failed:', error)
-    // Fallback to the print dialog method
-    const printWindow = window.open('', '_blank')
+    // Create a new window with the beautifully formatted content
+    const printWindow = window.open('', '_blank', 'width=800,height=600')
     
     if (printWindow) {
+      // Write the content to the new window
       printWindow.document.write(content)
       printWindow.document.close()
       
+      // Wait for content to load, then trigger print
       printWindow.onload = () => {
         setTimeout(() => {
+          // Focus the window and trigger print dialog
+          printWindow.focus()
           printWindow.print()
-        }, 500)
+          
+          // Optional: Close the window after a delay (user can cancel this)
+          setTimeout(() => {
+            if (!printWindow.closed) {
+              printWindow.close()
+            }
+          }, 1000)
+        }, 1000) // Increased delay to ensure Tailwind CSS loads
       }
+      
+      // Handle case where onload doesn't fire
+      setTimeout(() => {
+        if (printWindow.document.readyState === 'complete') {
+          printWindow.focus()
+          printWindow.print()
+        }
+      }, 2000)
+      
     } else {
-      alert('PDF generation failed. Please try again or use your browser\'s print function.')
+      // Fallback: download HTML file with instructions
+      const blob = new Blob([content], { type: 'text/html' })
+      const url = URL.createObjectURL(blob)
+      
+      const link = document.createElement('a')
+      link.href = url
+      link.download = filename.replace('.pdf', '_print_ready.html')
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      
+      alert('Pop-up blocked. Downloaded HTML file instead. Open it in your browser and use Ctrl+P (Cmd+P on Mac) to print as PDF.')
     }
+  } catch (error) {
+    console.error('PDF generation failed:', error)
+    
+    // Final fallback: download HTML file
+    const blob = new Blob([content], { type: 'text/html' })
+    const url = URL.createObjectURL(blob)
+    
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename.replace('.pdf', '_print_ready.html')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    
+    alert('PDF generation failed. Downloaded HTML file instead. Open it in your browser and use Ctrl+P (Cmd+P on Mac) to print as PDF.')
   }
 }
