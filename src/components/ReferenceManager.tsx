@@ -270,6 +270,8 @@ export default function ReferenceManager({
           <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
             ADD NEW REFERENCE
           </h3>
+          {console.log('Add Reference Form is rendering')}
+          {console.log('Current newReference state:', newReference)}
           
           <div className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -386,7 +388,12 @@ export default function ReferenceManager({
             <div className="flex gap-4 pt-4">
               <button
                 type="button"
-                onClick={addReference}
+                onClick={() => {
+                  console.log('Add Reference button clicked!')
+                  console.log('Button disabled state:', !newReference.title || !newReference.author)
+                  console.log('newReference at button click:', newReference)
+                  addReference()
+                }}
                 className="btn btn-primary"
                 disabled={!newReference.title || !newReference.author}
               >
@@ -394,7 +401,10 @@ export default function ReferenceManager({
               </button>
               <button
                 type="button"
-                onClick={() => setShowAddReference(false)}
+                onClick={() => {
+                  console.log('Cancel button clicked!')
+                  setShowAddReference(false)
+                }}
                 className="btn btn-ghost"
               >
                 Cancel
