@@ -2,7 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { PlusIcon, XMarkIcon, BookOpenIcon, GlobeAltIcon, NewspaperIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, XMarkIcon, BookOpenIcon, GlobeAltIcon, NewspaperIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { Reference, Citation } from '@/types'
 import toast from 'react-hot-toast'
 
@@ -24,6 +24,7 @@ export default function ReferenceManager({
   onContentChange
 }: ReferenceManagerProps) {
   const [showAddReference, setShowAddReference] = useState(false)
+  const [editingReference, setEditingReference] = useState<Reference | null>(null)
   const [selectedText, setSelectedText] = useState('')
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number } | null>(null)
   const contentRef = useRef<HTMLTextAreaElement>(null)
@@ -82,40 +83,102 @@ export default function ReferenceManager({
     toast.success('Citation added successfully!')
   }
 
-  const addReference = () => {
+  const startEditingReference = (reference: Reference) => {
+    setEditingReference(reference)
+    setNewReference({
+      type: reference.type,
+      title: reference.title,
+      author: reference.author,
+      publication: reference.publication,
+      year: reference.year,
+      volume: reference.volume,
+      issue: reference.issue,
+      pages: reference.pages,
+      url: reference.url,
+      doi: reference.doi,
+      accessDate: reference.accessDate,
+      publisher: reference.publisher,
+      location: reference.location,
+      isbn: reference.isbn
+    })
+    setShowAddReference(true)
+  }
+
+  const saveReference = () => {
     if (!newReference.title || !newReference.author) {
       toast.error('Please provide at least title and author')
       return
     }
 
-    const reference: Reference = {
-      id: uuidv4(),
-      type: newReference.type as any,
-      title: newReference.title,
-      author: newReference.author,
-      publication: newReference.publication,
-      year: newReference.year || new Date().getFullYear(),
-      volume: newReference.volume,
-      issue: newReference.issue,
-      pages: newReference.pages,
-      url: newReference.url,
-      doi: newReference.doi,
-      accessDate: newReference.accessDate,
-      publisher: newReference.publisher,
-      location: newReference.location,
-      isbn: newReference.isbn,
-      createdAt: new Date()
+    if (editingReference) {
+      // Update existing reference
+      const updatedReference: Reference = {
+        ...editingReference,
+        type: newReference.type as any,
+        title: newReference.title,
+        author: newReference.author,
+        publication: newReference.publication,
+        year: newReference.year || new Date().getFullYear(),
+        volume: newReference.volume,
+        issue: newReference.issue,
+        pages: newReference.pages,
+        url: newReference.url,
+        doi: newReference.doi,
+        accessDate: newReference.accessDate,
+        publisher: newReference.publisher,
+        location: newReference.location,
+        isbn: newReference.isbn
+      }
+
+      onReferencesChange(references.map(ref => 
+        ref.id === editingReference.id ? updatedReference : ref
+      ))
+      toast.success('Reference updated successfully!')
+    } else {
+      // Add new reference
+      const reference: Reference = {
+        id: uuidv4(),
+        type: newReference.type as any,
+        title: newReference.title,
+        author: newReference.author,
+        publication: newReference.publication,
+        year: newReference.year || new Date().getFullYear(),
+        volume: newReference.volume,
+        issue: newReference.issue,
+        pages: newReference.pages,
+        url: newReference.url,
+        doi: newReference.doi,
+        accessDate: newReference.accessDate,
+        publisher: newReference.publisher,
+        location: newReference.location,
+        isbn: newReference.isbn,
+        createdAt: new Date()
+      }
+
+      onReferencesChange([...references, reference])
+      toast.success('Reference added successfully!')
     }
 
-    onReferencesChange([...references, reference])
+    // Reset form
     setNewReference({
       type: 'book',
       title: '',
       author: '',
       year: new Date().getFullYear()
     })
+    setEditingReference(null)
     setShowAddReference(false)
-    toast.success('Reference added successfully!')
+  }
+
+  const cancelEditing = () => {
+    setNewReference({
+      type: 'book',
+      title: '',
+      author: '',
+      year: new Date().getFullYear()
+    })
+    setEditingReference(null)
+    setShowAddReference(false)
   }
 
   const deleteReference = (id: string) => {
@@ -220,7 +283,16 @@ export default function ReferenceManager({
           </h3>
           <button
             type="button"
-            onClick={() => setShowAddReference(!showAddReference)}
+            onClick={() => {
+              setEditingReference(null)
+              setNewReference({
+                type: 'book',
+                title: '',
+                author: '',
+                year: new Date().getFullYear()
+              })
+              setShowAddReference(!showAddReference)
+            }}
             className="btn btn-primary btn-sm"
           >
             <PlusIcon className="w-4 h-4 mr-1" />
@@ -262,8 +334,17 @@ export default function ReferenceManager({
                       )}
                       <button
                         type="button"
+                        onClick={() => startEditingReference(reference)}
+                        className="text-blue-600 hover:text-blue-800 p-1"
+                        title="Edit reference"
+                      >
+                        <PencilIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => deleteReference(reference.id)}
                         className="text-red-600 hover:text-red-800 p-1"
+                        title="Delete reference"
                       >
                         <XMarkIcon className="w-4 h-4" />
                       </button>
@@ -283,11 +364,11 @@ export default function ReferenceManager({
               <div className="sticky top-0 bg-white border-b-2 border-black p-6">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold text-black tracking-wide">
-                    ADD NEW REFERENCE
+                    {editingReference ? 'EDIT REFERENCE' : 'ADD NEW REFERENCE'}
                   </h3>
                   <button
                     type="button"
-                    onClick={() => setShowAddReference(false)}
+                    onClick={cancelEditing}
                     className="text-black hover:bg-black hover:text-white p-2 font-bold text-xl"
                   >
                     ×
@@ -415,15 +496,15 @@ export default function ReferenceManager({
             <div className="flex gap-4 pt-4">
               <button
                 type="button"
-                onClick={addReference}
+                onClick={saveReference}
                 className="btn btn-primary"
                 disabled={!newReference.title || !newReference.author}
               >
-                Add Reference
+                {editingReference ? 'Update Reference' : 'Add Reference'}
               </button>
               <button
                 type="button"
-                onClick={() => setShowAddReference(false)}
+                onClick={cancelEditing}
                 className="btn btn-ghost"
               >
                 Cancel
