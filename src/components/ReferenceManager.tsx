@@ -83,12 +83,16 @@ export default function ReferenceManager({
   }
 
   const addReference = () => {
-    console.log('addReference called')
+    console.log('=== addReference called ===')
     console.log('newReference state:', newReference)
-    console.log('Validation check - title:', newReference.title, 'author:', newReference.author)
+    console.log('Title:', `"${newReference.title}"`, 'Length:', newReference.title?.length)
+    console.log('Author:', `"${newReference.author}"`, 'Length:', newReference.author?.length)
+    console.log('Title check:', !!newReference.title)
+    console.log('Author check:', !!newReference.author)
+    console.log('Combined validation:', !!(newReference.title && newReference.author))
     
     if (!newReference.title || !newReference.author) {
-      console.log('Validation failed - missing title or author')
+      console.log('❌ Validation FAILED - missing title or author')
       toast.error('Please provide at least title and author')
       return
     }
@@ -390,9 +394,15 @@ export default function ReferenceManager({
               <button
                 type="button"
                 onClick={() => {
-                  console.log('Add Reference button clicked!')
-                  console.log('Button disabled state:', !newReference.title || !newReference.author)
+                  console.log('🔘 Add Reference button clicked!')
+                  console.log('Button disabled state:', (!newReference.title || !newReference.author))
+                  console.log('Title exists:', !!newReference.title, 'Author exists:', !!newReference.author)
                   console.log('newReference at button click:', newReference)
+                  if (!newReference.title || !newReference.author) {
+                    console.log('❌ Button should be disabled but was clickable')
+                    alert('Button validation check: Title and Author are required')
+                    return
+                  }
                   addReference()
                 }}
                 className="btn btn-primary"
