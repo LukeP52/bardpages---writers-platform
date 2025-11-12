@@ -280,88 +280,8 @@ export default function ExcerptsPage() {
     }
   }
 
-  const debugStorage = async () => {
-    console.log('=== STORAGE DEBUG ===')
-    try {
-      const loadedExcerpts = await storage.getExcerpts()
-      console.log('Excerpts from storage:', loadedExcerpts.length)
-      loadedExcerpts.forEach((excerpt, i) => {
-        console.log(`${i + 1}. ${excerpt.title} (ID: ${excerpt.id})`)
-      })
 
-      // Check localStorage directly (only if not using cloud storage)
-      if (!storage.isUsingCloud && typeof window !== 'undefined') {
-        const stored = localStorage.getItem('bardpages_excerpts')
-        if (stored) {
-          const parsed = JSON.parse(stored)
-          console.log('localStorage direct check:', parsed.length, 'excerpts')
-        } else {
-          console.log('localStorage direct check: NO DATA')
-        }
-      }
-    } catch (error) {
-      console.error('Debug storage error:', error)
-    }
-    console.log('=== END DEBUG ===')
-  }
 
-  const createTestExcerpt = async () => {
-    const testExcerpt: Excerpt = {
-      id: uuidv4(),
-      title: 'Debug Test Excerpt',
-      content: 'This is a test excerpt created for debugging storage issues.',
-      author: 'Debug System',
-      status: 'draft',
-      tags: ['debug', 'test'],
-      references: [],
-      citations: [],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      wordCount: 12
-    }
-    
-    try {
-      console.log('Creating test excerpt with ID:', testExcerpt.id)
-      await storage.saveExcerpt(testExcerpt)
-      
-      // Test immediate retrieval
-      const retrieved = await storage.getExcerpt(testExcerpt.id)
-      console.log('Immediate retrieval test:', retrieved ? 'SUCCESS' : 'FAILED')
-      
-      // Force refresh the state
-      const updated = await storage.getExcerpts()
-      setExcerpts(updated)
-      setFilteredExcerpts(updated)
-      
-      // Test edit URL
-      console.log('Edit URL would be:', `/excerpts/${testExcerpt.id}/edit`)
-    } catch (error) {
-      console.error('Failed to create test excerpt:', error)
-    }
-  }
-
-  const testDirectStorage = () => {
-    console.log('=== DIRECT LOCALSTORAGE TEST ===')
-    
-    // Direct test
-    const testData = { test: 'data', time: new Date().toISOString() }
-    
-    try {
-      localStorage.setItem('test_storage', JSON.stringify(testData))
-      const retrieved = localStorage.getItem('test_storage')
-      console.log('Direct localStorage test:', retrieved ? 'SUCCESS' : 'FAILED')
-      
-      // Check current excerpts in localStorage
-      const excerpts = localStorage.getItem('bardpages_excerpts')
-      console.log('Current excerpts in localStorage:', excerpts ? JSON.parse(excerpts).length : 'NONE')
-      
-      localStorage.removeItem('test_storage')
-    } catch (error) {
-      console.error('localStorage error:', error)
-    }
-    
-    console.log('=== END DIRECT TEST ===')
-  }
 
   const renderExcerpts = () => (
     <div className="space-y-4">
