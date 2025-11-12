@@ -118,26 +118,44 @@ export default function CitationWorkflow({
     const quill = quillRef.current
     const insertPosition = selectedRange.index + selectedRange.length
     
-    // Insert the citation marker using formatText to make it superscript
-    const citationText = `[${citationNumber}]`
-    quill.insertText(insertPosition, citationText, 'user')
-    quill.formatText(insertPosition, citationText.length, { 'script': 'super', 'color': '#2563eb', 'bold': true }, 'user')
+    console.log('Adding citation:', {
+      citationNumber,
+      insertPosition,
+      selectedRange,
+      selectedText,
+      editorAvailable: !!quill
+    })
     
-    // Create citation object with updated positions
-    const newCitation: Citation = {
-      id: uuidv4(),
-      referenceId,
-      startPos: selectedRange.index,
-      endPos: selectedRange.index + selectedRange.length + citationText.length,
-      text: selectedText,
-      noteId
-    }
+    try {
+      // Insert the citation marker using Quill 2.0+ API
+      const citationText = `[${citationNumber}]`
+      
+      // Insert text with formatting in one operation (more reliable approach)
+      quill.insertText(insertPosition, citationText, {
+        'script': 'super',
+        'color': '#2563eb',
+        'bold': true
+      })
+      
+      // Create citation object with updated positions
+      const newCitation: Citation = {
+        id: uuidv4(),
+        referenceId,
+        startPos: selectedRange.index,
+        endPos: selectedRange.index + selectedRange.length + citationText.length,
+        text: selectedText,
+        noteId
+      }
 
-    // Update citations list - Quill's onChange will handle content updates automatically
-    onCitationsChange([...citations, newCitation])
-    
-    console.log('Citation added successfully!')
-    onClose()
+      // Update citations list - Quill's onChange will handle content updates automatically
+      onCitationsChange([...citations, newCitation])
+      
+      console.log('Citation added successfully at position:', insertPosition)
+      onClose()
+    } catch (error) {
+      console.error('Error adding citation:', error)
+      console.error('Failed to add citation. Please try again.')
+    }
   }
 
   const deleteCitation = (citationId: string) => {
@@ -209,19 +227,27 @@ export default function CitationWorkflow({
     // Small delay to ensure deletion is processed, then re-add at new position
     setTimeout(() => {
       if (quillRef.current) {
-        // Re-insert the citation at the new position
-        quill.insertText(newPosition, citationText, 'user')
-        quill.formatText(newPosition, citationText.length, { 'script': 'super', 'color': '#2563eb', 'bold': true }, 'user')
+        try {
+          // Re-insert the citation at the new position using Quill 2.0+ API
+          quill.insertText(newPosition, citationText, {
+            'script': 'super',
+            'color': '#2563eb',
+            'bold': true
+          })
 
-        // Update citation position in the list
-        const updatedCitations = citations.map(c => 
-          c.id === citationId 
-            ? { ...c, startPos: newPosition, endPos: newPosition + citationText.length }
-            : c
-        )
-        
-        onCitationsChange(updatedCitations)
-        console.log('Citation moved successfully!')
+          // Update citation position in the list
+          const updatedCitations = citations.map(c => 
+            c.id === citationId 
+              ? { ...c, startPos: newPosition, endPos: newPosition + citationText.length }
+              : c
+          )
+          
+          onCitationsChange(updatedCitations)
+          console.log('Citation moved successfully!')
+        } catch (error) {
+          console.error('Error moving citation:', error)
+          console.error('Failed to move citation. Please try again.')
+        }
       }
     }, 100)
   }
