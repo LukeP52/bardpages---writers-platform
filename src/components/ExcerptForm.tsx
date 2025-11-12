@@ -42,11 +42,18 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [isUploadingFile, setIsUploadingFile] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
   const [sources, setSources] = useState<any[]>(excerpt?.sources || [])
+  const [excerptLoaded, setExcerptLoaded] = useState(false)
   
   const handleSourcesChange = (newSources: any[]) => {
     console.log('🔥 ExcerptForm: handleSourcesChange called with:', newSources)
+    console.log('🔥 ExcerptForm: Current sources state before update:', sources)
     setSources(newSources)
-    console.log('🔥 ExcerptForm: Sources state updated to:', newSources)
+    console.log('🔥 ExcerptForm: setSources called with:', newSources)
+    
+    // Check if state actually updated
+    setTimeout(() => {
+      console.log('🔥 ExcerptForm: Sources state after timeout:', sources)
+    }, 100)
   }
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const storage = useStorage()
@@ -153,7 +160,8 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   }, [storage])
 
   useEffect(() => {
-    if (excerpt) {
+    if (excerpt && !excerptLoaded) {
+      console.log('🔥 ExcerptForm: Loading excerpt data, including sources:', excerpt.sources)
       setTitle(excerpt.title ?? '')
       setContent(excerpt.content ?? '')
       setAuthor(excerpt.author ?? '')
@@ -165,8 +173,9 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           ? new Date(excerpt.createdAt).toISOString().split('T')[0]
           : new Date().toISOString().split('T')[0]
       )
+      setExcerptLoaded(true)
     }
-  }, [excerpt])
+  }, [excerpt, excerptLoaded])
 
   const getWordCount = (html: string): number => {
     const text = html.replace(/<[^>]*>/g, '').trim()
