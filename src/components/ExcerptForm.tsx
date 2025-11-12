@@ -279,15 +279,17 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       return
     }
 
-    // Check authentication before proceeding with save
-    const canProceed = checkAuthAndProceed()
+    // For local-only usage, skip auth requirement
+    // Only require auth if the storage system is using cloud features
+    const requireAuth = storage.isUsingCloud
+    const canProceed = checkAuthAndProceed(requireAuth)
     
     if (!canProceed) {
-      // User needs to authenticate, form data is preserved
+      // User needs to authenticate for cloud features, form data is preserved
       return
     }
     
-    // User is authenticated, proceed with save
+    // User can proceed (either authenticated for cloud, or using local storage)
     await performSave()
   }
   
