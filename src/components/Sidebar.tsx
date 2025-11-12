@@ -108,12 +108,6 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Debug Info */}
-      <div className="p-4 bg-yellow-100 border-t border-yellow-200">
-        <p className="text-xs text-yellow-800">
-          Debug: User = {user ? `${user.email} (authenticated)` : 'null (not authenticated)'}
-        </p>
-      </div>
 
       {/* Authentication Section */}
       <div className="p-6 border-t border-slate-200/60">
