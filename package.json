@@ -18,16 +18,19 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "citation-js": "^0.7.21",
     "firebase": "^12.5.0",
     "framer-motion": "^12.23.24",
     "html2canvas": "^1.4.1",
+    "immer": "^10.2.0",
     "jspdf": "^3.0.3",
     "next": "^16.0.1",
     "quill": "^2.0.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hot-toast": "^2.6.0",
-    "uuid": "^13.0.0"
+    "uuid": "^13.0.0",
+    "zustand": "^5.0.8"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.19",

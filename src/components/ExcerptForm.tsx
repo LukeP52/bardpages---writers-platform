@@ -5,13 +5,14 @@ import { useRouter } from 'next/navigation'
 import { v4 as uuidv4 } from 'uuid'
 import QuillEditor from '@/components/QuillEditor'
 import LoadingSpinner from '@/components/LoadingSpinner'
-import ReferenceManager, { AddReferenceButton } from '@/components/ReferenceManager'
-import CitationWorkflow from '@/components/CitationWorkflow'
 import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
-import { Excerpt, Reference, Citation } from '@/types'
+import TextAnnotator from '@/components/citations/TextAnnotator'
+import CitationManager from '@/components/citations/CitationManager'
+import Bibliography from '@/components/citations/Bibliography'
+import { Excerpt } from '@/types'
 import { useStorage } from '@/contexts/StorageContext'
 import { FileParser } from '@/lib/fileParser'
-import { SIZE_LIMITS, formatFileSize, getContentSizeStatus, isExcerptSizeValid } from '@/lib/constants'
+import { SIZE_LIMITS, formatFileSize, getContentSizeStatus } from '@/lib/constants'
 import { useAuthAction } from '@/hooks/useAuthAction'
 import AuthModal from '@/components/auth/AuthModal'
 
@@ -37,11 +38,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [availableTags, setAvailableTags] = useState<string[]>([])
   const [availableAuthors, setAvailableAuthors] = useState<string[]>([])
   const [imageUrl, setImageUrl] = useState(excerpt?.imageUrl || '')
-  const [references, setReferences] = useState<Reference[]>(excerpt?.references || [])
-  const [citations, setCitations] = useState<Citation[]>(excerpt?.citations || [])
-  const [showCitationWorkflow, setShowCitationWorkflow] = useState(false)
-  const [selectedText, setSelectedText] = useState('')
-  const [selectedRange, setSelectedRange] = useState<{ index: number; length: number } | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [showCategoryAssignmentModal, setShowCategoryAssignmentModal] = useState(false)
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState('')
@@ -105,8 +101,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       setAuthor(draft.author || '')
       setStatus(draft.status || 'draft')
       setTags(draft.tags || [])
-      setReferences(draft.references || [])
-      setCitations(draft.citations || [])
       setDate(draft.date || new Date().toISOString().split('T')[0])
       
       if (draft.savedAt) {
@@ -119,22 +113,20 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   // Auto-save draft data when fields change
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (title || content || author || references.length > 0 || citations.length > 0) {
+      if (title || content || author) {
         saveDraft({
           title,
           content,
           author,
           status,
           tags,
-          references,
-          citations,
           date
         })
       }
     }, 1000) // Debounce for 1 second
 
     return () => clearTimeout(timeoutId)
-  }, [title, content, author, status, tags, references, citations, date, saveDraft])
+  }, [title, content, author, status, tags, date, saveDraft])
 
   useEffect(() => {
     const loadData = async () => {
@@ -248,8 +240,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       
       setContent(parsed.content)
       
-      // Update word count will be handled by the content change
-      
       setUploadProgress('File uploaded successfully!')
       console.log(`File "${file.name}" uploaded and processed successfully!`)
       
@@ -300,13 +290,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       const now = new Date()
       const selectedDate = new Date(date)
       
-      // Ensure all references have proper Date objects
-      const processedReferences = references.map(ref => ({
-        ...ref,
-        createdAt: ref.createdAt instanceof Date ? ref.createdAt : new Date(ref.createdAt),
-        accessDate: ref.accessDate ? (ref.accessDate instanceof Date ? ref.accessDate : new Date(ref.accessDate)) : undefined
-      }))
-      
       const excerptData: Excerpt = {
         id: excerpt?.id || uuidv4(),
         title: title.trim(),
@@ -314,22 +297,10 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         author: author.trim() || undefined,
         status,
         tags,
-        references: processedReferences,
-        citations,
         createdAt: excerpt?.createdAt || selectedDate,
         updatedAt: now,
         wordCount: getWordCount(content)
       }
-
-      // Validate complete excerpt size including references
-      const sizeValidation = isExcerptSizeValid(excerptData)
-      if (!sizeValidation.valid) {
-        console.error(sizeValidation.message || 'Excerpt is too large to save')
-        console.log(`Size breakdown: Content ${formatFileSize(sizeValidation.contentSize)}, References ${formatFileSize(sizeValidation.referencesSize)}`)
-        return
-      }
-      
-      console.log(`Saving excerpt: Total size ${formatFileSize(sizeValidation.size)} (Content: ${formatFileSize(sizeValidation.contentSize)}, References: ${formatFileSize(sizeValidation.referencesSize)})`)
 
       await storage.saveExcerpt(excerptData)
       
@@ -347,54 +318,10 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       router.push('/excerpts')
     } catch (error) {
       console.error('Error saving excerpt:', error)
-      
-      // Provide more specific error messages
-      if (error instanceof Error) {
-        if (error.message.includes('size') || error.message.includes('large')) {
-          console.error('Excerpt is too large to save. Try reducing content or removing some references.')
-        } else if (error.message.includes('JSON')) {
-          console.error('There was a problem processing your references. Please check that all reference data is valid.')
-        } else {
-          console.error(`Save failed: ${error.message}`)
-        }
-      } else {
-        console.error('There was an error saving your excerpt. Please try again.')
-      }
+      console.error('There was an error saving your excerpt. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  const handleSelectionChange = (range: { index: number; length: number } | null, source: string) => {
-    // Only update selection if user is actively selecting text (not from focus changes)
-    if (range && range.length > 0 && source === 'user' && quillRef.current) {
-      const text = quillRef.current.getText(range.index, range.length)
-      setSelectedText(text.trim())
-      setSelectedRange(range)
-      console.log('New selection captured:', { text: text.trim(), range })
-    }
-    // Never automatically clear selection - only do it manually when needed
-  }
-
-  const clearSelection = () => {
-    setSelectedText('')
-    setSelectedRange(null)
-  }
-
-  const handleAddReference = () => {
-    // Get current selection from Quill and preserve it
-    if (quillRef.current) {
-      const selection = quillRef.current.getSelection()
-      if (selection && selection.length > 0) {
-        const text = quillRef.current.getText(selection.index, selection.length)
-        setSelectedText(text.trim())
-        setSelectedRange(selection)
-        console.log('Selection captured for citation:', { selection, text: text.trim() })
-      } else {
-        console.log('No text selected for citation')
-      }
-    }
-    setShowCitationWorkflow(true)
   }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -618,16 +545,20 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
                 <label className="form-label mb-0">
                   Content *
                 </label>
-                <AddReferenceButton onClick={handleAddReference} />
               </div>
               <div className="rounded-xl overflow-hidden border border-slate-200 mt-2">
                 <QuillEditor
                   value={content}
                   onChange={setContent}
-                  onSelectionChange={handleSelectionChange}
                   quillRef={quillRef}
                   placeholder="Start writing your excerpt..."
                   className="min-h-[400px]"
+                />
+                {/* Text Annotator for citation selection */}
+                <TextAnnotator
+                  content={content}
+                  excerptId={excerpt?.id || 'new'}
+                  quillRef={quillRef}
                 />
               </div>
               <div className="mt-3 flex justify-between text-sm text-slate-500 font-medium">
@@ -793,19 +724,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             </div>
           </div>
 
-          {/* References List */}
-          {references.length > 0 && (
-            <div className="card">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6">
-                References ({references.length})
-              </h3>
-              <ReferenceManager
-                references={references}
-                citations={citations}
-                onReferencesChange={setReferences}
-                onCitationsChange={setCitations}
-              />
-            </div>
+          {/* Citation Manager */}
+          {excerpt?.id && (
+            <CitationManager excerptId={excerpt.id} />
+          )}
+
+          {/* Bibliography */}
+          {excerpt?.id && (
+            <Bibliography excerptId={excerpt.id} />
           )}
 
           <div className="divider"></div>
@@ -838,26 +764,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             </div>
           </div>
         </form>
-
-        {/* Citation Workflow Modal */}
-        {showCitationWorkflow && (
-          <CitationWorkflow
-            references={references}
-            citations={citations}
-            selectedText={selectedText}
-            selectedRange={selectedRange}
-            content={content}
-            quillRef={quillRef}
-            onReferencesChange={setReferences}
-            onCitationsChange={setCitations}
-            onContentChange={setContent}
-            onClose={() => {
-              setShowCitationWorkflow(false)
-              // Clear selection state when modal closes
-              setTimeout(clearSelection, 100)
-            }}
-          />
-        )}
 
         {/* Category Assignment Modal */}
         {showCategoryAssignmentModal && (

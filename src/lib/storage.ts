@@ -1,4 +1,4 @@
-import { Excerpt, Tag, Storyboard, Book, Reference, Citation, Category, TagCategoryMapping } from '@/types'
+import { Excerpt, Tag, Storyboard, Book, Category, TagCategoryMapping } from '@/types'
 
 class InMemoryStorage {
   private excerpts: Map<string, Excerpt> = new Map()
@@ -21,8 +21,6 @@ class InMemoryStorage {
         parsedExcerpts.forEach((excerpt: any) => {
           this.excerpts.set(excerpt.id, {
             ...excerpt,
-            references: excerpt.references || [],
-            citations: excerpt.citations || [],
             createdAt: new Date(excerpt.createdAt),
             updatedAt: new Date(excerpt.updatedAt)
           })
@@ -147,8 +145,6 @@ class InMemoryStorage {
           parsedExcerpts.forEach((excerpt: any) => {
             this.excerpts.set(excerpt.id, {
               ...excerpt,
-              references: excerpt.references || [],
-              citations: excerpt.citations || [],
               createdAt: new Date(excerpt.createdAt),
               updatedAt: new Date(excerpt.updatedAt),
             })

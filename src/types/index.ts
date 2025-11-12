@@ -9,37 +9,10 @@ export interface Excerpt {
   wordCount: number
   status: 'draft' | 'review' | 'final'
   imageUrl?: string
-  references: Reference[]
-  citations: Citation[]
+  // Note: citations and references will be handled by new system
 }
 
-export interface Reference {
-  id: string
-  type: 'book' | 'journal' | 'website' | 'newspaper' | 'magazine' | 'thesis' | 'conference' | 'other'
-  title: string
-  author: string
-  publication?: string
-  year: number
-  volume?: string
-  issue?: string
-  pages?: string
-  url?: string
-  doi?: string
-  accessDate?: Date
-  publisher?: string
-  location?: string
-  isbn?: string
-  createdAt: Date
-}
-
-export interface Citation {
-  id: string
-  referenceId: string
-  startPos: number
-  endPos: number
-  text: string
-  noteId: string // Unique identifier for the citation number
-}
+// Old citation system removed - will be replaced with new architecture
 
 export interface Tag {
   id: string
