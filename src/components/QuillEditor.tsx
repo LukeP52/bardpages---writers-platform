@@ -237,6 +237,22 @@ export default function QuillEditor({
           page-break-inside: avoid;
         }
         
+        /* Text selection styling for Quill editor */
+        .ql-editor ::selection {
+          background-color: #3b82f6 !important; /* Blue background */
+          color: white !important; /* White text */
+        }
+        
+        .ql-editor ::-moz-selection {
+          background-color: #3b82f6 !important; /* Blue background for Firefox */
+          color: white !important; /* White text */
+        }
+        
+        /* Alternative selection styling with better contrast */
+        .ql-container .ql-editor {
+          selection-background-color: #3b82f6;
+        }
+        
         /* Citation styling for editor */
         sup {
           color: #2563eb !important;
