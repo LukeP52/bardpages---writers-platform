@@ -1,4 +1,4 @@
-// Size limits for BardPages platform
+// Size limits and validation for BardPages platform
 export const SIZE_LIMITS = {
   // Content limits (keeping under Firestore's 1MB document limit)
   MAX_EXCERPT_CONTENT_SIZE: 800 * 1024, // 800KB
