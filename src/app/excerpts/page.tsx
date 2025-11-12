@@ -518,9 +518,9 @@ export default function ExcerptsPage() {
               {isSelectionMode && (
                 <button
                   onClick={toggleSelectionMode}
-                  className="btn btn-sm btn-ghost"
+                  className="btn btn-sm bg-red-600 hover:bg-red-700 text-white font-medium"
                 >
-                  Exit Selection
+                  ✕ Exit Selection
                 </button>
               )}
             </div>
