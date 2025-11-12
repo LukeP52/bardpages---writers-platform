@@ -73,6 +73,21 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     try {
       setIsLoading(true)
       
+      // First check if user already has cloud data - if so, don't migrate
+      const existingCloudExcerpts = await firestoreService.getExcerpts()
+      if (existingCloudExcerpts.length > 0) {
+        // User already has cloud data, skip migration and clear localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('bardpages_excerpts')
+          localStorage.removeItem('bardpages_storyboards')
+          localStorage.removeItem('bardpages_categories')
+          localStorage.removeItem('bardpages_premade_tags')
+          localStorage.removeItem('bardpages_tag_mappings')
+        }
+        setMigrationCompleted(true)
+        return
+      }
+      
       // Get data from localStorage
       const localExcerpts = localStorageService.getExcerpts()
       const localCategories = localStorageService.getCategories()
