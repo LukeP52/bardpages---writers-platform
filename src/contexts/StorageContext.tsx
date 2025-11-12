@@ -54,17 +54,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Initialize Firestore service when user signs in
   useEffect(() => {
-    console.log('StorageContext: User changed:', user ? `${user.email} (authenticated)` : 'null (not authenticated)')
-    
     if (user) {
-      console.log('StorageContext: Creating Firestore service for user:', user.uid)
       const service = createFirestoreService(user)
-      console.log('StorageContext: Firestore service created:', service ? 'SUCCESS' : 'FAILED')
       setFirestoreService(service)
       setIsUsingCloud(true)
-      console.log('StorageContext: Switched to cloud storage mode')
     } else {
-      console.log('StorageContext: No user, using localStorage')
       setFirestoreService(null)
       setIsUsingCloud(false)
     }
@@ -72,15 +66,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   // Auto-migrate data from localStorage to Firestore when user signs in
   const migrateToCloud = useCallback(async () => {
-    console.log('MigrateToCloud: Called with firestoreService =', firestoreService ? 'EXISTS' : 'NULL', ', migrationCompleted =', migrationCompleted)
-    
     if (!firestoreService || migrationCompleted) {
-      console.log('MigrateToCloud: Skipping - no service or already completed')
       return
     }
     
     try {
-      console.log('MigrateToCloud: Starting migration process')
       setIsLoading(true)
       
       // Get data from localStorage
@@ -88,32 +78,23 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const localCategories = localStorageService.getCategories()
       const localStoryboards = localStorageService.getStoryboards()
       
-      console.log('MigrateToCloud: Found local data:', localExcerpts.length, 'excerpts,', localCategories.length, 'categories')
-      
       // Check if there's any local data to migrate
       if (localExcerpts.length === 0 && localCategories.length === 0 && localStoryboards.length === 0) {
-        console.log('MigrateToCloud: No data to migrate')
         setMigrationCompleted(true)
         return
       }
       
-      // Filter out excerpts with content too large for Firestore (1MB limit)
+      // Filter out excerpts with content too large for Firestore
       const validExcerpts = localExcerpts.filter(excerpt => {
         const contentSize = new Blob([excerpt.content]).size
-        if (contentSize > SIZE_LIMITS.MAX_EXCERPT_CONTENT_SIZE) {
-          console.warn('MigrateToCloud: Skipping excerpt with large content:', excerpt.title, `(${formatFileSize(contentSize)})`)
-          return false
-        }
-        return true
+        return contentSize <= SIZE_LIMITS.MAX_EXCERPT_CONTENT_SIZE
       })
       
       const skippedCount = localExcerpts.length - validExcerpts.length
       if (skippedCount > 0) {
-        console.warn(`MigrateToCloud: Skipped ${skippedCount} excerpts due to size limits`)
         toast.error(`${skippedCount} excerpts were too large to migrate to cloud storage`)
       }
       
-      console.log('MigrateToCloud: Migrating to Firestore...')
       // Migrate to Firestore
       await firestoreService.migrateFromLocalStorage({
         excerpts: validExcerpts,
@@ -121,7 +102,6 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         storyboards: localStoryboards
       })
       
-      console.log('MigrateToCloud: Migration successful!')
       toast.success(`Migrated ${validExcerpts.length} excerpts and ${localCategories.length} categories to cloud storage!`)
       setMigrationCompleted(true)
       
@@ -146,13 +126,9 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     cloudMethod: (...args: T) => Promise<R>
   ) => {
     return async (...args: T): Promise<R> => {
-      console.log('StorageMethod: isUsingCloud =', isUsingCloud, ', firestoreService =', firestoreService ? 'EXISTS' : 'NULL')
-      
       if (isUsingCloud && firestoreService) {
-        console.log('StorageMethod: Using Firestore for operation')
         return await cloudMethod(...args)
       } else {
-        console.log('StorageMethod: Using localStorage for operation')
         // For localStorage, wrap synchronous methods in Promise.resolve
         const result = localMethod(...args)
         return result instanceof Promise ? result : Promise.resolve(result)

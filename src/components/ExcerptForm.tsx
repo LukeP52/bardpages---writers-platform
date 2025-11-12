@@ -281,17 +281,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     }
 
     // Check authentication before proceeding with save
-    console.log('Debug: Checking authentication before save')
     const canProceed = checkAuthAndProceed()
     
     if (!canProceed) {
       // User needs to authenticate, form data is preserved
-      console.log('Debug: User needs to authenticate, showing modal')
       return
     }
     
     // User is authenticated, proceed with save
-    console.log('Debug: User is authenticated, proceeding with save')
     await performSave()
   }
   
@@ -315,12 +312,10 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         wordCount: getWordCount(content)
       }
 
-      console.log('Saving excerpt:', excerptData.id, excerptData.title)
       await storage.saveExcerpt(excerptData)
       
       // Verify it was saved
       const saved = await storage.getExcerpt(excerptData.id)
-      console.log('Verification - saved excerpt retrieved:', saved ? 'SUCCESS' : 'FAILED')
       
       if (!saved) {
         throw new Error('Failed to save excerpt to storage')
