@@ -7,7 +7,6 @@ import { FirestoreService, createFirestoreService } from '@/lib/firestore'
 import { storage as localStorageService } from '@/lib/storage'
 import { SIZE_LIMITS, formatFileSize } from '@/lib/constants'
 import { Excerpt, Storyboard, Category } from '@/types'
-import toast from 'react-hot-toast'
 
 interface StorageContextType {
   // Excerpt operations
@@ -29,6 +28,7 @@ interface StorageContextType {
   deleteCategory: (id: string) => Promise<void>
   addPremadeTagWithCategories: (tagName: string, categoryIds: string[]) => Promise<void>
   getTagCategories: (tagName: string) => Promise<Category[]>
+  getWriterCategorySuggestions: () => Array<{ name: string; description: string; color: string }>
   
   // Storyboard operations
   saveStoryboard: (storyboard: Storyboard) => Promise<void>
@@ -107,7 +107,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       
       const skippedCount = localExcerpts.length - validExcerpts.length
       if (skippedCount > 0) {
-        toast.error(`${skippedCount} excerpts were too large to migrate to cloud storage`)
+        console.warn(`${skippedCount} excerpts were too large to migrate to cloud storage`)
       }
       
       // Migrate to Firestore
@@ -126,12 +126,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         localStorage.removeItem('bardpages_tag_mappings')
       }
       
-      toast.success(`Migrated ${validExcerpts.length} excerpts and ${localCategories.length} categories to cloud storage!`)
+      console.log(`Migrated ${validExcerpts.length} excerpts and ${localCategories.length} categories to cloud storage!`)
       setMigrationCompleted(true)
       
     } catch (error) {
       console.error('Migration failed:', error)
-      toast.error('Failed to migrate data to cloud storage')
     } finally {
       setIsLoading(false)
     }
@@ -233,6 +232,8 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       (tagName: string) => localStorageService.getTagCategories(tagName),
       (tagName: string) => firestoreService!.getTagCategories(tagName)
     ),
+    
+    getWriterCategorySuggestions: () => localStorageService.getWriterCategorySuggestions(),
     
     // Storyboard operations
     saveStoryboard: createStorageMethod(

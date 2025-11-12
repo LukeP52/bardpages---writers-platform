@@ -90,10 +90,7 @@ class InMemoryStorage {
         })
       }
 
-      // Initialize default categories if none exist
-      if (this.categories.size === 0) {
-        this.initializeDefaultCategories()
-      }
+      // No default categories - users start with clean slate
 
       this.isInitialized = true
     } catch (error) {
@@ -386,33 +383,20 @@ class InMemoryStorage {
     this.saveToLocalStorage()
   }
 
-  // Categories
-  private initializeDefaultCategories(): void {
-    const defaultCategories = [
-      { name: 'Dates & Eras', color: '#3B82F6', description: 'Historical periods, centuries, years' },
-      { name: 'Geography & Regions', color: '#10B981', description: 'Places, countries, cities, regions' },
-      { name: 'Wars & Military', color: '#EF4444', description: 'Battles, conflicts, military history' },
-      { name: 'Politics & Government', color: '#8B5CF6', description: 'Political systems, leaders, governance' },
-      { name: 'Religion & Philosophy', color: '#F59E0B', description: 'Religious themes, philosophical concepts' },
-      { name: 'Culture & Society', color: '#EC4899', description: 'Social customs, traditions, cultural aspects' },
-      { name: 'Economics & Trade', color: '#06B6D4', description: 'Commerce, economics, trade relations' },
-      { name: 'Science & Technology', color: '#84CC16', description: 'Scientific discoveries, technological advances' },
-      { name: 'People & Biography', color: '#F97316', description: 'Historical figures, biographical information' },
-      { name: 'Other', color: '#6B7280', description: 'Uncategorized tags' }
+  // Helper function to get writer-focused category suggestions
+  getWriterCategorySuggestions(): Array<{ name: string; description: string; color: string }> {
+    return [
+      { name: 'Characters', description: 'Character development, personalities, backstories', color: '#3B82F6' },
+      { name: 'Plot & Structure', description: 'Story arcs, plot points, narrative structure', color: '#10B981' },
+      { name: 'World Building', description: 'Settings, environments, fictional worlds', color: '#EF4444' },
+      { name: 'Themes & Motifs', description: 'Central themes, recurring motifs, symbolism', color: '#8B5CF6' },
+      { name: 'Dialogue & Voice', description: 'Character voices, dialogue snippets, tone', color: '#F59E0B' },
+      { name: 'Research Notes', description: 'Background research, fact-checking, references', color: '#EC4899' },
+      { name: 'Inspiration', description: 'Ideas, observations, creative sparks', color: '#06B6D4' },
+      { name: 'Genre Elements', description: 'Genre-specific tropes, conventions, elements', color: '#84CC16' },
+      { name: 'Emotions & Mood', description: 'Emotional beats, atmosphere, mood setting', color: '#F97316' },
+      { name: 'Draft Notes', description: 'Work in progress, revisions, editing notes', color: '#6B7280' }
     ]
-
-    defaultCategories.forEach((cat, index) => {
-      const category: Category = {
-        id: `default-${index + 1}`,
-        name: cat.name,
-        description: cat.description,
-        color: cat.color,
-        createdAt: new Date()
-      }
-      this.categories.set(category.id, category)
-    })
-    
-    this.saveToLocalStorage()
   }
 
   getCategories(): Category[] {

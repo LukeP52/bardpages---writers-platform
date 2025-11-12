@@ -8,7 +8,6 @@ import { useStorage } from '@/contexts/StorageContext'
 import { useAuthAction } from '@/hooks/useAuthAction'
 import AuthModal from '@/components/auth/AuthModal'
 import { v4 as uuidv4 } from 'uuid'
-import toast from 'react-hot-toast'
 
 export default function ExcerptsPage() {
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
@@ -63,7 +62,6 @@ export default function ExcerptsPage() {
         setAvailableAuthors(usedAuthors)
       } catch (error) {
         console.error('Failed to load excerpts data:', error)
-        toast.error('Failed to load excerpts')
       } finally {
         setIsLoading(false)
       }
@@ -151,10 +149,8 @@ export default function ExcerptsPage() {
         setExcerpts(updatedExcerpts)
         setFilteredExcerpts(updatedExcerpts)
         
-        toast.success('Excerpt deleted successfully!')
       } catch (error) {
         console.error('Failed to delete excerpt:', error)
-        toast.error('Failed to delete excerpt')
       }
     }
   }
@@ -208,7 +204,7 @@ export default function ExcerptsPage() {
 
   const handleBulkDelete = async () => {
     if (selectedExcerptIds.length === 0) {
-      toast.error('No excerpts selected')
+      console.log('No excerpts selected')
       return
     }
 
@@ -246,10 +242,8 @@ export default function ExcerptsPage() {
         setSelectedExcerptIds([])
         setIsSelectionMode(false)
         
-        toast.success(`Successfully deleted ${selectedExcerptIds.length} excerpt(s)!`)
       } catch (error) {
         console.error('Failed to delete excerpts:', error)
-        toast.error('Failed to delete some excerpts')
       }
     }
   }
@@ -341,10 +335,8 @@ export default function ExcerptsPage() {
       
       // Test edit URL
       console.log('Edit URL would be:', `/excerpts/${testExcerpt.id}/edit`)
-      toast.success('Test excerpt created successfully!')
     } catch (error) {
       console.error('Failed to create test excerpt:', error)
-      toast.error('Failed to create test excerpt')
     }
   }
 

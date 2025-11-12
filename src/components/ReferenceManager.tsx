@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { PlusIcon, XMarkIcon, BookOpenIcon, GlobeAltIcon, NewspaperIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { Reference, Citation } from '@/types'
-import toast from 'react-hot-toast'
 
 interface ReferenceManagerProps {
   references: Reference[]
@@ -55,7 +54,7 @@ export default function ReferenceManager({
 
   const saveReference = () => {
     if (!newReference.title || !newReference.author) {
-      toast.error('Please provide at least title and author')
+      console.error('Please provide at least title and author')
       return
     }
 
@@ -82,7 +81,7 @@ export default function ReferenceManager({
       onReferencesChange(references.map(ref => 
         ref.id === editingReference.id ? updatedReference : ref
       ))
-      toast.success('Reference updated successfully!')
+      console.log('Reference updated successfully!')
     } else {
       // Add new reference
       const reference: Reference = {
@@ -105,7 +104,7 @@ export default function ReferenceManager({
       }
 
       onReferencesChange([...references, reference])
-      toast.success('Reference added successfully!')
+      console.log('Reference added successfully!')
     }
 
     // Reset form
@@ -146,9 +145,9 @@ export default function ReferenceManager({
     
     const citationCount = citationsToDelete.length
     if (citationCount > 0) {
-      toast.success(`Reference deleted and ${citationCount} citation${citationCount > 1 ? 's' : ''} removed`)
+      console.log(`Reference deleted and ${citationCount} citation${citationCount > 1 ? 's' : ''} removed`)
     } else {
-      toast.success('Reference deleted')
+      console.log('Reference deleted')
     }
   }
 

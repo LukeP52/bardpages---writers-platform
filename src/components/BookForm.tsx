@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { Book, Storyboard } from '@/types'
 import { storage } from '@/lib/storage'
-import toast from 'react-hot-toast'
 
 interface BookFormProps {
   book?: Book
@@ -68,7 +67,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
     e.preventDefault()
     
     if (!title.trim() || !author.trim() || !storyboardId) {
-      toast.error('Please provide title, author, and select a storyboard.')
+      console.error('Please provide title, author, and select a storyboard.')
       return
     }
 
@@ -123,11 +122,11 @@ export default function BookForm({ book, mode }: BookFormProps) {
 
       storage.saveBook(bookData)
       
-      toast.success(`Book ${mode === 'create' ? 'created' : 'updated'} successfully!`)
+      console.log(`Book ${mode === 'create' ? 'created' : 'updated'} successfully!`)
       router.push('/books')
     } catch (error) {
       console.error('Error saving book:', error)
-      toast.error('There was an error saving your book. Please try again.')
+      console.error('There was an error saving your book. Please try again.')
     } finally {
       setIsSubmitting(false)
     }

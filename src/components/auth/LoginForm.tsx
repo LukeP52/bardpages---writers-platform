@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import toast from 'react-hot-toast'
 
 interface LoginFormProps {
   onToggleMode: () => void
@@ -19,7 +18,7 @@ export default function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
     e.preventDefault()
     
     if (!email || !password) {
-      toast.error('Please fill in all fields')
+      console.error('Please fill in all fields')
       return
     }
 
@@ -27,7 +26,7 @@ export default function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
 
     try {
       await login(email, password)
-      toast.success('Welcome back!')
+      console.log('Welcome back!')
       onSuccess?.()
     } catch (error: any) {
       console.error('Login error:', error)
@@ -35,19 +34,19 @@ export default function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
       // Handle specific Firebase auth errors
       switch (error.code) {
         case 'auth/user-not-found':
-          toast.error('No account found with this email')
+          console.error('No account found with this email')
           break
         case 'auth/wrong-password':
-          toast.error('Incorrect password')
+          console.error('Incorrect password')
           break
         case 'auth/invalid-email':
-          toast.error('Invalid email address')
+          console.error('Invalid email address')
           break
         case 'auth/too-many-requests':
-          toast.error('Too many failed attempts. Please try again later.')
+          console.error('Too many failed attempts. Please try again later.')
           break
         default:
-          toast.error('Login failed. Please try again.')
+          console.error('Login failed. Please try again.')
       }
     } finally {
       setLoading(false)

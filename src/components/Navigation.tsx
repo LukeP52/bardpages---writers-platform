@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import AuthModal from '@/components/auth/AuthModal'
 import { UserCircleIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
-import toast from 'react-hot-toast'
 
 const navigationItems = [
   { name: 'Excerpts', href: '/excerpts' },
@@ -23,10 +22,10 @@ export default function Navigation() {
   const handleLogout = async () => {
     try {
       await logout()
-      toast.success('Signed out successfully')
+      console.log('Signed out successfully')
       setShowUserMenu(false)
     } catch (error) {
-      toast.error('Failed to sign out')
+      console.error('Failed to sign out')
     }
   }
 

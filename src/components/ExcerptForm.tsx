@@ -14,7 +14,6 @@ import { FileParser } from '@/lib/fileParser'
 import { SIZE_LIMITS, formatFileSize, getContentSizeStatus } from '@/lib/constants'
 import { useAuthAction } from '@/hooks/useAuthAction'
 import AuthModal from '@/components/auth/AuthModal'
-import toast from 'react-hot-toast'
 
 interface ExcerptFormProps {
   excerpt?: Excerpt
@@ -112,7 +111,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       
       if (draft.savedAt) {
         const savedTime = new Date(draft.savedAt).toLocaleTimeString()
-        toast.success(`Draft restored from ${savedTime}`)
+        console.log(`Draft restored from ${savedTime}`)
       }
     }
   }, [excerpt, loadDraft])
@@ -191,7 +190,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         }
       } catch (error) {
         console.error('Failed to check existing tags:', error)
-        toast.error('Failed to check existing tags')
+        console.error('Failed to check existing tags')
       }
     }
   }
@@ -208,10 +207,10 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         const categories = await Promise.all(categoryPromises)
         const categoryNames = categories.filter(Boolean).map(cat => cat!.name)
         
-        toast.success(`Tag "${selectedTagForAssignment}" added to ${categoryNames.length > 1 ? categoryNames.join(', ') : categoryNames[0] || 'category'}!`)
+        console.log(`Tag "${selectedTagForAssignment}" added to ${categoryNames.length > 1 ? categoryNames.join(', ') : categoryNames[0] || 'category'}!`)
       } catch (error) {
         console.error('Failed to add tag with categories:', error)
-        toast.error('Failed to add tag with categories')
+        console.error('Failed to add tag with categories')
       }
     }
   }
@@ -231,7 +230,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       // Validate file
       const validation = FileParser.validateFile(file)
       if (!validation.valid) {
-        toast.error(validation.error || 'Invalid file')
+        console.error(validation.error || 'Invalid file')
         return
       }
 
@@ -252,7 +251,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       // Update word count will be handled by the content change
       
       setUploadProgress('File uploaded successfully!')
-      toast.success(`File "${file.name}" uploaded and processed successfully!`)
+      console.log(`File "${file.name}" uploaded and processed successfully!`)
       
       // Clear the file input
       if (fileInputRef.current) {
@@ -261,7 +260,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       
     } catch (error) {
       console.error('File upload error:', error)
-      toast.error(error instanceof Error ? error.message : 'Failed to process file')
+      console.error(error instanceof Error ? error.message : 'Failed to process file')
     } finally {
       setIsUploadingFile(false)
       setTimeout(() => setUploadProgress(''), 3000)
@@ -276,7 +275,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     e.preventDefault()
     
     if (!title.trim() || !content.trim()) {
-      toast.error('Please provide both a title and content for your excerpt.')
+      console.error('Please provide both a title and content for your excerpt.')
       return
     }
 
@@ -324,11 +323,11 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       // Clear draft since we successfully saved
       clearDraft()
       
-      toast.success(`Excerpt ${mode === 'create' ? 'created' : 'updated'} successfully!`)
+      console.log(`Excerpt ${mode === 'create' ? 'created' : 'updated'} successfully!`)
       router.push('/excerpts')
     } catch (error) {
       console.error('Error saving excerpt:', error)
-      toast.error('There was an error saving your excerpt. Please try again.')
+      console.error('There was an error saving your excerpt. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -364,7 +363,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     
     // Check if it's an image
     if (!file.type.startsWith('image/')) {
-      toast.error('Please select an image file.')
+      console.error('Please select an image file.')
       return
     }
     
@@ -373,7 +372,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     const MAX_TOTAL_CONTENT_SIZE = SIZE_LIMITS.MAX_TOTAL_CONTENT_WITH_IMAGES
     
     if (file.size > MAX_IMAGE_SIZE) {
-      toast.error(`Image file is too large (${formatFileSize(file.size)}). Maximum allowed: ${formatFileSize(MAX_IMAGE_SIZE)}.`)
+      console.error(`Image file is too large (${formatFileSize(file.size)}). Maximum allowed: ${formatFileSize(MAX_IMAGE_SIZE)}.`)
       return
     }
     
@@ -382,7 +381,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     const estimatedImageSize = file.size * SIZE_LIMITS.BASE64_SIZE_MULTIPLIER
     
     if (currentContentSize + estimatedImageSize > MAX_TOTAL_CONTENT_SIZE) {
-      toast.error(`Adding this image would make the excerpt too large. Current: ${formatFileSize(currentContentSize)}, Image: ~${formatFileSize(estimatedImageSize)}. Maximum total: ${formatFileSize(MAX_TOTAL_CONTENT_SIZE)}.`)
+      console.error(`Adding this image would make the excerpt too large. Current: ${formatFileSize(currentContentSize)}, Image: ~${formatFileSize(estimatedImageSize)}. Maximum total: ${formatFileSize(MAX_TOTAL_CONTENT_SIZE)}.`)
       return
     }
     
@@ -400,12 +399,12 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         // Final size check after processing
         const finalContentSize = new Blob([newContent]).size
         if (finalContentSize > MAX_TOTAL_CONTENT_SIZE) {
-          toast.error(`The processed image is too large for this excerpt. Please use a smaller image. Size would be: ${formatFileSize(finalContentSize)}.`)
+          console.error(`The processed image is too large for this excerpt. Please use a smaller image. Size would be: ${formatFileSize(finalContentSize)}.`)
           return
         }
         
         setContent(newContent)
-        toast.success(`Image attached! Content size: ${formatFileSize(finalContentSize)}`)
+        console.log(`Image attached! Content size: ${formatFileSize(finalContentSize)}`)
         
         // Clear the file input
         e.target.value = ''
@@ -427,13 +426,13 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     const finalContentSize = new Blob([newContent]).size
     
     if (finalContentSize > SIZE_LIMITS.MAX_TOTAL_CONTENT_WITH_IMAGES) {
-      toast.error(`Adding this image URL would make the excerpt too large (${formatFileSize(finalContentSize)}). Maximum allowed: ${formatFileSize(SIZE_LIMITS.MAX_TOTAL_CONTENT_WITH_IMAGES)}.`)
+      console.error(`Adding this image URL would make the excerpt too large (${formatFileSize(finalContentSize)}). Maximum allowed: ${formatFileSize(SIZE_LIMITS.MAX_TOTAL_CONTENT_WITH_IMAGES)}.`)
       return
     }
     
     setContent(newContent)
     setImageUrl('') // Clear the input after adding
-    toast.success(`Image URL attached! Content size: ${formatFileSize(finalContentSize)}`)
+    console.log(`Image URL attached! Content size: ${formatFileSize(finalContentSize)}`)
   }
 
   const handleCancel = () => {

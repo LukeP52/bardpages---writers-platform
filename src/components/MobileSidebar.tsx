@@ -18,7 +18,6 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { useAuthAction } from '@/hooks/useAuthAction'
 import AuthModal from '@/components/auth/AuthModal'
-import toast from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 
 const navigationItems = [
@@ -44,10 +43,10 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const handleLogout = async () => {
     try {
       await logout()
-      toast.success('Signed out successfully')
+      console.log('Signed out successfully')
       onClose()
     } catch (error) {
-      toast.error('Failed to sign out')
+      console.error('Failed to sign out')
     }
   }
 

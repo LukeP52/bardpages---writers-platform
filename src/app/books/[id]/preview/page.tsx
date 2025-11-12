@@ -9,7 +9,6 @@ import ErrorState from '@/components/ErrorState'
 import { Book } from '@/types'
 import { storage } from '@/lib/storage'
 import { generateBookContent, exportBook, downloadFile, downloadPDF } from '@/lib/exportUtils'
-import toast from 'react-hot-toast'
 
 export default function BookPreviewPage() {
   const params = useParams()
@@ -56,13 +55,13 @@ export default function BookPreviewPage() {
       
       if (format === 'pdf') {
         await downloadPDF(content, filename)
-        toast.success('Opening clean PDF format. Use Ctrl+P (Cmd+P) and select "Save as PDF".')
+        console.log('Opening clean PDF format. Use Ctrl+P (Cmd+P) and select "Save as PDF".')
       } else {
         downloadFile(content, filename, format === 'html' ? 'text/html' : 'application/octet-stream')
-        toast.success(`Book exported as ${format.toUpperCase()}!`)
+        console.log(`Book exported as ${format.toUpperCase()}!`)
       }
     } catch (err) {
-      toast.error('Failed to export book')
+      console.error('Failed to export book')
     } finally {
       setExporting(false)
     }

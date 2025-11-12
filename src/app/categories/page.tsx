@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { Category } from '@/types'
 import { useStorage } from '@/contexts/StorageContext'
 import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
-import toast from 'react-hot-toast'
 
 export default function TagManagerPage() {
   const [allTags, setAllTags] = useState<string[]>([])
@@ -21,6 +20,7 @@ export default function TagManagerPage() {
   const [groupedTags, setGroupedTags] = useState<{ [key: string]: string[] }>({})
   const [isLoadingGroups, setIsLoadingGroups] = useState(false)
   const storage = useStorage()
+  const categorySuggestions = storage.getWriterCategorySuggestions()
 
   useEffect(() => {
     loadData()
@@ -121,10 +121,8 @@ export default function TagManagerPage() {
         )
         const validCategoryNames = categoryNames.filter(Boolean).map(cat => cat!.name)
         
-        toast.success(`Tag "${selectedTagForAssignment}" assigned to ${validCategoryNames.length > 1 ? validCategoryNames.join(', ') : validCategoryNames[0] || 'category'}!`)
       } catch (error) {
         console.error('Failed to assign tag to categories:', error)
-        toast.error('Failed to assign tag to categories')
       }
     }
   }
@@ -142,6 +140,22 @@ export default function TagManagerPage() {
     }
   }
 
+  const addSuggestedCategory = async (suggestion: { name: string; description: string; color: string }) => {
+    try {
+      const newCategory: Category = {
+        id: uuidv4(),
+        name: suggestion.name,
+        description: suggestion.description,
+        color: suggestion.color,
+        createdAt: new Date()
+      }
+      await storage.saveCategory(newCategory)
+      await loadData()
+    } catch (error) {
+      console.error('Failed to create suggested category:', error)
+    }
+  }
+
   const addCategory = async () => {
     if (newCategoryName.trim()) {
       try {
@@ -155,10 +169,8 @@ export default function TagManagerPage() {
         await storage.saveCategory(newCategory)
         setNewCategoryName('')
         await loadData()
-        toast.success(`Category "${newCategory.name}" created successfully!`)
       } catch (error) {
         console.error('Failed to create category:', error)
-        toast.error('Failed to create category')
       }
     }
   }
@@ -170,16 +182,14 @@ export default function TagManagerPage() {
       const isUsedInExcerpts = excerpts.some(excerpt => excerpt.tags.includes(tag))
       
       if (isUsedInExcerpts) {
-        toast.error(`"${tag}" is currently used in excerpts and cannot be deleted. Remove it from excerpts first.`)
+        console.log(`"${tag}" is currently used in excerpts and cannot be deleted. Remove it from excerpts first.`)
         return
       }
       
       // Since we're auto-populating, tags are removed automatically when not used
-      toast.success('Tag will be removed automatically when no longer used in excerpts!')
       await loadData()
     } catch (error) {
       console.error('Failed to delete tag:', error)
-      toast.error('Failed to delete tag')
     }
   }
 
@@ -262,6 +272,43 @@ export default function TagManagerPage() {
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8">
+        {/* Category Suggestions (show when no categories exist) */}
+        {categories.length === 0 && (
+          <div className="card bg-white p-6 mb-8">
+            <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
+              SUGGESTED CATEGORIES FOR WRITERS
+            </h3>
+            <p className="text-sm text-gray-600 mb-6">
+              Get started quickly with these writer-focused categories, or create your own below.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {categorySuggestions.map((suggestion) => (
+                <div
+                  key={suggestion.name}
+                  className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded transition-colors cursor-pointer"
+                  onClick={() => addSuggestedCategory(suggestion)}
+                >
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-3 h-3 rounded-full"
+                      style={{ backgroundColor: suggestion.color }}
+                    ></div>
+                    <div>
+                      <div className="font-bold text-sm text-black">
+                        {suggestion.name}
+                      </div>
+                      <div className="text-xs text-gray-600">
+                        {suggestion.description}
+                      </div>
+                    </div>
+                  </div>
+                  <PlusIcon className="w-4 h-4 text-gray-400" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Add Category and Tag Forms */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Add Category Form */}

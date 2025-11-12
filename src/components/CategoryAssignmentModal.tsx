@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid'
 import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { Category } from '@/types'
 import { storage } from '@/lib/storage'
-import toast from 'react-hot-toast'
 
 interface CategoryAssignmentModalProps {
   tagName: string
@@ -50,7 +49,7 @@ export default function CategoryAssignmentModal({
 
   const handleCreateCategory = () => {
     if (!newCategoryName.trim()) {
-      toast.error('Category name is required')
+      console.error('Category name is required')
       return
     }
 
@@ -68,7 +67,7 @@ export default function CategoryAssignmentModal({
     setNewCategoryDescription('')
     setShowNewCategoryForm(false)
     loadCategories()
-    toast.success(`Category "${newCategory.name}" created!`)
+    console.log(`Category "${newCategory.name}" created!`)
   }
 
   return (

@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import toast from 'react-hot-toast'
 
 interface SignupFormProps {
   onToggleMode: () => void
@@ -21,17 +20,17 @@ export default function SignupForm({ onToggleMode, onSuccess }: SignupFormProps)
     e.preventDefault()
     
     if (!name || !email || !password || !confirmPassword) {
-      toast.error('Please fill in all fields')
+      console.error('Please fill in all fields')
       return
     }
 
     if (password !== confirmPassword) {
-      toast.error('Passwords do not match')
+      console.error('Passwords do not match')
       return
     }
 
     if (password.length < 6) {
-      toast.error('Password must be at least 6 characters')
+      console.error('Password must be at least 6 characters')
       return
     }
 
@@ -39,7 +38,7 @@ export default function SignupForm({ onToggleMode, onSuccess }: SignupFormProps)
 
     try {
       await signup(email, password, name)
-      toast.success('Account created successfully!')
+      console.log('Account created successfully!')
       onSuccess?.()
     } catch (error: any) {
       console.error('Signup error:', error)
@@ -47,16 +46,16 @@ export default function SignupForm({ onToggleMode, onSuccess }: SignupFormProps)
       // Handle specific Firebase auth errors
       switch (error.code) {
         case 'auth/email-already-in-use':
-          toast.error('An account with this email already exists')
+          console.error('An account with this email already exists')
           break
         case 'auth/invalid-email':
-          toast.error('Invalid email address')
+          console.error('Invalid email address')
           break
         case 'auth/weak-password':
-          toast.error('Password is too weak')
+          console.error('Password is too weak')
           break
         default:
-          toast.error('Account creation failed. Please try again.')
+          console.error('Account creation failed. Please try again.')
       }
     } finally {
       setLoading(false)

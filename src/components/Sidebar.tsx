@@ -16,7 +16,6 @@ import {
 import { motion } from 'framer-motion'
 import { useAuth } from '@/contexts/AuthContext'
 import AuthModal from '@/components/auth/AuthModal'
-import toast from 'react-hot-toast'
 
 const navigationItems = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
@@ -34,9 +33,9 @@ export default function Sidebar() {
   const handleLogout = async () => {
     try {
       await logout()
-      toast.success('Signed out successfully')
+      console.log('Signed out successfully')
     } catch (error) {
-      toast.error('Failed to sign out')
+      console.error('Failed to sign out')
     }
   }
 

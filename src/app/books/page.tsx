@@ -7,7 +7,6 @@ import { storage } from '@/lib/storage'
 import EmptyState from '@/components/EmptyState'
 import { exportBook, downloadFile } from '@/lib/exportUtils'
 import { BookOpenIcon } from '@heroicons/react/24/outline'
-import toast from 'react-hot-toast'
 
 export default function BooksPage() {
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
@@ -44,9 +43,9 @@ export default function BooksPage() {
       const filename = `${book.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${format}`
       downloadFile(content, filename, 'text/html')
       
-      toast.success(`Book exported as ${format.toUpperCase()}!`)
+      console.log(`Book exported as ${format.toUpperCase()}!`)
     } catch (err) {
-      toast.error('Failed to export book')
+      console.error('Failed to export book')
     }
   }
 
@@ -55,7 +54,7 @@ export default function BooksPage() {
       storage.deleteBook(book.id)
       const updatedBooks = storage.getBooks()
       setBooks(updatedBooks)
-      toast.success('Book deleted successfully!')
+      console.log('Book deleted successfully!')
     }
   }
 

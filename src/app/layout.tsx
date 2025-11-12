@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import ResponsiveLayout from '@/components/ResponsiveLayout'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { StorageProvider } from '@/contexts/StorageContext'
-import { Toaster } from 'react-hot-toast'
 import './globals.css'
 import 'quill/dist/quill.snow.css'
 
@@ -34,17 +33,6 @@ export default function RootLayout({
             </ResponsiveLayout>
           </StorageProvider>
         </AuthProvider>
-        <Toaster
-          position="top-right"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#363636',
-              color: '#fff',
-              borderRadius: '8px',
-            },
-          }}
-        />
       </body>
     </html>
   )

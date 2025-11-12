@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { PlusIcon, XMarkIcon, BookOpenIcon, GlobeAltIcon, NewspaperIcon } from '@heroicons/react/24/outline'
 import { Reference, Citation } from '@/types'
-import toast from 'react-hot-toast'
 
 interface CitationWorkflowProps {
   references: Reference[]
@@ -41,7 +40,7 @@ export default function CitationWorkflow({
 
   const saveReference = () => {
     if (!newReference.title || !newReference.author) {
-      toast.error('Please provide at least title and author')
+      console.error('Please provide at least title and author')
       return
     }
 
@@ -68,7 +67,7 @@ export default function CitationWorkflow({
       onReferencesChange(references.map(ref => 
         ref.id === editingReference.id ? updatedReference : ref
       ))
-      toast.success('Reference updated successfully!')
+      console.log('Reference updated successfully!')
     } else {
       // Add new reference
       const reference: Reference = {
@@ -91,7 +90,7 @@ export default function CitationWorkflow({
       }
 
       onReferencesChange([...references, reference])
-      toast.success('Reference added successfully!')
+      console.log('Reference added successfully!')
     }
 
     // Move to citation step if text is selected
@@ -104,7 +103,7 @@ export default function CitationWorkflow({
 
   const addCitation = (referenceId: string) => {
     if (!selectedRange) {
-      toast.error('No text selected')
+      console.error('No text selected')
       return
     }
 
@@ -137,7 +136,7 @@ export default function CitationWorkflow({
     onContentChange(newContent)
     onCitationsChange([...citations, newCitation])
     
-    toast.success('Citation added successfully!')
+    console.log('Citation added successfully!')
     onClose()
   }
 
