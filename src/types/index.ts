@@ -9,10 +9,8 @@ export interface Excerpt {
   wordCount: number
   status: 'draft' | 'review' | 'final'
   imageUrl?: string
-  sources?: any[] // Simple sources array
 }
 
-// Old citation system removed - will be replaced with new architecture
 
 export interface Tag {
   id: string
@@ -100,8 +98,4 @@ export interface BookFormatting {
   headerFooterEnabled: boolean
   pageNumbers: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'none'
   
-  // Reference Formatting
-  referenceStyle: 'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee' | 'vancouver'
-  citationStyle: 'footnotes' | 'endnotes' | 'inline'
-  includeReferences: boolean
 }

@@ -51,22 +51,13 @@ export const isContentSizeValid = (content: string): { valid: boolean; size: num
   return { valid: true, size }
 }
 
-// Check if complete excerpt (including references/citations) is within limits
+// Check if excerpt content is within limits
 export const isExcerptSizeValid = (excerpt: {
   content: string
-  references?: any[]
-  citations?: any[]
   [key: string]: any
-}): { valid: boolean; size: number; contentSize: number; referencesSize: number; message?: string } => {
+}): { valid: boolean; size: number; contentSize: number; message?: string } => {
   // Calculate content size
   const contentSize = new Blob([excerpt.content]).size
-  
-  // Calculate references/citations size
-  const referencesData = JSON.stringify({
-    references: excerpt.references || [],
-    citations: excerpt.citations || []
-  })
-  const referencesSize = new Blob([referencesData]).size
   
   // Calculate total serialized size 
   const fullExcerptData = JSON.stringify(excerpt)
@@ -79,16 +70,14 @@ export const isExcerptSizeValid = (excerpt: {
       valid: false,
       size: totalSize,
       contentSize,
-      referencesSize,
-      message: `Complete excerpt is too large (${formatFileSize(totalSize)}). Content: ${formatFileSize(contentSize)}, References/Citations: ${formatFileSize(referencesSize)}. Maximum allowed: ${formatFileSize(maxSize)}`
+      message: `Excerpt is too large (${formatFileSize(totalSize)}). Content: ${formatFileSize(contentSize)}. Maximum allowed: ${formatFileSize(maxSize)}`
     }
   }
   
   return { 
     valid: true, 
     size: totalSize, 
-    contentSize, 
-    referencesSize 
+    contentSize
   }
 }
 

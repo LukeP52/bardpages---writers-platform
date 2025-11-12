@@ -6,7 +6,6 @@ import { v4 as uuidv4 } from 'uuid'
 import QuillEditor from '@/components/QuillEditor'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
-import SimpleCitations from '@/components/SimpleCitations'
 import { Excerpt } from '@/types'
 import { useStorage } from '@/contexts/StorageContext'
 import { FileParser } from '@/lib/fileParser'
@@ -41,27 +40,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState('')
   const [isUploadingFile, setIsUploadingFile] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
-  const [sources, setSources] = useState<any[]>(excerpt?.sources || [])
   const [excerptLoaded, setExcerptLoaded] = useState(false)
-  
-  const handleSourcesChange = (newSources: any[]) => {
-    console.log('🔥 ExcerptForm: handleSourcesChange called with:', newSources)
-    console.log('🔥 ExcerptForm: Current sources state before update:', sources)
-    console.log('🔥 ExcerptForm: newSources.length:', newSources.length)
-    setSources(newSources)
-    console.log('🔥 ExcerptForm: setSources called with:', newSources)
-    
-    // Check if state actually updated multiple times
-    setTimeout(() => {
-      console.log('🔥 ExcerptForm: Sources state after 100ms:', sources)
-    }, 100)
-    setTimeout(() => {
-      console.log('🔥 ExcerptForm: Sources state after 500ms:', sources)  
-    }, 500)
-    setTimeout(() => {
-      console.log('🔥 ExcerptForm: Sources state after 1000ms:', sources)
-    }, 1000)
-  }
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const storage = useStorage()
   const quillRef = useRef<any>(null)
@@ -116,21 +95,12 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     console.log('🔥 ExcerptForm: loadDraft returned:', draft)
     if (draft && !excerpt) {
       // Only load draft for new excerpts, not when editing existing ones
-      console.log('🔥 ExcerptForm: Loading draft with sources:', draft.sources)
       setTitle(draft.title || '')
       setContent(draft.content || '')
       setAuthor(draft.author || '')
       setStatus(draft.status || 'draft')
       setTags(draft.tags || [])
       setDate(draft.date || new Date().toISOString().split('T')[0])
-      
-      // Only override sources if the draft actually has sources data
-      if (draft.sources !== undefined) {
-        setSources(draft.sources || [])
-        console.log('🔥 ExcerptForm: Draft sources loaded, length:', (draft.sources || []).length)
-      } else {
-        console.log('🔥 ExcerptForm: Draft has no sources property, keeping current sources')
-      }
       
       if (draft.savedAt) {
         const savedTime = new Date(draft.savedAt).toLocaleTimeString()
@@ -143,22 +113,19 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (title || content || author) {
-        console.log('🔥 ExcerptForm: Auto-saving draft with sources:', sources)
         saveDraft({
           title,
           content,
           author,
           status,
           tags,
-          date,
-          sources
+          date
         })
-        console.log('🔥 ExcerptForm: Draft saved with sources length:', sources.length)
       }
     }, 1000) // Debounce for 1 second
 
     return () => clearTimeout(timeoutId)
-  }, [title, content, author, status, tags, date, sources, saveDraft])
+  }, [title, content, author, status, tags, date, saveDraft])
 
   useEffect(() => {
     const loadData = async () => {
@@ -177,21 +144,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     loadData()
   }, [storage])
 
-  // Track sources state changes
-  useEffect(() => {
-    console.log('🔥 ExcerptForm: Sources state changed to:', sources)
-    console.log('🔥 ExcerptForm: Sources length:', sources.length)
-  }, [sources])
 
   useEffect(() => {
     if (excerpt && !excerptLoaded) {
-      console.log('🔥 ExcerptForm: Loading excerpt data, including sources:', excerpt.sources)
       setTitle(excerpt.title ?? '')
       setContent(excerpt.content ?? '')
       setAuthor(excerpt.author ?? '')
       setStatus(excerpt.status ?? 'draft')
       setTags(excerpt.tags ?? [])
-      setSources(excerpt.sources ?? [])
       setDate(
         excerpt.createdAt
           ? new Date(excerpt.createdAt).toISOString().split('T')[0]
@@ -340,8 +300,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         tags,
         createdAt: excerpt?.createdAt || selectedDate,
         updatedAt: now,
-        wordCount: getWordCount(content),
-        sources: sources
+        wordCount: getWordCount(content)
       }
 
       await storage.saveExcerpt(excerptData)
@@ -760,12 +719,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             </div>
           </div>
 
-          {/* Simple Citations */}
-          <SimpleCitations 
-            excerptId={excerpt?.id || 'new'}
-            sources={sources}
-            onSourcesChange={handleSourcesChange}
-          />
 
           <div className="divider"></div>
 

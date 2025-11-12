@@ -253,7 +253,6 @@ export default function QuillEditor({
           selection-background-color: #3b82f6;
         }
         
-        /* Citation styling for editor */
         sup {
           color: #2563eb !important;
           font-weight: 600 !important;
