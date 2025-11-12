@@ -69,8 +69,8 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
   }
 
   return (
-    <div className="card max-w-2xl w-full">
-      <div className="border-b border-slate-200/60 p-6">
+    <div className="card max-w-2xl w-full max-h-[90vh] flex flex-col">
+      <div className="border-b border-slate-200/60 p-4 flex-shrink-0">
         <h3 className="text-lg font-semibold text-slate-900">
           {source ? 'Edit Source' : 'Add New Source'}
         </h3>
@@ -79,8 +79,9 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
         </p>
       </div>
       
-      <form onSubmit={handleSubmit} className="p-6 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <form id="source-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
+        <div className="p-4 space-y-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="form-group">
             <label className="form-label">
               Type <span className="text-red-500">*</span>
@@ -159,7 +160,7 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           <div className="form-group">
             <label className="form-label">Volume</label>
             <input
@@ -207,7 +208,7 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="form-group">
             <label className="form-label">DOI</label>
             <input
@@ -233,7 +234,7 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
         </div>
 
         {formData.type === 'book' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="form-group">
               <label className="form-label">Publisher</label>
               <input
@@ -258,9 +259,14 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
           </div>
         )}
 
-        <div className="flex gap-3 pt-4">
+        </div>
+      </form>
+      
+      <div className="border-t border-slate-200/60 p-4 flex-shrink-0">
+        <div className="flex gap-3">
           <button
             type="submit"
+            form="source-form"
             disabled={isSubmitting || !formData.title.trim() || !formData.author.trim()}
             className="btn btn-primary"
           >
@@ -285,7 +291,7 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
             </button>
           )}
         </div>
-      </form>
+      </div>
     </div>
   )
 }
