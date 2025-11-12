@@ -289,14 +289,6 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
               type="submit"
               disabled={isSubmitting || !formData.title.trim() || !formData.author.trim()}
               className="btn btn-primary"
-              onClick={(e) => {
-                console.log('🔴 SourceForm: Submit button clicked', {
-                  isSubmitting,
-                  titleValid: !!formData.title.trim(),
-                  authorValid: !!formData.author.trim(),
-                  buttonDisabled: isSubmitting || !formData.title.trim() || !formData.author.trim()
-                })
-              }}
             >
               {isSubmitting ? (
                 <>
