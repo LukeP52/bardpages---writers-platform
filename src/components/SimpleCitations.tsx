@@ -11,6 +11,7 @@ interface SimpleCitationsProps {
 }
 
 export default function SimpleCitations({ excerptId, sources, onSourcesChange }: SimpleCitationsProps) {
+  console.log('🔥 SimpleCitations: Component rendered with sources:', sources)
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     title: '',
@@ -26,7 +27,10 @@ export default function SimpleCitations({ excerptId, sources, onSourcesChange }:
     e.preventDefault()
     e.stopPropagation()
     
+    console.log('🔥 SimpleCitations: Form submitted!', { formData })
+    
     if (!formData.title.trim() || !formData.author.trim()) {
+      console.log('❌ SimpleCitations: Validation failed')
       alert('Title and Author are required')
       return
     }
@@ -42,7 +46,15 @@ export default function SimpleCitations({ excerptId, sources, onSourcesChange }:
       pages: formData.pages.trim() || undefined
     }
 
-    onSourcesChange([...sources, newSource])
+    console.log('🔥 SimpleCitations: New source created:', newSource)
+    console.log('🔥 SimpleCitations: Current sources before:', sources)
+    
+    const updatedSources = [...sources, newSource]
+    console.log('🔥 SimpleCitations: Updated sources:', updatedSources)
+    
+    onSourcesChange(updatedSources)
+    
+    console.log('🔥 SimpleCitations: Called onSourcesChange with:', updatedSources)
     
     // Reset form
     setFormData({
@@ -55,6 +67,8 @@ export default function SimpleCitations({ excerptId, sources, onSourcesChange }:
       pages: ''
     })
     setShowForm(false)
+    
+    console.log('🔥 SimpleCitations: Form closed')
   }
 
   const handleDelete = (sourceId: string) => {

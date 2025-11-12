@@ -42,6 +42,12 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [isUploadingFile, setIsUploadingFile] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
   const [sources, setSources] = useState<any[]>(excerpt?.sources || [])
+  
+  const handleSourcesChange = (newSources: any[]) => {
+    console.log('🔥 ExcerptForm: handleSourcesChange called with:', newSources)
+    setSources(newSources)
+    console.log('🔥 ExcerptForm: Sources state updated to:', newSources)
+  }
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const storage = useStorage()
   const quillRef = useRef<any>(null)
@@ -723,7 +729,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           <SimpleCitations 
             excerptId={excerpt?.id || 'new'}
             sources={sources}
-            onSourcesChange={setSources}
+            onSourcesChange={handleSourcesChange}
           />
 
           <div className="divider"></div>
