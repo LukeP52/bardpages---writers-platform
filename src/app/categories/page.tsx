@@ -17,6 +17,7 @@ export default function TagManagerPage() {
   const [showCategoryAssignmentModal, setShowCategoryAssignmentModal] = useState(false)
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState<string>('')
   const [showNewCategoryForm, setShowNewCategoryForm] = useState(false)
+  const [currentCategoryIds, setCurrentCategoryIds] = useState<string[]>([])
   const storage = useStorage()
 
   useEffect(() => {
@@ -37,9 +38,10 @@ export default function TagManagerPage() {
   }
 
 
-  const addTag = () => {
+  const addTag = async () => {
     if (newTag.trim()) {
       setSelectedTagForAssignment(newTag.trim())
+      setCurrentCategoryIds([])
       setShowCategoryAssignmentModal(true)
     }
   }
@@ -66,9 +68,17 @@ export default function TagManagerPage() {
     }
   }
 
-  const handleTagReassignment = (tagName: string) => {
-    setSelectedTagForAssignment(tagName)
-    setShowCategoryAssignmentModal(true)
+  const handleTagReassignment = async (tagName: string) => {
+    try {
+      setSelectedTagForAssignment(tagName)
+      const categories = await storage.getTagCategories(tagName)
+      setCurrentCategoryIds(categories.map(cat => cat.id))
+      setShowCategoryAssignmentModal(true)
+    } catch (error) {
+      console.error('Failed to get tag categories:', error)
+      setCurrentCategoryIds([])
+      setShowCategoryAssignmentModal(true)
+    }
   }
 
   const addCategory = async () => {
@@ -92,42 +102,26 @@ export default function TagManagerPage() {
     }
   }
 
-  const deleteTag = (tag: string) => {
-    // Check if this tag is used in any excerpts
-    const excerpts = storage.getExcerpts()
-    const isUsedInExcerpts = excerpts.some(excerpt => excerpt.tags.includes(tag))
-    
-    if (isUsedInExcerpts) {
-      const confirmed = window.confirm(`"${tag}" is used in excerpts. Are you sure you want to remove it? It will remain in existing excerpts but won't appear as a quick-select option.`)
-      if (!confirmed) return
+  const deleteTag = async (tag: string) => {
+    try {
+      // Check if this tag is used in any excerpts
+      const excerpts = await storage.getExcerpts()
+      const isUsedInExcerpts = excerpts.some(excerpt => excerpt.tags.includes(tag))
+      
+      if (isUsedInExcerpts) {
+        toast.error(`"${tag}" is currently used in excerpts and cannot be deleted. Remove it from excerpts first.`)
+        return
+      }
+      
+      // Since we're auto-populating, tags are removed automatically when not used
+      toast.success('Tag will be removed automatically when no longer used in excerpts!')
+      await loadData()
+    } catch (error) {
+      console.error('Failed to delete tag:', error)
+      toast.error('Failed to delete tag')
     }
-    
-    storage.deletePremadeTag(tag)
-    loadData()
-    toast.success('Tag removed successfully!')
   }
 
-  const migrateExistingTags = () => {
-    // Get all tags from excerpts and add them to premade tags
-    const excerpts = storage.getExcerpts()
-    const allExcerptTags = new Set<string>()
-    
-    excerpts.forEach(excerpt => {
-      excerpt.tags.forEach(tag => {
-        if (tag.trim()) {
-          allExcerptTags.add(tag.trim())
-        }
-      })
-    })
-    
-    // Add all found tags to premade tags
-    allExcerptTags.forEach(tag => {
-      storage.addPremadeTag(tag)
-    })
-    
-    loadData()
-    toast.success(`Migrated ${allExcerptTags.size} tags from excerpts!`)
-  }
 
   const categorizeTag = (tag: string): string => {
     const tagLower = tag.toLowerCase()
@@ -182,17 +176,10 @@ export default function TagManagerPage() {
   }
 
   const groupTagsByCategory = () => {
-    const tagsByCategory = storage.getTagsByCategory()
-    const result: { [key: string]: string[] } = {}
-    
-    categories.forEach(category => {
-      const tags = tagsByCategory.get(category.id) || []
-      if (tags.length > 0) {
-        result[category.name] = tags.sort()
-      }
-    })
-    
-    return result
+    // Simplified: just group all tags under "All Tags" for now
+    return {
+      'All Tags': allTags
+    }
   }
 
   const toggleCategory = (category: string) => {
@@ -328,11 +315,7 @@ export default function TagManagerPage() {
                     {expandedCategories.has(category) && (
                       <div className="p-4 bg-white">
                         <div className="flex flex-wrap gap-2">
-                          {tags.map((tag) => {
-                            const excerpts = storage.getExcerpts()
-                            const usageCount = excerpts.filter(excerpt => excerpt.tags.includes(tag)).length
-                            
-                            return (
+                          {tags.map((tag) => (
                               <div
                                 key={tag}
                                 className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded px-3 py-2 group transition-colors"
@@ -340,11 +323,6 @@ export default function TagManagerPage() {
                                 <span className="text-xs font-mono text-gray-800">
                                   {tag}
                                 </span>
-                                {usageCount > 0 && (
-                                  <span className="text-xs text-gray-500 bg-gray-200 px-1 rounded">
-                                    {usageCount}
-                                  </span>
-                                )}
                                 <button
                                   onClick={() => handleTagReassignment(tag)}
                                   className="text-blue-500 hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
@@ -360,8 +338,7 @@ export default function TagManagerPage() {
                                   <XMarkIcon className="w-3 h-3" />
                                 </button>
                               </div>
-                            )
-                          })}
+                            ))}
                         </div>
                       </div>
                     )}
@@ -392,7 +369,7 @@ export default function TagManagerPage() {
       {showCategoryAssignmentModal && (
         <CategoryAssignmentModal
           tagName={selectedTagForAssignment}
-          currentCategoryIds={storage.getTagCategories(selectedTagForAssignment).map(cat => cat.id)}
+          currentCategoryIds={currentCategoryIds}
           onAssign={handleCategoryAssignment}
           onClose={() => {
             setShowCategoryAssignmentModal(false)
