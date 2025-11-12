@@ -107,6 +107,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       setStatus(draft.status || 'draft')
       setTags(draft.tags || [])
       setDate(draft.date || new Date().toISOString().split('T')[0])
+      setSources(draft.sources || [])
       
       if (draft.savedAt) {
         const savedTime = new Date(draft.savedAt).toLocaleTimeString()
@@ -125,13 +126,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           author,
           status,
           tags,
-          date
+          date,
+          sources
         })
       }
     }, 1000) // Debounce for 1 second
 
     return () => clearTimeout(timeoutId)
-  }, [title, content, author, status, tags, date, saveDraft])
+  }, [title, content, author, status, tags, date, sources, saveDraft])
 
   useEffect(() => {
     const loadData = async () => {
