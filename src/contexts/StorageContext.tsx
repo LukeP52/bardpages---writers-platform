@@ -102,6 +102,15 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         storyboards: localStoryboards
       })
       
+      // Clear localStorage after successful migration to prevent re-migration
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('bardpages_excerpts')
+        localStorage.removeItem('bardpages_storyboards')
+        localStorage.removeItem('bardpages_categories')
+        localStorage.removeItem('bardpages_premade_tags')
+        localStorage.removeItem('bardpages_tag_mappings')
+      }
+      
       toast.success(`Migrated ${validExcerpts.length} excerpts and ${localCategories.length} categories to cloud storage!`)
       setMigrationCompleted(true)
       
