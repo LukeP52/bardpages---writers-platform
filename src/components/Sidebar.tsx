@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
@@ -8,9 +9,14 @@ import {
   FilmIcon, 
   HomeIcon,
   TagIcon,
-  SparklesIcon
+  SparklesIcon,
+  UserCircleIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
 import { motion } from 'framer-motion'
+import { useAuth } from '@/contexts/AuthContext'
+import AuthModal from '@/components/auth/AuthModal'
+import toast from 'react-hot-toast'
 
 const navigationItems = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
@@ -22,6 +28,17 @@ const navigationItems = [
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const { user, logout } = useAuth()
+  const [showAuthModal, setShowAuthModal] = useState(false)
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      toast.success('Signed out successfully')
+    } catch (error) {
+      toast.error('Failed to sign out')
+    }
+  }
 
   return (
     <motion.div 
@@ -91,30 +108,59 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* Footer */}
+      {/* Authentication Section */}
       <div className="p-6 border-t border-slate-200/60">
-        <div className="card p-4 bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200/80">
-          <div className="flex items-center space-x-3 mb-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-500 rounded-lg flex items-center justify-center">
-              <SparklesIcon className="w-4 h-4 text-white" />
+        {user ? (
+          <div className="card p-4 bg-gradient-to-br from-slate-50 to-slate-100 border-slate-200/80">
+            <div className="flex items-center space-x-3 mb-3">
+              <UserCircleIcon className="w-8 h-8 text-blue-600" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-slate-900 truncate">
+                  {user.displayName || 'User'}
+                </p>
+                <p className="text-xs text-slate-500 truncate">{user.email}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-sm font-semibold text-slate-900">Pro Features</p>
-              <p className="text-xs text-slate-500">Coming Soon</p>
-            </div>
+            <motion.button
+              onClick={handleLogout}
+              className="btn btn-outline w-full text-xs flex items-center justify-center gap-2"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <ArrowRightOnRectangleIcon className="w-4 h-4" />
+              Sign Out
+            </motion.button>
           </div>
-          <p className="text-xs text-slate-600 mb-3">
-            Advanced analytics, collaboration tools, and cloud sync.
-          </p>
-          <motion.button
-            className="btn btn-secondary w-full text-xs"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Learn More
-          </motion.button>
-        </div>
+        ) : (
+          <div className="card p-4 bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200/80">
+            <div className="flex items-center space-x-3 mb-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                <UserCircleIcon className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Sign In</p>
+                <p className="text-xs text-slate-500">Sync your work</p>
+              </div>
+            </div>
+            <p className="text-xs text-slate-600 mb-3">
+              Sign in to save your work and access it from anywhere.
+            </p>
+            <motion.button
+              onClick={() => setShowAuthModal(true)}
+              className="btn btn-primary w-full text-xs"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              Sign In
+            </motion.button>
+          </div>
+        )}
       </div>
+      
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </motion.div>
   )
 }

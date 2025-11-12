@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Dialog, Transition } from '@headlessui/react'
@@ -12,8 +12,12 @@ import {
   PlusIcon,
   UserCircleIcon,
   TagIcon,
-  XMarkIcon
+  XMarkIcon,
+  ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
+import { useAuth } from '@/contexts/AuthContext'
+import AuthModal from '@/components/auth/AuthModal'
+import toast from 'react-hot-toast'
 
 const navigationItems = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
@@ -30,6 +34,18 @@ interface MobileSidebarProps {
 
 export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const pathname = usePathname()
+  const { user, logout } = useAuth()
+  const [showAuthModal, setShowAuthModal] = useState(false)
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      toast.success('Signed out successfully')
+      onClose()
+    } catch (error) {
+      toast.error('Failed to sign out')
+    }
+  }
 
   return (
     <Transition.Root show={isOpen} as={Fragment}>
@@ -120,13 +136,37 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                     </li>
 
                     <li className="mt-auto">
-                      <div className="flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer">
-                        <UserCircleIcon className="w-8 h-8 text-gray-400" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">Writer</p>
-                          <p className="text-xs text-gray-500 truncate">writer@bardpages.com</p>
+                      {user ? (
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-3 px-3 py-2 rounded-lg bg-gray-50">
+                            <UserCircleIcon className="w-8 h-8 text-blue-600" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {user.displayName || 'User'}
+                              </p>
+                              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                          >
+                            <ArrowRightOnRectangleIcon className="w-5 h-5 text-gray-400" />
+                            <span>Sign Out</span>
+                          </button>
                         </div>
-                      </div>
+                      ) : (
+                        <button
+                          onClick={() => {
+                            setShowAuthModal(true)
+                            onClose()
+                          }}
+                          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                        >
+                          <UserCircleIcon className="w-5 h-5 text-blue-600" />
+                          <span>Sign In</span>
+                        </button>
+                      )}
                     </li>
                   </ul>
                 </nav>
@@ -135,6 +175,11 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
           </Transition.Child>
         </div>
       </Dialog>
+      
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </Transition.Root>
   )
 }
