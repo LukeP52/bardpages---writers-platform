@@ -6,9 +6,7 @@ import { v4 as uuidv4 } from 'uuid'
 import QuillEditor from '@/components/QuillEditor'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
-import TextAnnotator from '@/components/citations/TextAnnotator'
-import CitationManager from '@/components/citations/CitationManager'
-import Bibliography from '@/components/citations/Bibliography'
+import SimpleCitations from '@/components/SimpleCitations'
 import { Excerpt } from '@/types'
 import { useStorage } from '@/contexts/StorageContext'
 import { FileParser } from '@/lib/fileParser'
@@ -43,15 +41,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState('')
   const [isUploadingFile, setIsUploadingFile] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
-  const [tempExcerptId] = useState(() => {
-    const id = excerpt?.id || `temp-${uuidv4()}`
-    console.log('🟠 ExcerptForm: tempExcerptId generated', { 
-      excerptId: excerpt?.id, 
-      tempExcerptId: id,
-      isNewExcerpt: !excerpt?.id 
-    })
-    return id
-  })
+  const [sources, setSources] = useState<any[]>(excerpt?.sources || [])
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const storage = useStorage()
   const quillRef = useRef<any>(null)
@@ -161,6 +151,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       setAuthor(excerpt.author ?? '')
       setStatus(excerpt.status ?? 'draft')
       setTags(excerpt.tags ?? [])
+      setSources(excerpt.sources ?? [])
       setDate(
         excerpt.createdAt
           ? new Date(excerpt.createdAt).toISOString().split('T')[0]
@@ -308,16 +299,11 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         tags,
         createdAt: excerpt?.createdAt || selectedDate,
         updatedAt: now,
-        wordCount: getWordCount(content)
+        wordCount: getWordCount(content),
+        sources: sources
       }
 
       await storage.saveExcerpt(excerptData)
-      
-      // If this is a new excerpt (tempExcerptId was used), transfer citation data
-      if (!excerpt?.id && tempExcerptId !== excerptData.id) {
-        const { transferCitationData } = await import('@/stores/citationStore')
-        transferCitationData(tempExcerptId, excerptData.id)
-      }
       
       // Verify it was saved
       const saved = await storage.getExcerpt(excerptData.id)
@@ -569,12 +555,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
                   placeholder="Start writing your excerpt..."
                   className="min-h-[400px]"
                 />
-                {/* Text Annotator for citation selection */}
-                <TextAnnotator
-                  content={content}
-                  excerptId={excerpt?.id || 'new'}
-                  quillRef={quillRef}
-                />
               </div>
               <div className="mt-3 flex justify-between text-sm text-slate-500 font-medium">
                 <span>Word count: {getWordCount(content)}</span>
@@ -739,11 +719,12 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             </div>
           </div>
 
-          {/* Citation Manager */}
-          <CitationManager excerptId={tempExcerptId} />
-
-          {/* Bibliography */}
-          <Bibliography excerptId={tempExcerptId} />
+          {/* Simple Citations */}
+          <SimpleCitations 
+            excerptId={excerpt?.id || 'new'}
+            sources={sources}
+            onSourcesChange={setSources}
+          />
 
           <div className="divider"></div>
 

@@ -9,7 +9,7 @@ export interface Excerpt {
   wordCount: number
   status: 'draft' | 'review' | 'final'
   imageUrl?: string
-  // Note: citations and references will be handled by new system
+  sources?: any[] // Simple sources array
 }
 
 // Old citation system removed - will be replaced with new architecture
