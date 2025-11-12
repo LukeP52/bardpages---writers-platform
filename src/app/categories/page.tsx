@@ -18,6 +18,8 @@ export default function TagManagerPage() {
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState<string>('')
   const [showNewCategoryForm, setShowNewCategoryForm] = useState(false)
   const [currentCategoryIds, setCurrentCategoryIds] = useState<string[]>([])
+  const [groupedTags, setGroupedTags] = useState<{ [key: string]: string[] }>({})
+  const [isLoadingGroups, setIsLoadingGroups] = useState(false)
   const storage = useStorage()
 
   useEffect(() => {
@@ -32,8 +34,67 @@ export default function TagManagerPage() {
       ])
       setAllTags(allTags)
       setCategories(allCategories)
+      
+      // Load grouped tags after we have both tags and categories
+      await loadGroupedTags(allTags, allCategories)
     } catch (error) {
       console.error('Failed to load tags and categories:', error)
+    }
+  }
+
+  const loadGroupedTags = async (tags?: string[], cats?: Category[]) => {
+    const tagsToUse = tags || allTags
+    const categoriesToUse = cats || categories
+    
+    if (tagsToUse.length === 0) {
+      setGroupedTags({})
+      return
+    }
+    
+    try {
+      setIsLoadingGroups(true)
+      const result: { [key: string]: string[] } = {}
+      
+      // Initialize all categories with empty arrays
+      categoriesToUse.forEach(category => {
+        result[category.name] = []
+      })
+      
+      // Add "Uncategorized" category if it doesn't exist
+      if (!result['Uncategorized']) {
+        result['Uncategorized'] = []
+      }
+      
+      // For each tag, get its assigned categories and group accordingly
+      const categorizedTags = new Set<string>()
+      
+      for (const tag of tagsToUse) {
+        try {
+          const tagCategories = await storage.getTagCategories(tag)
+          
+          if (tagCategories.length > 0) {
+            // Tag has assigned categories
+            tagCategories.forEach(category => {
+              if (result[category.name]) {
+                result[category.name].push(tag)
+                categorizedTags.add(tag)
+              }
+            })
+          }
+        } catch (error) {
+          console.error(`Failed to get categories for tag "${tag}":`, error)
+        }
+      }
+      
+      // Add uncategorized tags to "Uncategorized" group
+      const uncategorizedTags = tagsToUse.filter(tag => !categorizedTags.has(tag))
+      result['Uncategorized'] = uncategorizedTags
+      
+      setGroupedTags(result)
+    } catch (error) {
+      console.error('Failed to load grouped tags:', error)
+    } finally {
+      setIsLoadingGroups(false)
     }
   }
 
@@ -175,12 +236,6 @@ export default function TagManagerPage() {
     return 'Other'
   }
 
-  const groupTagsByCategory = () => {
-    // Simplified: just group all tags under "All Tags" for now
-    return {
-      'All Tags': allTags
-    }
-  }
 
   const toggleCategory = (category: string) => {
     const newExpanded = new Set(expandedCategories)
@@ -291,9 +346,14 @@ export default function TagManagerPage() {
                   Add your first tag above, or create excerpts with tags to see them here.
                 </p>
               </div>
+            ) : isLoadingGroups ? (
+              <div className="text-center py-8">
+                <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mb-2"></div>
+                <p className="text-gray-600 text-sm">Loading categories...</p>
+              </div>
             ) : (
               <div className="space-y-4">
-                {Object.entries(groupTagsByCategory()).map(([category, tags]) => (
+                {Object.entries(groupedTags).map(([category, tags]) => (
                   <div key={category} className="border border-gray-200 rounded">
                     <button
                       onClick={() => toggleCategory(category)}
