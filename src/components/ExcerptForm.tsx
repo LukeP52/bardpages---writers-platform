@@ -123,8 +123,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       setStatus(draft.status || 'draft')
       setTags(draft.tags || [])
       setDate(draft.date || new Date().toISOString().split('T')[0])
-      setSources(draft.sources || [])
-      console.log('🔥 ExcerptForm: Draft sources loaded, length:', (draft.sources || []).length)
+      
+      // Only override sources if the draft actually has sources data
+      if (draft.sources !== undefined) {
+        setSources(draft.sources || [])
+        console.log('🔥 ExcerptForm: Draft sources loaded, length:', (draft.sources || []).length)
+      } else {
+        console.log('🔥 ExcerptForm: Draft has no sources property, keeping current sources')
+      }
       
       if (draft.savedAt) {
         const savedTime = new Date(draft.savedAt).toLocaleTimeString()
