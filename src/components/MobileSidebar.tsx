@@ -37,7 +37,7 @@ interface MobileSidebarProps {
 export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
-  const { executeWithAuth, showAuthModal, closeAuthModal } = useAuthAction()
+  const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const [showAuthModalLocal, setShowAuthModalLocal] = useState(false)
   const router = useRouter()
 

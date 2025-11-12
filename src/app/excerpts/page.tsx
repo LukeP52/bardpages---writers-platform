@@ -22,7 +22,7 @@ export default function ExcerptsPage() {
   const [filtersExpanded, setFiltersExpanded] = useState(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
-  const { executeWithAuth, showAuthModal, closeAuthModal } = useAuthAction()
+  const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const router = useRouter()
 
   useEffect(() => {

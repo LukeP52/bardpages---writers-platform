@@ -47,7 +47,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState('')
   const [isUploadingFile, setIsUploadingFile] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
-  const { executeWithAuth, showAuthModal, closeAuthModal } = useAuthAction()
+  const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const quillRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -253,15 +253,18 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     }
 
     // Check authentication before proceeding with save
-    const canProceed = executeWithAuth(() => {
-      // This will only run if authenticated
-      performSave()
-    })
+    console.log('Debug: Checking authentication before save')
+    const canProceed = checkAuthAndProceed()
     
     if (!canProceed) {
       // User needs to authenticate, form data is preserved
+      console.log('Debug: User needs to authenticate, showing modal')
       return
     }
+    
+    // User is authenticated, proceed with save
+    console.log('Debug: User is authenticated, proceeding with save')
+    await performSave()
   }
   
   const performSave = async () => {

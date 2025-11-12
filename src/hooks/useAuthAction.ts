@@ -7,14 +7,17 @@ export function useAuthAction() {
   const { user } = useAuth()
   const [showAuthModal, setShowAuthModal] = useState(false)
 
-  const executeWithAuth = (action: () => void, requireAuth: boolean = true) => {
+  const checkAuthAndProceed = (requireAuth: boolean = true) => {
+    console.log('Debug: checkAuthAndProceed called, user:', user ? 'authenticated' : 'not authenticated')
+    
     if (requireAuth && !user) {
+      console.log('Debug: User not authenticated, showing modal')
       setShowAuthModal(true)
-      return false // Action was not executed
+      return false // User needs to authenticate
     }
     
-    action()
-    return true // Action was executed
+    console.log('Debug: User authenticated, can proceed')
+    return true // User can proceed
   }
 
   const closeAuthModal = () => {
@@ -22,7 +25,7 @@ export function useAuthAction() {
   }
 
   return {
-    executeWithAuth,
+    checkAuthAndProceed,
     showAuthModal,
     closeAuthModal,
     isAuthenticated: !!user
