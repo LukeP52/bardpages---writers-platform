@@ -148,11 +148,18 @@ export default function ExcerptsPage() {
   }
 
   const toggleExcerptSelection = (excerptId: string) => {
-    setSelectedExcerptIds(prev => 
-      prev.includes(excerptId)
+    setSelectedExcerptIds(prev => {
+      const newSelection = prev.includes(excerptId)
         ? prev.filter(id => id !== excerptId)
         : [...prev, excerptId]
-    )
+      
+      // If no items are selected, exit selection mode
+      if (newSelection.length === 0) {
+        setIsSelectionMode(false)
+      }
+      
+      return newSelection
+    })
   }
 
   const selectAllExcerpts = () => {
@@ -173,11 +180,11 @@ export default function ExcerptsPage() {
   const handleSelectDropdownChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value
     
-    if (value === 'multiple') {
+    if (value === 'select') {
       // Enter selection mode without selecting anything
       setIsSelectionMode(true)
       setSelectedExcerptIds([])
-    } else if (value === 'all') {
+    } else if (value === 'select-all') {
       // Enter selection mode and select all excerpts
       setIsSelectionMode(true)
       setSelectedExcerptIds(filteredExcerpts.map(e => e.id))
@@ -354,36 +361,6 @@ export default function ExcerptsPage() {
 
   const renderExcerpts = () => (
     <div className="space-y-4">
-      {/* Bulk Actions Bar */}
-      {isSelectionMode && (
-        <div className="card bg-blue-50 border border-blue-200 p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={selectedExcerptIds.length === filteredExcerpts.length ? deselectAllExcerpts : selectAllExcerpts}
-                className="btn btn-sm btn-outline"
-              >
-                {selectedExcerptIds.length === filteredExcerpts.length ? 'Deselect All' : 'Select All'}
-              </button>
-              <span className="text-sm font-medium text-blue-800">
-                {selectedExcerptIds.length} of {filteredExcerpts.length} selected
-              </span>
-            </div>
-            
-            {selectedExcerptIds.length > 0 && (
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleBulkDelete}
-                  className="btn btn-sm bg-red-600 hover:bg-red-700 text-white"
-                >
-                  Delete Selected ({selectedExcerptIds.length})
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-      
       {filteredExcerpts.map((excerpt, index) => (
         <div key={excerpt.id} className={`card bg-white hover:shadow-md transition-all ${
           selectedExcerptIds.includes(excerpt.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
@@ -511,16 +488,16 @@ export default function ExcerptsPage() {
                 defaultValue=""
               >
                 <option value="" disabled>Select...</option>
-                <option value="multiple">Multiple</option>
-                <option value="all">All</option>
+                <option value="select">Select</option>
+                <option value="select-all">Select All</option>
               </select>
               
-              {isSelectionMode && (
+              {isSelectionMode && selectedExcerptIds.length > 0 && (
                 <button
-                  onClick={toggleSelectionMode}
-                  className="btn btn-sm bg-red-600 hover:bg-red-700 text-white font-medium"
+                  onClick={handleBulkDelete}
+                  className="btn btn-sm bg-red-600 hover:bg-red-700 text-white"
                 >
-                  ✕ Exit Selection
+                  Delete ({selectedExcerptIds.length})
                 </button>
               )}
             </div>
