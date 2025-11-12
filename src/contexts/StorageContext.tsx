@@ -96,16 +96,33 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         return
       }
       
+      // Filter out excerpts with content too large for Firestore (1MB limit)
+      const MAX_CONTENT_SIZE = 1000000 // ~1MB in bytes
+      const validExcerpts = localExcerpts.filter(excerpt => {
+        const contentSize = new Blob([excerpt.content]).size
+        if (contentSize > MAX_CONTENT_SIZE) {
+          console.warn('MigrateToCloud: Skipping excerpt with large content:', excerpt.title, `(${Math.round(contentSize / 1024)}KB)`)
+          return false
+        }
+        return true
+      })
+      
+      const skippedCount = localExcerpts.length - validExcerpts.length
+      if (skippedCount > 0) {
+        console.warn(`MigrateToCloud: Skipped ${skippedCount} excerpts due to size limits`)
+        toast.error(`${skippedCount} excerpts were too large to migrate to cloud storage`)
+      }
+      
       console.log('MigrateToCloud: Migrating to Firestore...')
       // Migrate to Firestore
       await firestoreService.migrateFromLocalStorage({
-        excerpts: localExcerpts,
+        excerpts: validExcerpts,
         categories: localCategories,
         storyboards: localStoryboards
       })
       
       console.log('MigrateToCloud: Migration successful!')
-      toast.success(`Migrated ${localExcerpts.length} excerpts and ${localCategories.length} categories to cloud storage!`)
+      toast.success(`Migrated ${validExcerpts.length} excerpts and ${localCategories.length} categories to cloud storage!`)
       setMigrationCompleted(true)
       
     } catch (error) {

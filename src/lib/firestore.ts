@@ -74,6 +74,14 @@ export class FirestoreService {
   async saveExcerpt(excerpt: Excerpt): Promise<void> {
     this.checkAvailability()
     
+    // Check content size before saving (Firestore has 1MB limit per document)
+    const contentSize = new Blob([excerpt.content]).size
+    const MAX_CONTENT_SIZE = 1000000 // ~1MB
+    
+    if (contentSize > MAX_CONTENT_SIZE) {
+      throw new Error(`Excerpt content is too large for cloud storage (${Math.round(contentSize / 1024)}KB). Maximum allowed is ${Math.round(MAX_CONTENT_SIZE / 1024)}KB.`)
+    }
+    
     const excerptRef = doc(db, 'users', this.userId, 'excerpts', excerpt.id)
     const excerptData = prepareForStorage(excerpt)
     
