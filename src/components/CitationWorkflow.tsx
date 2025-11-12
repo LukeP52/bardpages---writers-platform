@@ -2,8 +2,102 @@
 
 import { useState } from 'react'
 import { v4 as uuidv4 } from 'uuid'
-import { PlusIcon, XMarkIcon, BookOpenIcon, GlobeAltIcon, NewspaperIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, XMarkIcon, BookOpenIcon, GlobeAltIcon, NewspaperIcon, ArrowsUpDownIcon } from '@heroicons/react/24/outline'
 import { Reference, Citation } from '@/types'
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
+import {
+  useSortable,
+} from '@dnd-kit/sortable'
+import { CSS } from '@dnd-kit/utilities'
+
+interface SortableCitationItemProps {
+  citation: Citation
+  index: number
+  reference?: Reference
+  onDelete: (id: string) => void
+  onMove: (id: string, position: number) => void
+  selectedRange?: { index: number; length: number } | null
+}
+
+function SortableCitationItem({ citation, index, reference, onDelete, onMove, selectedRange }: SortableCitationItemProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id: citation.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
+    >
+      <div className="flex-1 flex items-center gap-3">
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab hover:cursor-grabbing p-1 text-slate-400 hover:text-slate-600"
+        >
+          <ArrowsUpDownIcon className="w-4 h-4" />
+        </div>
+        <div className="flex-1">
+          <span className="inline-flex items-center text-xs font-mono px-2 py-1 bg-blue-100 text-blue-800 rounded mr-2">
+            [{index + 1}]
+          </span>
+          <span className="text-sm text-slate-600">
+            "{citation.text}"
+          </span>
+          {reference && (
+            <div className="text-xs text-slate-500 mt-1">
+              {reference.author} ({reference.year})
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        {selectedRange && (
+          <button
+            type="button"
+            onClick={() => onMove(citation.id, selectedRange.index + selectedRange.length)}
+            className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50"
+            title="Move citation to selected position"
+          >
+            Move Here
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => onDelete(citation.id)}
+          className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50"
+          title="Delete citation"
+        >
+          ×
+        </button>
+      </div>
+    </div>
+  )
+}
 
 interface CitationWorkflowProps {
   references: Reference[]
@@ -32,6 +126,42 @@ export default function CitationWorkflow({
 }: CitationWorkflowProps) {
   const [step, setStep] = useState<'reference' | 'citation'>('reference')
   const [editingReference, setEditingReference] = useState<Reference | null>(null)
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event
+
+    if (active.id !== over?.id) {
+      const oldIndex = citations.findIndex(citation => citation.id === active.id)
+      const newIndex = citations.findIndex(citation => citation.id === over?.id)
+
+      if (oldIndex !== -1 && newIndex !== -1) {
+        const reorderedCitations = arrayMove(citations, oldIndex, newIndex)
+        
+        // Update citation numbers in content
+        let newContent = content
+        reorderedCitations.forEach((citation, index) => {
+          const oldNumber = citations.findIndex(c => c.id === citation.id) + 1
+          const newNumber = index + 1
+          if (oldNumber !== newNumber) {
+            const oldMarker = `<sup>[${oldNumber}]</sup>`
+            const newMarker = `<sup>[${newNumber}]</sup>`
+            newContent = newContent.replace(oldMarker, newMarker)
+          }
+        })
+        
+        onContentChange(newContent)
+        onCitationsChange(reorderedCitations)
+        console.log('Citations reordered successfully!')
+      }
+    }
+  }
   
   const [newReference, setNewReference] = useState<Partial<Reference>>({
     type: 'book',
@@ -155,13 +285,20 @@ export default function CitationWorkflow({
     // Remove citation marker from content
     let newContent = content.replace(citationMarker, '')
     
-    onContentChange(newContent)
-    
     // Remove citation from list
     const updatedCitations = citations.filter(c => c.id !== citationId)
+    
+    // Renumber all remaining citations in content
+    updatedCitations.forEach((cit, index) => {
+      const oldMarker = `<sup>[${citations.findIndex(c => c.id === cit.id) + 1}]</sup>`
+      const newMarker = `<sup>[${index + 1}]</sup>`
+      newContent = newContent.replace(oldMarker, newMarker)
+    })
+    
+    onContentChange(newContent)
     onCitationsChange(updatedCitations)
     
-    console.log('Citation deleted successfully!')
+    console.log('Citation deleted and renumbered successfully!')
   }
 
   const moveCitation = (citationId: string, newPosition: number) => {
@@ -288,58 +425,42 @@ export default function CitationWorkflow({
                   </div>
                 ))}
                 
-                {/* Existing Citations Section */}
+                {/* Existing Citations Section with Drag & Drop */}
                 {citations.length > 0 && (
                   <>
                     <div className="divider"></div>
                     <div className="pt-4">
-                      <h4 className="text-sm font-semibold text-slate-700 mb-3">Existing Citations in Document</h4>
-                      <div className="space-y-2">
-                        {citations.map((citation, index) => {
-                          const reference = references.find(r => r.id === citation.referenceId)
-                          return (
-                            <div key={citation.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-                              <div className="flex-1">
-                                <span className="inline-flex items-center text-xs font-mono px-2 py-1 bg-blue-100 text-blue-800 rounded mr-2">
-                                  [{index + 1}]
-                                </span>
-                                <span className="text-sm text-slate-600">
-                                  "{citation.text}"
-                                </span>
-                                {reference && (
-                                  <div className="text-xs text-slate-500 mt-1">
-                                    {reference.author} ({reference.year})
-                                  </div>
-                                )}
-                              </div>
-                              <div className="flex gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    if (quillRef.current && selectedRange) {
-                                      // Move citation to current selection position
-                                      moveCitation(citation.id, selectedRange.index + selectedRange.length)
-                                    }
-                                  }}
-                                  className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50"
-                                  title="Move citation to selected position"
-                                  disabled={!selectedRange}
-                                >
-                                  Move Here
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => deleteCitation(citation.id)}
-                                  className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50"
-                                  title="Delete citation"
-                                >
-                                  ×
-                                </button>
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
+                      <h4 className="text-sm font-semibold text-slate-700 mb-3">
+                        Existing Citations in Document 
+                        <span className="text-xs text-slate-500 font-normal ml-2">(drag to reorder)</span>
+                      </h4>
+                      <DndContext
+                        sensors={sensors}
+                        collisionDetection={closestCenter}
+                        onDragEnd={handleDragEnd}
+                      >
+                        <SortableContext
+                          items={citations.map(c => c.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          <div className="space-y-2">
+                            {citations.map((citation, index) => {
+                              const reference = references.find(r => r.id === citation.referenceId)
+                              return (
+                                <SortableCitationItem
+                                  key={citation.id}
+                                  citation={citation}
+                                  index={index}
+                                  reference={reference}
+                                  selectedRange={selectedRange}
+                                  onDelete={deleteCitation}
+                                  onMove={moveCitation}
+                                />
+                              )
+                            })}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
                     </div>
                   </>
                 )}
@@ -361,39 +482,37 @@ export default function CitationWorkflow({
               <div className="space-y-3">
                 {citations.length > 0 ? (
                   <>
-                    <h4 className="text-sm font-semibold text-slate-700 mb-3">Existing Citations in Document</h4>
-                    <div className="space-y-2">
-                      {citations.map((citation, index) => {
-                        const reference = references.find(r => r.id === citation.referenceId)
-                        return (
-                          <div key={citation.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
-                            <div className="flex-1">
-                              <span className="inline-flex items-center text-xs font-mono px-2 py-1 bg-blue-100 text-blue-800 rounded mr-2">
-                                [{index + 1}]
-                              </span>
-                              <span className="text-sm text-slate-600">
-                                "{citation.text}"
-                              </span>
-                              {reference && (
-                                <div className="text-xs text-slate-500 mt-1">
-                                  {reference.author} ({reference.year})
-                                </div>
-                              )}
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => deleteCitation(citation.id)}
-                                className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50"
-                                title="Delete citation"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          </div>
-                        )
-                      })}
-                    </div>
+                    <h4 className="text-sm font-semibold text-slate-700 mb-3">
+                      Existing Citations in Document 
+                      <span className="text-xs text-slate-500 font-normal ml-2">(drag to reorder)</span>
+                    </h4>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={citations.map(c => c.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-2">
+                          {citations.map((citation, index) => {
+                            const reference = references.find(r => r.id === citation.referenceId)
+                            return (
+                              <SortableCitationItem
+                                key={citation.id}
+                                citation={citation}
+                                index={index}
+                                reference={reference}
+                                selectedRange={null}
+                                onDelete={deleteCitation}
+                                onMove={moveCitation}
+                              />
+                            )
+                          })}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
                   </>
                 ) : (
                   <div className="text-center py-8 text-slate-500">
