@@ -30,10 +30,11 @@ interface SortableCitationItemProps {
   reference?: Reference
   onDelete: (id: string) => void
   onMove: (id: string, position: number) => void
+  onEditText: (id: string) => void
   selectedRange?: { index: number; length: number } | null
 }
 
-function SortableCitationItem({ citation, index, reference, onDelete, onMove, selectedRange }: SortableCitationItemProps) {
+function SortableCitationItem({ citation, index, reference, onDelete, onMove, onEditText, selectedRange }: SortableCitationItemProps) {
   const {
     attributes,
     listeners,
@@ -76,6 +77,14 @@ function SortableCitationItem({ citation, index, reference, onDelete, onMove, se
         </div>
       </div>
       <div className="flex gap-2">
+        <button
+          type="button"
+          onClick={() => onEditText(citation.id)}
+          className="text-green-600 hover:text-green-800 text-xs px-2 py-1 rounded hover:bg-green-50"
+          title="Edit cited text"
+        >
+          Edit Text
+        </button>
         {selectedRange && (
           <button
             type="button"
@@ -126,6 +135,7 @@ export default function CitationWorkflow({
 }: CitationWorkflowProps) {
   const [step, setStep] = useState<'reference' | 'citation'>('reference')
   const [editingReference, setEditingReference] = useState<Reference | null>(null)
+  const [editingCitationId, setEditingCitationId] = useState<string | null>(null)
   
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -330,6 +340,58 @@ export default function CitationWorkflow({
     console.log('Citation moved successfully!')
   }
 
+  const editCitationText = (citationId: string) => {
+    if (!selectedRange || !selectedText.trim()) {
+      alert('Please select new text in the editor first, then click "Edit Text" for the citation you want to update.')
+      return
+    }
+
+    const citation = citations.find(c => c.id === citationId)
+    if (!citation) {
+      console.error('Citation not found')
+      return
+    }
+
+    // Find and replace the old citation text with the new one
+    const citationIndex = citations.findIndex(c => c.id === citationId) + 1
+    const citationMarker = `<sup>[${citationIndex}]</sup>`
+    
+    // Remove the old citation marker
+    let newContent = content.replace(citationMarker, '')
+    
+    // Add citation to the new selected text
+    const textToFind = selectedText
+    const firstOccurrence = newContent.indexOf(textToFind)
+    if (firstOccurrence !== -1) {
+      const beforeText = newContent.substring(0, firstOccurrence + textToFind.length)
+      const afterText = newContent.substring(firstOccurrence + textToFind.length)
+      newContent = beforeText + citationMarker + afterText
+    }
+
+    // Update citation object with new text and positions
+    const updatedCitations = citations.map(c => 
+      c.id === citationId 
+        ? { 
+            ...c, 
+            text: selectedText, 
+            startPos: selectedRange.index, 
+            endPos: selectedRange.index + selectedRange.length 
+          }
+        : c
+    )
+
+    onContentChange(newContent)
+    onCitationsChange(updatedCitations)
+    
+    console.log('Citation text updated successfully!')
+    // Clear selection after updating
+    setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        window.getSelection()?.removeAllRanges()
+      }
+    }, 100)
+  }
+
   const formatReference = (ref: Reference) => {
     switch (ref.type) {
       case 'book':
@@ -455,6 +517,7 @@ export default function CitationWorkflow({
                                   selectedRange={selectedRange}
                                   onDelete={deleteCitation}
                                   onMove={moveCitation}
+                                  onEditText={editCitationText}
                                 />
                               )
                             })}
@@ -504,9 +567,10 @@ export default function CitationWorkflow({
                                 citation={citation}
                                 index={index}
                                 reference={reference}
-                                selectedRange={null}
+                                selectedRange={selectedRange}
                                 onDelete={deleteCitation}
                                 onMove={moveCitation}
+                                onEditText={editCitationText}
                               />
                             )
                           })}

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Excerpt } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 import RichTextEditor from '@/components/RichTextEditor'
 
 interface ExcerptDetailPageProps {
@@ -15,12 +15,17 @@ export default function ExcerptDetailPage({ params }: ExcerptDetailPageProps) {
   const router = useRouter()
   const [excerpt, setExcerpt] = useState<Excerpt | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const storage = useStorage()
 
   useEffect(() => {
-    const loadedExcerpt = storage.getExcerpt(params.id)
-    setExcerpt(loadedExcerpt || null)
-    setIsLoading(false)
-  }, [params.id])
+    const loadExcerpt = async () => {
+      const loadedExcerpt = await storage.getExcerpt(params.id)
+      setExcerpt(loadedExcerpt || null)
+      setIsLoading(false)
+    }
+    
+    loadExcerpt()
+  }, [params.id, storage])
 
   const handleDelete = async () => {
     if (!excerpt) return
@@ -28,7 +33,7 @@ export default function ExcerptDetailPage({ params }: ExcerptDetailPageProps) {
     const confirmed = confirm(`Are you sure you want to delete "${excerpt.title}"? This action cannot be undone.`)
     if (!confirmed) return
 
-    storage.deleteExcerpt(excerpt.id)
+    await storage.deleteExcerpt(excerpt.id)
     router.push('/excerpts')
   }
 

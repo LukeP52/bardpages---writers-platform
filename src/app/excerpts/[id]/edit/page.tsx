@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Excerpt } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 import ExcerptForm from '@/components/ExcerptForm'
 
 interface EditExcerptPageProps {
@@ -14,6 +14,7 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
   const router = useRouter()
   const [excerpt, setExcerpt] = useState<Excerpt | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const storage = useStorage()
 
   useEffect(() => {
     const loadExcerpt = async () => {
@@ -55,9 +56,9 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
         }
       }
 
-      console.log('No cache found, trying localStorage...')
-      const loadedExcerpt = storage.getExcerpt(excerptId)
-      console.log('localStorage excerpt found:', loadedExcerpt ? 'YES' : 'NO')
+      console.log('No cache found, trying storage...')
+      const loadedExcerpt = await storage.getExcerpt(excerptId)
+      console.log('Storage excerpt found:', loadedExcerpt ? 'YES' : 'NO')
       
       if (!loadedExcerpt) {
         console.log('No excerpt found anywhere, showing error')
@@ -70,7 +71,7 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
     }
 
     loadExcerpt()
-  }, [params])
+  }, [params, storage])
 
   if (isLoading) {
     return (
