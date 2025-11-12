@@ -23,6 +23,8 @@ export default function ExcerptsPage() {
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [selectedExcerptIds, setSelectedExcerptIds] = useState<string[]>([])
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const storage = useStorage()
   const router = useRouter()
@@ -126,6 +128,63 @@ export default function ExcerptsPage() {
       } catch (error) {
         console.error('Failed to delete excerpt:', error)
         toast.error('Failed to delete excerpt')
+      }
+    }
+  }
+
+  const toggleExcerptSelection = (excerptId: string) => {
+    setSelectedExcerptIds(prev => 
+      prev.includes(excerptId)
+        ? prev.filter(id => id !== excerptId)
+        : [...prev, excerptId]
+    )
+  }
+
+  const selectAllExcerpts = () => {
+    setSelectedExcerptIds(filteredExcerpts.map(e => e.id))
+  }
+
+  const deselectAllExcerpts = () => {
+    setSelectedExcerptIds([])
+  }
+
+  const toggleSelectionMode = () => {
+    setIsSelectionMode(!isSelectionMode)
+    if (!isSelectionMode) {
+      setSelectedExcerptIds([])
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (selectedExcerptIds.length === 0) {
+      toast.error('No excerpts selected')
+      return
+    }
+
+    const selectedExcerpts = excerpts.filter(e => selectedExcerptIds.includes(e.id))
+    const titles = selectedExcerpts.map(e => e.title).slice(0, 3)
+    const displayText = titles.join(', ') + (selectedExcerpts.length > 3 ? ` and ${selectedExcerpts.length - 3} more` : '')
+    
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedExcerptIds.length} excerpt(s)?\n\n${displayText}\n\nThis action cannot be undone.`
+    )
+    
+    if (confirmed) {
+      try {
+        // Delete all selected excerpts
+        await Promise.all(selectedExcerptIds.map(id => storage.deleteExcerpt(id)))
+        
+        // Refresh the excerpts list
+        const updatedExcerpts = await storage.getExcerpts()
+        setExcerpts(updatedExcerpts)
+        setFilteredExcerpts(updatedExcerpts)
+        setSelectedExcerptIds([])
+        setIsSelectionMode(false)
+        
+        toast.success(`Successfully deleted ${selectedExcerptIds.length} excerpt(s)!`)
+      } catch (error) {
+        console.error('Failed to delete excerpts:', error)
+        toast.error('Failed to delete some excerpts')
       }
     }
   }
@@ -249,15 +308,61 @@ export default function ExcerptsPage() {
 
   const renderExcerpts = () => (
     <div className="space-y-4">
+      {/* Bulk Actions Bar */}
+      {isSelectionMode && (
+        <div className="card bg-blue-50 border border-blue-200 p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={selectedExcerptIds.length === filteredExcerpts.length ? deselectAllExcerpts : selectAllExcerpts}
+                className="btn btn-sm btn-outline"
+              >
+                {selectedExcerptIds.length === filteredExcerpts.length ? 'Deselect All' : 'Select All'}
+              </button>
+              <span className="text-sm font-medium text-blue-800">
+                {selectedExcerptIds.length} of {filteredExcerpts.length} selected
+              </span>
+            </div>
+            
+            {selectedExcerptIds.length > 0 && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleBulkDelete}
+                  className="btn btn-sm bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Delete Selected ({selectedExcerptIds.length})
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+      
       {filteredExcerpts.map((excerpt, index) => (
-        <div key={excerpt.id} className="card bg-white hover:shadow-md transition-shadow">
+        <div key={excerpt.id} className={`card bg-white hover:shadow-md transition-all ${
+          selectedExcerptIds.includes(excerpt.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
+        }`}>
           <div className="p-4">
             <div className="flex items-start justify-between">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-gray-600 font-bold font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+              <div className="flex items-start gap-3 flex-1 min-w-0">
+                {/* Selection checkbox or index */}
+                {isSelectionMode ? (
+                  <label className="flex items-center mt-1 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedExcerptIds.includes(excerpt.id)}
+                      onChange={() => toggleExcerptSelection(excerpt.id)}
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                  </label>
+                ) : (
+                  <span className="text-gray-600 font-bold font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
                     {String(index + 1).padStart(2, '0')}
                   </span>
+                )}
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-2">
                   <a 
                     href={`/excerpts/${excerpt.id}/edit`}
                     onClick={() => {
@@ -308,24 +413,26 @@ export default function ExcerptsPage() {
                 </div>
               </div>
               
-              <div className="flex gap-2 ml-4 shrink-0">
-                <a
-                  href={`/excerpts/${excerpt.id}/edit`}
-                  onClick={() => {
-                    console.log('EDIT button clicked for excerpt:', excerpt.id)
-                    cacheExcerptForEditing(excerpt)
-                  }}
-                  className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm"
-                >
-                  Edit
-                </a>
-                <button
-                  onClick={() => handleDeleteExcerpt(excerpt)}
-                  className="btn btn-sm border border-red-300 text-red-600 hover:bg-red-500 hover:text-white px-3 py-1 text-sm"
-                >
-                  Delete
-                </button>
-              </div>
+              {!isSelectionMode && (
+                <div className="flex gap-2 ml-4 shrink-0">
+                  <a
+                    href={`/excerpts/${excerpt.id}/edit`}
+                    onClick={() => {
+                      console.log('EDIT button clicked for excerpt:', excerpt.id)
+                      cacheExcerptForEditing(excerpt)
+                    }}
+                    className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm"
+                  >
+                    Edit
+                  </a>
+                  <button
+                    onClick={() => handleDeleteExcerpt(excerpt)}
+                    className="btn btn-sm border border-red-300 text-red-600 hover:bg-red-500 hover:text-white px-3 py-1 text-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -348,12 +455,22 @@ export default function ExcerptsPage() {
           </p>
         </div>
         
-        <Link
-          href="/excerpts/new"
-          className="btn btn-primary"
-        >
-          + NEW EXCERPT
-        </Link>
+        <div className="flex items-center gap-3">
+          {filteredExcerpts.length > 0 && (
+            <button
+              onClick={toggleSelectionMode}
+              className={`btn btn-sm ${isSelectionMode ? 'bg-blue-600 text-white' : 'btn-outline'}`}
+            >
+              {isSelectionMode ? 'Exit Selection' : 'Select Multiple'}
+            </button>
+          )}
+          <Link
+            href="/excerpts/new"
+            className="btn btn-primary"
+          >
+            + NEW EXCERPT
+          </Link>
+        </div>
       </div>
 
       {/* Search and Filters */}
