@@ -12,6 +12,9 @@ interface SimpleCitationsProps {
 
 export default function SimpleCitations({ excerptId, sources, onSourcesChange }: SimpleCitationsProps) {
   console.log('🔥 SimpleCitations: Component rendered with sources:', sources)
+  console.log('🔥 SimpleCitations: sources.length:', sources.length)
+  console.log('🔥 SimpleCitations: sources type:', typeof sources)
+  console.log('🔥 SimpleCitations: sources is array:', Array.isArray(sources))
   const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState({
     title: '',

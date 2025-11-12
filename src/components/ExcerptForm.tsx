@@ -47,13 +47,20 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const handleSourcesChange = (newSources: any[]) => {
     console.log('🔥 ExcerptForm: handleSourcesChange called with:', newSources)
     console.log('🔥 ExcerptForm: Current sources state before update:', sources)
+    console.log('🔥 ExcerptForm: newSources.length:', newSources.length)
     setSources(newSources)
     console.log('🔥 ExcerptForm: setSources called with:', newSources)
     
-    // Check if state actually updated
+    // Check if state actually updated multiple times
     setTimeout(() => {
-      console.log('🔥 ExcerptForm: Sources state after timeout:', sources)
+      console.log('🔥 ExcerptForm: Sources state after 100ms:', sources)
     }, 100)
+    setTimeout(() => {
+      console.log('🔥 ExcerptForm: Sources state after 500ms:', sources)  
+    }, 500)
+    setTimeout(() => {
+      console.log('🔥 ExcerptForm: Sources state after 1000ms:', sources)
+    }, 1000)
   }
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const storage = useStorage()
@@ -106,8 +113,10 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   // Load draft data on component mount
   useEffect(() => {
     const draft = loadDraft()
+    console.log('🔥 ExcerptForm: loadDraft returned:', draft)
     if (draft && !excerpt) {
       // Only load draft for new excerpts, not when editing existing ones
+      console.log('🔥 ExcerptForm: Loading draft with sources:', draft.sources)
       setTitle(draft.title || '')
       setContent(draft.content || '')
       setAuthor(draft.author || '')
@@ -115,6 +124,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       setTags(draft.tags || [])
       setDate(draft.date || new Date().toISOString().split('T')[0])
       setSources(draft.sources || [])
+      console.log('🔥 ExcerptForm: Draft sources loaded, length:', (draft.sources || []).length)
       
       if (draft.savedAt) {
         const savedTime = new Date(draft.savedAt).toLocaleTimeString()
@@ -127,6 +137,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (title || content || author) {
+        console.log('🔥 ExcerptForm: Auto-saving draft with sources:', sources)
         saveDraft({
           title,
           content,
@@ -136,6 +147,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           date,
           sources
         })
+        console.log('🔥 ExcerptForm: Draft saved with sources length:', sources.length)
       }
     }, 1000) // Debounce for 1 second
 
@@ -158,6 +170,12 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     
     loadData()
   }, [storage])
+
+  // Track sources state changes
+  useEffect(() => {
+    console.log('🔥 ExcerptForm: Sources state changed to:', sources)
+    console.log('🔥 ExcerptForm: Sources length:', sources.length)
+  }, [sources])
 
   useEffect(() => {
     if (excerpt && !excerptLoaded) {
