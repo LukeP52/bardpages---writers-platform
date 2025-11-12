@@ -24,6 +24,7 @@ export default function SimpleCitations({ excerptId, sources, onSourcesChange }:
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
+    e.stopPropagation()
     
     if (!formData.title.trim() || !formData.author.trim()) {
       alert('Title and Author are required')
@@ -73,7 +74,12 @@ export default function SimpleCitations({ excerptId, sources, onSourcesChange }:
             </p>
           </div>
           <button
-            onClick={() => setShowForm(true)}
+            type="button"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setShowForm(true)
+            }}
             className="btn btn-primary"
           >
             <PlusIcon className="w-4 h-4 mr-2" />
@@ -88,7 +94,12 @@ export default function SimpleCitations({ excerptId, sources, onSourcesChange }:
             <BookOpenIcon className="w-12 h-12 mx-auto mb-4 text-slate-300" />
             <p className="text-slate-600 mb-4">No sources added yet</p>
             <button
-              onClick={() => setShowForm(true)}
+              type="button"
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setShowForm(true)
+              }}
               className="btn btn-secondary"
             >
               Add your first source
