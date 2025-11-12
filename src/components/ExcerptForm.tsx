@@ -807,6 +807,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             selectedText={selectedText}
             selectedRange={selectedRange}
             content={content}
+            quillRef={quillRef}
             onReferencesChange={setReferences}
             onCitationsChange={setCitations}
             onContentChange={setContent}

@@ -11,6 +11,7 @@ interface CitationWorkflowProps {
   selectedText: string
   selectedRange: { index: number; length: number } | null
   content: string
+  quillRef: React.MutableRefObject<any | null>
   onReferencesChange: (references: Reference[]) => void
   onCitationsChange: (citations: Citation[]) => void
   onContentChange: (content: string) => void
@@ -23,6 +24,7 @@ export default function CitationWorkflow({
   selectedText,
   selectedRange,
   content,
+  quillRef,
   onReferencesChange,
   onCitationsChange,
   onContentChange,
@@ -102,8 +104,8 @@ export default function CitationWorkflow({
   }
 
   const addCitation = (referenceId: string) => {
-    if (!selectedRange) {
-      console.error('No text selected')
+    if (!selectedRange || !quillRef.current) {
+      console.error('No text selected or editor not available')
       return
     }
 
@@ -117,27 +119,115 @@ export default function CitationWorkflow({
       noteId
     }
 
-    // Insert citation marker in content (HTML)
+    // Calculate citation number (should be sequential)
     const citationNumber = citations.length + 1
-    const citationMarker = `<sup>[${citationNumber}]</sup>`
     
-    // Find position in HTML content to insert citation
-    // For now, we'll append the citation marker after the selected text
-    // This is a simplified approach - in production you'd want more sophisticated HTML manipulation
-    let newContent = content
-    const textToFind = selectedText
-    const firstOccurrence = newContent.indexOf(textToFind)
-    if (firstOccurrence !== -1) {
-      const beforeText = newContent.substring(0, firstOccurrence + textToFind.length)
-      const afterText = newContent.substring(firstOccurrence + textToFind.length)
-      newContent = beforeText + citationMarker + afterText
+    // Use Quill's API to insert citation at the exact position
+    const quill = quillRef.current
+    const insertPosition = selectedRange.index + selectedRange.length
+    
+    // Insert the citation marker as formatted text at the correct position
+    quill.insertText(insertPosition, `[${citationNumber}]`, { 
+      script: 'super',
+      color: '#2563eb',
+      bold: false
+    })
+    
+    // Update the citation positions to account for the inserted text
+    const citationMarkerLength = `[${citationNumber}]`.length
+    const updatedCitation: Citation = {
+      ...newCitation,
+      endPos: selectedRange.index + selectedRange.length + citationMarkerLength
     }
 
-    onContentChange(newContent)
-    onCitationsChange([...citations, newCitation])
+    onCitationsChange([...citations, updatedCitation])
     
     console.log('Citation added successfully!')
     onClose()
+  }
+
+  const deleteCitation = (citationId: string) => {
+    if (!quillRef.current) {
+      console.error('Editor not available')
+      return
+    }
+
+    const citation = citations.find(c => c.id === citationId)
+    if (!citation) {
+      console.error('Citation not found')
+      return
+    }
+
+    const quill = quillRef.current
+    const currentText = quill.getText()
+    
+    // Find and remove the citation marker from the text
+    // Look for pattern [X] where X is the citation number
+    const citationIndex = citations.findIndex(c => c.id === citationId) + 1
+    const citationMarker = `[${citationIndex}]`
+    
+    // Search for the citation marker in the vicinity of the stored position
+    const searchStart = Math.max(0, citation.endPos - citationMarker.length - 10)
+    const searchEnd = Math.min(currentText.length, citation.endPos + 10)
+    const searchText = currentText.substring(searchStart, searchEnd)
+    const markerPosition = searchText.indexOf(citationMarker)
+    
+    if (markerPosition !== -1) {
+      const actualPosition = searchStart + markerPosition
+      quill.deleteText(actualPosition, citationMarker.length)
+    }
+
+    // Remove citation from list and update numbers
+    const updatedCitations = citations.filter(c => c.id !== citationId)
+    onCitationsChange(updatedCitations)
+    
+    console.log('Citation deleted successfully!')
+  }
+
+  const moveCitation = (citationId: string, newPosition: number) => {
+    if (!quillRef.current) {
+      console.error('Editor not available')
+      return
+    }
+
+    const citation = citations.find(c => c.id === citationId)
+    if (!citation) {
+      console.error('Citation not found')
+      return
+    }
+
+    const quill = quillRef.current
+    const citationIndex = citations.findIndex(c => c.id === citationId) + 1
+    const citationMarker = `[${citationIndex}]`
+
+    // First, remove the citation from its current position
+    const currentText = quill.getText()
+    const searchStart = Math.max(0, citation.endPos - citationMarker.length - 10)
+    const searchEnd = Math.min(currentText.length, citation.endPos + 10)
+    const searchText = currentText.substring(searchStart, searchEnd)
+    const markerPosition = searchText.indexOf(citationMarker)
+    
+    if (markerPosition !== -1) {
+      const actualPosition = searchStart + markerPosition
+      quill.deleteText(actualPosition, citationMarker.length)
+    }
+
+    // Insert at new position
+    quill.insertText(newPosition, citationMarker, { 
+      script: 'super',
+      color: '#2563eb',
+      bold: false
+    })
+
+    // Update citation position
+    const updatedCitations = citations.map(c => 
+      c.id === citationId 
+        ? { ...c, startPos: newPosition, endPos: newPosition + citationMarker.length }
+        : c
+    )
+    
+    onCitationsChange(updatedCitations)
+    console.log('Citation moved successfully!')
   }
 
   const formatReference = (ref: Reference) => {
@@ -172,7 +262,7 @@ export default function CitationWorkflow({
           <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-slate-200/60 p-6 rounded-t-xl">
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-slate-900">
-                Cite Selected Text
+                Citations & References
               </h3>
               <button
                 type="button"
@@ -182,18 +272,30 @@ export default function CitationWorkflow({
                 ×
               </button>
             </div>
-            <div className="mt-4 p-3 bg-blue-50/80 border border-blue-200/60 rounded-xl backdrop-blur-sm">
-              <p className="text-sm text-blue-800 font-medium">
-                <strong>Selected text:</strong> "{selectedText}"
-              </p>
-              <p className="text-xs text-blue-600 mt-1">
-                Choose which reference to cite this text with:
-              </p>
-            </div>
+            {selectedText && (
+              <div className="mt-4 p-3 bg-blue-50/80 border border-blue-200/60 rounded-xl backdrop-blur-sm">
+                <p className="text-sm text-blue-800 font-medium">
+                  <strong>Selected text:</strong> "{selectedText}"
+                </p>
+                <p className="text-xs text-blue-600 mt-1">
+                  Choose which reference to cite this text with, or manage existing citations below:
+                </p>
+              </div>
+            )}
+            {!selectedText && citations.length > 0 && (
+              <div className="mt-4 p-3 bg-amber-50/80 border border-amber-200/60 rounded-xl backdrop-blur-sm">
+                <p className="text-sm text-amber-800 font-medium">
+                  Manage existing citations
+                </p>
+                <p className="text-xs text-amber-600 mt-1">
+                  Select text first to add new citations, or edit existing ones below.
+                </p>
+              </div>
+            )}
           </div>
           
           <div className="p-6">
-            {references.length === 0 ? (
+            {selectedText && references.length === 0 ? (
               <div className="text-center py-8 text-slate-500">
                 <BookOpenIcon className="w-12 h-12 mx-auto mb-4 text-slate-300" />
                 <p className="text-slate-600 mb-4">No references available. Please add a reference first.</p>
@@ -205,8 +307,9 @@ export default function CitationWorkflow({
                   Add Reference
                 </button>
               </div>
-            ) : (
+            ) : selectedText ? (
               <div className="space-y-3">
+                <h4 className="text-sm font-semibold text-slate-700 mb-3">Choose a Reference to Cite</h4>
                 {references.map((reference) => (
                   <div key={reference.id} className="card p-4 hover:bg-white/90 cursor-pointer transition-all duration-200 hover:transform hover:scale-[1.02]"
                        onClick={() => addCitation(reference.id)}>
@@ -221,6 +324,120 @@ export default function CitationWorkflow({
                     </p>
                   </div>
                 ))}
+                
+                {/* Existing Citations Section */}
+                {citations.length > 0 && (
+                  <>
+                    <div className="divider"></div>
+                    <div className="pt-4">
+                      <h4 className="text-sm font-semibold text-slate-700 mb-3">Existing Citations in Document</h4>
+                      <div className="space-y-2">
+                        {citations.map((citation, index) => {
+                          const reference = references.find(r => r.id === citation.referenceId)
+                          return (
+                            <div key={citation.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                              <div className="flex-1">
+                                <span className="inline-flex items-center text-xs font-mono px-2 py-1 bg-blue-100 text-blue-800 rounded mr-2">
+                                  [{index + 1}]
+                                </span>
+                                <span className="text-sm text-slate-600">
+                                  "{citation.text}"
+                                </span>
+                                {reference && (
+                                  <div className="text-xs text-slate-500 mt-1">
+                                    {reference.author} ({reference.year})
+                                  </div>
+                                )}
+                              </div>
+                              <div className="flex gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (quillRef.current && selectedRange) {
+                                      // Move citation to current selection position
+                                      moveCitation(citation.id, selectedRange.index + selectedRange.length)
+                                    }
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50"
+                                  title="Move citation to selected position"
+                                  disabled={!selectedRange}
+                                >
+                                  Move Here
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => deleteCitation(citation.id)}
+                                  className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50"
+                                  title="Delete citation"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                <div className="divider"></div>
+                <div className="pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setStep('reference')}
+                    className="btn btn-secondary w-full"
+                  >
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                    Add New Reference
+                  </button>
+                </div>
+              </div>
+            ) : (
+              // No text selected - show citation management only
+              <div className="space-y-3">
+                {citations.length > 0 ? (
+                  <>
+                    <h4 className="text-sm font-semibold text-slate-700 mb-3">Existing Citations in Document</h4>
+                    <div className="space-y-2">
+                      {citations.map((citation, index) => {
+                        const reference = references.find(r => r.id === citation.referenceId)
+                        return (
+                          <div key={citation.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200">
+                            <div className="flex-1">
+                              <span className="inline-flex items-center text-xs font-mono px-2 py-1 bg-blue-100 text-blue-800 rounded mr-2">
+                                [{index + 1}]
+                              </span>
+                              <span className="text-sm text-slate-600">
+                                "{citation.text}"
+                              </span>
+                              {reference && (
+                                <div className="text-xs text-slate-500 mt-1">
+                                  {reference.author} ({reference.year})
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => deleteCitation(citation.id)}
+                                className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50"
+                                title="Delete citation"
+                              >
+                                Delete
+                              </button>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-8 text-slate-500">
+                    <BookOpenIcon className="w-12 h-12 mx-auto mb-4 text-slate-300" />
+                    <p className="text-slate-600 mb-4">No citations yet. Select text in the editor, then click "Add Reference" to add citations.</p>
+                  </div>
+                )}
                 
                 <div className="divider"></div>
                 <div className="pt-4">
