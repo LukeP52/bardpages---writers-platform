@@ -33,11 +33,17 @@ export default function ExcerptsPage() {
     const loadData = async () => {
       try {
         setIsLoading(true)
+        console.log('=== LOADING EXCERPTS PAGE ===')
+        console.log('Storage mode:', storage.isUsingCloud ? 'Cloud (Firestore)' : 'Local Storage')
+        
         const [loadedExcerpts, usedTags, usedAuthors] = await Promise.all([
           storage.getExcerpts(),
           storage.getUsedTags(),
           storage.getUsedAuthors()
         ])
+        
+        console.log(`Loaded ${loadedExcerpts.length} excerpts from storage`)
+        console.log('Excerpt IDs:', loadedExcerpts.map(e => `${e.id.slice(0,8)}... (${e.title.slice(0,20)}...)`))
         
         setExcerpts(loadedExcerpts)
         setFilteredExcerpts(loadedExcerpts)
@@ -117,10 +123,19 @@ export default function ExcerptsPage() {
     
     if (confirmed) {
       try {
+        console.log(`Deleting excerpt: ${excerpt.id} - "${excerpt.title}"`)
+        console.log('Storage mode:', storage.isUsingCloud ? 'Cloud (Firestore)' : 'Local Storage')
+        
         await storage.deleteExcerpt(excerpt.id)
+        console.log('Delete operation completed')
+        
+        // Verify deletion
+        const verifyDeleted = await storage.getExcerpt(excerpt.id)
+        console.log('Verification check - excerpt still exists:', verifyDeleted ? 'YES (ERROR!)' : 'NO (GOOD)')
         
         // Refresh the excerpts list
         const updatedExcerpts = await storage.getExcerpts()
+        console.log(`Refreshed excerpts list: ${updatedExcerpts.length} total`)
         setExcerpts(updatedExcerpts)
         setFilteredExcerpts(updatedExcerpts)
         
@@ -171,11 +186,25 @@ export default function ExcerptsPage() {
     
     if (confirmed) {
       try {
+        console.log(`Starting bulk delete of ${selectedExcerptIds.length} excerpts:`, selectedExcerptIds)
+        console.log('Storage mode:', storage.isUsingCloud ? 'Cloud (Firestore)' : 'Local Storage')
+        
         // Delete all selected excerpts
         await Promise.all(selectedExcerptIds.map(id => storage.deleteExcerpt(id)))
+        console.log('Bulk delete operations completed')
+        
+        // Verify deletions
+        const verificationResults = await Promise.all(
+          selectedExcerptIds.map(async id => {
+            const still_exists = await storage.getExcerpt(id)
+            return { id, still_exists: !!still_exists }
+          })
+        )
+        console.log('Verification results:', verificationResults)
         
         // Refresh the excerpts list
         const updatedExcerpts = await storage.getExcerpts()
+        console.log(`Refreshed excerpts list: ${updatedExcerpts.length} total (was ${excerpts.length})`)
         setExcerpts(updatedExcerpts)
         setFilteredExcerpts(updatedExcerpts)
         setSelectedExcerptIds([])
