@@ -4,7 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { User } from 'firebase/auth'
 import { useAuth } from '@/contexts/AuthContext'
 import { FirestoreService, createFirestoreService } from '@/lib/firestore'
-import { storage as localStorage } from '@/lib/storage'
+import { storage as localStorageService } from '@/lib/storage'
 import { Excerpt, Storyboard, Category } from '@/types'
 import toast from 'react-hot-toast'
 
@@ -83,9 +83,9 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       setIsLoading(true)
       
       // Get data from localStorage
-      const localExcerpts = localStorage.getExcerpts()
-      const localCategories = localStorage.getCategories()
-      const localStoryboards = localStorage.getStoryboards()
+      const localExcerpts = localStorageService.getExcerpts()
+      const localCategories = localStorageService.getCategories()
+      const localStoryboards = localStorageService.getStoryboards()
       
       console.log('MigrateToCloud: Found local data:', localExcerpts.length, 'excerpts,', localCategories.length, 'categories')
       
@@ -146,90 +146,90 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const contextValue: StorageContextType = {
     // Excerpt operations
     saveExcerpt: createStorageMethod(
-      (excerpt: Excerpt) => localStorage.saveExcerpt(excerpt),
+      (excerpt: Excerpt) => localStorageService.saveExcerpt(excerpt),
       (excerpt: Excerpt) => firestoreService!.saveExcerpt(excerpt)
     ),
     
     getExcerpt: createStorageMethod(
-      (id: string) => localStorage.getExcerpt(id),
+      (id: string) => localStorageService.getExcerpt(id),
       (id: string) => firestoreService!.getExcerpt(id)
     ),
     
     getExcerpts: createStorageMethod(
-      () => localStorage.getExcerpts(),
+      () => localStorageService.getExcerpts(),
       () => firestoreService!.getExcerpts()
     ),
     
     deleteExcerpt: createStorageMethod(
-      (id: string) => localStorage.deleteExcerpt(id),
+      (id: string) => localStorageService.deleteExcerpt(id),
       (id: string) => firestoreService!.deleteExcerpt(id)
     ),
     
     filterExcerpts: createStorageMethod(
-      (filters: any) => localStorage.filterExcerpts(filters),
+      (filters: any) => localStorageService.filterExcerpts(filters),
       (filters: any) => firestoreService!.filterExcerpts(filters)
     ),
     
     // Tag operations
     getAllTags: createStorageMethod(
-      () => localStorage.getAllTags(),
+      () => localStorageService.getAllTags(),
       () => firestoreService!.getAllTags()
     ),
     
     getUsedTags: createStorageMethod(
-      () => localStorage.getUsedTags(),
+      () => localStorageService.getUsedTags(),
       () => firestoreService!.getUsedTags()
     ),
     
     getUsedAuthors: createStorageMethod(
-      () => localStorage.getUsedAuthors(),
+      () => localStorageService.getUsedAuthors(),
       () => firestoreService!.getUsedAuthors()
     ),
     
     // Category operations
     saveCategory: createStorageMethod(
-      (category: Category) => localStorage.saveCategory(category),
+      (category: Category) => localStorageService.saveCategory(category),
       (category: Category) => firestoreService!.saveCategory(category)
     ),
     
     getCategories: createStorageMethod(
-      () => localStorage.getCategories(),
+      () => localStorageService.getCategories(),
       () => firestoreService!.getCategories()
     ),
     
     getCategory: createStorageMethod(
-      (id: string) => localStorage.getCategory(id),
+      (id: string) => localStorageService.getCategory(id),
       (id: string) => firestoreService!.getCategory(id)
     ),
     
     deleteCategory: createStorageMethod(
-      (id: string) => localStorage.deleteCategory(id),
+      (id: string) => localStorageService.deleteCategory(id),
       (id: string) => firestoreService!.deleteCategory(id)
     ),
     
     addPremadeTagWithCategories: createStorageMethod(
-      (tagName: string, categoryIds: string[]) => localStorage.addPremadeTagWithCategories(tagName, categoryIds),
+      (tagName: string, categoryIds: string[]) => localStorageService.addPremadeTagWithCategories(tagName, categoryIds),
       (tagName: string, categoryIds: string[]) => firestoreService!.addPremadeTagWithCategories(tagName, categoryIds)
     ),
     
     getTagCategories: createStorageMethod(
-      (tagName: string) => localStorage.getTagCategories(tagName),
+      (tagName: string) => localStorageService.getTagCategories(tagName),
       (tagName: string) => firestoreService!.getTagCategories(tagName)
     ),
     
     // Storyboard operations
     saveStoryboard: createStorageMethod(
-      (storyboard: Storyboard) => localStorage.saveStoryboard(storyboard),
+      (storyboard: Storyboard) => localStorageService.saveStoryboard(storyboard),
       (storyboard: Storyboard) => firestoreService!.saveStoryboard(storyboard)
     ),
     
     getStoryboards: createStorageMethod(
-      () => localStorage.getStoryboards(),
+      () => localStorageService.getStoryboards(),
       () => firestoreService!.getStoryboards()
     ),
     
     deleteStoryboard: createStorageMethod(
-      (id: string) => localStorage.deleteStoryboard(id),
+      (id: string) => localStorageService.deleteStoryboard(id),
       (id: string) => firestoreService!.deleteStoryboard(id)
     ),
     
