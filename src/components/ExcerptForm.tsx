@@ -334,16 +334,19 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   }
 
   const handleSelectionChange = (range: { index: number; length: number } | null, source: string) => {
-    if (range && range.length > 0 && quillRef.current) {
+    // Only update selection if user is actively selecting text (not from focus changes)
+    if (range && range.length > 0 && source === 'user' && quillRef.current) {
       const text = quillRef.current.getText(range.index, range.length)
       setSelectedText(text.trim())
       setSelectedRange(range)
-    } else if (!showCitationWorkflow) {
-      // Only clear selection if citation workflow is not open
-      // This prevents clearing when modal steals focus
-      setSelectedText('')
-      setSelectedRange(null)
+      console.log('New selection captured:', { text: text.trim(), range })
     }
+    // Never automatically clear selection - only do it manually when needed
+  }
+
+  const clearSelection = () => {
+    setSelectedText('')
+    setSelectedRange(null)
   }
 
   const handleAddReference = () => {
@@ -354,7 +357,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         const text = quillRef.current.getText(selection.index, selection.length)
         setSelectedText(text.trim())
         setSelectedRange(selection)
-        console.log('Selection captured:', { selection, text: text.trim() })
+        console.log('Selection captured for citation:', { selection, text: text.trim() })
       } else {
         console.log('No text selected for citation')
       }
@@ -819,10 +822,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             onClose={() => {
               setShowCitationWorkflow(false)
               // Clear selection state when modal closes
-              setTimeout(() => {
-                setSelectedText('')
-                setSelectedRange(null)
-              }, 100) // Small delay to prevent race conditions
+              setTimeout(clearSelection, 100)
             }}
           />
         )}
