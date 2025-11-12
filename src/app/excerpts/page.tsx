@@ -44,6 +44,18 @@ export default function ExcerptsPage() {
         
         console.log(`Loaded ${loadedExcerpts.length} excerpts from storage`)
         console.log('Excerpt IDs:', loadedExcerpts.map(e => `${e.id.slice(0,8)}... (${e.title.slice(0,20)}...)`))
+        console.log('Used tags found:', usedTags)
+        console.log('Used authors found:', usedAuthors)
+        
+        // Debug: Show all tags from all excerpts
+        const allTagsFromExcerpts = new Set<string>()
+        const allAuthorsFromExcerpts = new Set<string>()
+        loadedExcerpts.forEach(excerpt => {
+          excerpt.tags.forEach(tag => allTagsFromExcerpts.add(tag))
+          if (excerpt.author) allAuthorsFromExcerpts.add(excerpt.author)
+        })
+        console.log('Debug: Tags extracted directly from excerpts:', Array.from(allTagsFromExcerpts))
+        console.log('Debug: Authors extracted directly from excerpts:', Array.from(allAuthorsFromExcerpts))
         
         setExcerpts(loadedExcerpts)
         setFilteredExcerpts(loadedExcerpts)

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { PlusIcon, XMarkIcon, PencilIcon } from '@heroicons/react/24/outline'
 import { v4 as uuidv4 } from 'uuid'
 import { Category } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
 import toast from 'react-hot-toast'
 
@@ -17,16 +17,23 @@ export default function TagManagerPage() {
   const [showCategoryAssignmentModal, setShowCategoryAssignmentModal] = useState(false)
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState<string>('')
   const [showNewCategoryForm, setShowNewCategoryForm] = useState(false)
+  const storage = useStorage()
 
   useEffect(() => {
     loadData()
-  }, [])
+  }, [storage])
 
-  const loadData = () => {
-    const allTags = storage.getAllTags()
-    setAllTags(allTags)
-    const allCategories = storage.getCategories()
-    setCategories(allCategories)
+  const loadData = async () => {
+    try {
+      const [allTags, allCategories] = await Promise.all([
+        storage.getUsedTags(),
+        storage.getCategories()
+      ])
+      setAllTags(allTags)
+      setCategories(allCategories)
+    } catch (error) {
+      console.error('Failed to load tags and categories:', error)
+    }
   }
 
 
@@ -37,14 +44,25 @@ export default function TagManagerPage() {
     }
   }
 
-  const handleCategoryAssignment = (categoryIds: string[]) => {
+  const handleCategoryAssignment = async (categoryIds: string[]) => {
     if (selectedTagForAssignment) {
-      storage.addPremadeTagWithCategories(selectedTagForAssignment, categoryIds)
-      setNewTag('')
-      setSelectedTagForAssignment('')
-      loadData()
-      const categoryNames = categoryIds.map(id => storage.getCategory(id)?.name).filter(Boolean)
-      toast.success(`Tag "${selectedTagForAssignment}" assigned to ${categoryNames.length > 1 ? categoryNames.join(', ') : categoryNames[0] || 'category'}!`)
+      try {
+        await storage.addPremadeTagWithCategories(selectedTagForAssignment, categoryIds)
+        setNewTag('')
+        setSelectedTagForAssignment('')
+        await loadData()
+        
+        // Get category names
+        const categoryNames = await Promise.all(
+          categoryIds.map(id => storage.getCategory(id))
+        )
+        const validCategoryNames = categoryNames.filter(Boolean).map(cat => cat!.name)
+        
+        toast.success(`Tag "${selectedTagForAssignment}" assigned to ${validCategoryNames.length > 1 ? validCategoryNames.join(', ') : validCategoryNames[0] || 'category'}!`)
+      } catch (error) {
+        console.error('Failed to assign tag to categories:', error)
+        toast.error('Failed to assign tag to categories')
+      }
     }
   }
 
@@ -53,19 +71,24 @@ export default function TagManagerPage() {
     setShowCategoryAssignmentModal(true)
   }
 
-  const addCategory = () => {
+  const addCategory = async () => {
     if (newCategoryName.trim()) {
-      const newCategory: Category = {
-        id: uuidv4(),
-        name: newCategoryName.trim(),
-        description: `Custom category: ${newCategoryName.trim()}`,
-        color: '#6B7280',
-        createdAt: new Date()
+      try {
+        const newCategory: Category = {
+          id: uuidv4(),
+          name: newCategoryName.trim(),
+          description: `Custom category: ${newCategoryName.trim()}`,
+          color: '#6B7280',
+          createdAt: new Date()
+        }
+        await storage.saveCategory(newCategory)
+        setNewCategoryName('')
+        await loadData()
+        toast.success(`Category "${newCategory.name}" created successfully!`)
+      } catch (error) {
+        console.error('Failed to create category:', error)
+        toast.error('Failed to create category')
       }
-      storage.saveCategory(newCategory)
-      setNewCategoryName('')
-      loadData()
-      toast.success(`Category "${newCategory.name}" created successfully!`)
     }
   }
 
@@ -270,13 +293,6 @@ export default function TagManagerPage() {
                   Tags from excerpts and manually added tags. All tags appear as quick-select options when creating excerpts.
                 </p>
               </div>
-              <button
-                onClick={migrateExistingTags}
-                className="text-xs text-gray-400 hover:text-gray-600 underline opacity-70 hover:opacity-100 transition-opacity"
-                title="Sync any missing tags from excerpts"
-              >
-                sync
-              </button>
             </div>
           </div>
           <div className="p-6">
