@@ -98,4 +98,8 @@ export interface BookFormatting {
   headerFooterEnabled: boolean
   pageNumbers: 'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right' | 'none'
   
+  // Reference Formatting (for book publishing)
+  referenceStyle: 'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee' | 'vancouver'
+  citationStyle: 'footnotes' | 'endnotes' | 'inline'
+  includeReferences: boolean
 }
