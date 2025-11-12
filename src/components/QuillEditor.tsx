@@ -145,29 +145,6 @@ export default function QuillEditor({
       
       QuillConstructor.register(PageBreak, true)
 
-      // Custom Citation Blot
-      class Citation extends Embed {
-        static create(value: any) {
-          const node = super.create()
-          const citationNumber = value.number || '1'
-          node.innerHTML = `<sup style="color: #2563eb; font-weight: 600; cursor: pointer;" data-citation-id="${value.id}">[${citationNumber}]</sup>`
-          return node
-        }
-        
-        static value(node: any) {
-          return {
-            id: node.querySelector('sup').getAttribute('data-citation-id'),
-            number: node.querySelector('sup').textContent.replace(/[\[\]]/g, '')
-          }
-        }
-      }
-      
-      Citation.blotName = 'citation'
-      Citation.tagName = 'span'
-      Citation.className = 'ql-citation'
-      
-      QuillConstructor.register(Citation, true)
-
       const quillInstance = new QuillConstructor(containerRef.current, {
         theme: 'snow',
         placeholder,
@@ -261,11 +238,7 @@ export default function QuillEditor({
         }
         
         /* Citation styling for editor */
-        .ql-citation {
-          display: inline !important;
-        }
-        
-        .ql-citation sup {
+        sup {
           color: #2563eb !important;
           font-weight: 600 !important;
           cursor: pointer !important;
@@ -275,7 +248,7 @@ export default function QuillEditor({
           text-decoration: none !important;
         }
         
-        .ql-citation sup:hover {
+        sup:hover {
           color: #1d4ed8 !important;
           background-color: #eff6ff !important;
           border-radius: 2px !important;

@@ -118,19 +118,17 @@ export default function CitationWorkflow({
     const quill = quillRef.current
     const insertPosition = selectedRange.index + selectedRange.length
     
-    // Insert the citation as a custom embed
-    quill.insertEmbed(insertPosition, 'citation', {
-      id: noteId,
-      number: citationNumber
-    }, 'user')
+    // Insert the citation marker using formatText to make it superscript
+    const citationText = `[${citationNumber}]`
+    quill.insertText(insertPosition, citationText, 'user')
+    quill.formatText(insertPosition, citationText.length, { 'script': 'super', 'color': '#2563eb', 'bold': true }, 'user')
     
     // Create citation object with updated positions
-    // Embeds in Quill are 1 character long
     const newCitation: Citation = {
       id: uuidv4(),
       referenceId,
       startPos: selectedRange.index,
-      endPos: selectedRange.index + selectedRange.length + 1, // embed is 1 character
+      endPos: selectedRange.index + selectedRange.length + citationText.length,
       text: selectedText,
       noteId
     }
@@ -155,34 +153,34 @@ export default function CitationWorkflow({
     }
 
     const quill = quillRef.current
+    const citationIndex = citations.findIndex(c => c.id === citationId) + 1
+    const citationText = `[${citationIndex}]`
     
-    // Find the citation embed in the editor
+    // Search for the citation in the document
     const delta = quill.getContents()
     let position = 0
     let found = false
     
-    delta.ops.forEach((op: any, index: number) => {
-      if (op.insert && typeof op.insert === 'object' && op.insert.citation) {
-        if (op.insert.citation.id === citation.noteId) {
-          // Delete this embed
-          quill.deleteText(position, 1)
-          found = true
-          return
+    delta.ops.forEach((op: any) => {
+      if (op.insert && typeof op.insert === 'string') {
+        const textIndex = op.insert.indexOf(citationText)
+        if (textIndex !== -1) {
+          // Check if this text has superscript formatting
+          if (op.attributes && op.attributes.script === 'super') {
+            quill.deleteText(position + textIndex, citationText.length)
+            found = true
+            return
+          }
         }
-      }
-      
-      if (typeof op.insert === 'string') {
         position += op.insert.length
-      } else if (op.insert && typeof op.insert === 'object') {
-        position += 1 // embeds count as 1 character
       }
     })
 
     if (!found) {
-      console.warn('Citation embed not found in editor, removing from list anyway')
+      console.warn('Citation not found in editor, removing from list anyway')
     }
 
-    // Remove citation from list - Quill's onChange will handle content updates
+    // Remove citation from list
     const updatedCitations = citations.filter(c => c.id !== citationId)
     onCitationsChange(updatedCitations)
     
@@ -203,6 +201,7 @@ export default function CitationWorkflow({
 
     const quill = quillRef.current
     const citationIndex = citations.findIndex(c => c.id === citationId) + 1
+    const citationText = `[${citationIndex}]`
 
     // First delete the citation
     deleteCitation(citationId)
@@ -211,15 +210,13 @@ export default function CitationWorkflow({
     setTimeout(() => {
       if (quillRef.current) {
         // Re-insert the citation at the new position
-        quill.insertEmbed(newPosition, 'citation', {
-          id: citation.noteId,
-          number: citationIndex
-        }, 'user')
+        quill.insertText(newPosition, citationText, 'user')
+        quill.formatText(newPosition, citationText.length, { 'script': 'super', 'color': '#2563eb', 'bold': true }, 'user')
 
         // Update citation position in the list
         const updatedCitations = citations.map(c => 
           c.id === citationId 
-            ? { ...c, startPos: newPosition, endPos: newPosition + 1 } // embeds are 1 character
+            ? { ...c, startPos: newPosition, endPos: newPosition + citationText.length }
             : c
         )
         
