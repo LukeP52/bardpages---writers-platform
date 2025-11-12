@@ -16,8 +16,10 @@ import {
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '@/contexts/AuthContext'
+import { useAuthAction } from '@/hooks/useAuthAction'
 import AuthModal from '@/components/auth/AuthModal'
 import toast from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
 
 const navigationItems = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
@@ -35,7 +37,9 @@ interface MobileSidebarProps {
 export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
-  const [showAuthModal, setShowAuthModal] = useState(false)
+  const { executeWithAuth, showAuthModal, closeAuthModal } = useAuthAction()
+  const [showAuthModalLocal, setShowAuthModalLocal] = useState(false)
+  const router = useRouter()
 
   const handleLogout = async () => {
     try {
@@ -125,14 +129,18 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                       <p className="px-3 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
                         Quick Actions
                       </p>
-                      <Link
-                        href="/excerpts/new"
-                        onClick={onClose}
-                        className="flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                      <button
+                        onClick={() => {
+                          executeWithAuth(() => {
+                            onClose()
+                            router.push('/excerpts/new')
+                          })
+                        }}
+                        className="w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                       >
                         <PlusIcon className="w-5 h-5 text-gray-400" />
                         <span>New Excerpt</span>
-                      </Link>
+                      </button>
                     </li>
 
                     <li className="mt-auto">
@@ -158,7 +166,7 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                       ) : (
                         <button
                           onClick={() => {
-                            setShowAuthModal(true)
+                            setShowAuthModalLocal(true)
                             onClose()
                           }}
                           className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
@@ -177,8 +185,11 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
       </Dialog>
       
       <AuthModal 
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
+        isOpen={showAuthModal || showAuthModalLocal}
+        onClose={() => {
+          closeAuthModal()
+          setShowAuthModalLocal(false)
+        }}
       />
     </Transition.Root>
   )

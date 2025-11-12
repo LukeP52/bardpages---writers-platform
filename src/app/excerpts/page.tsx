@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { Excerpt } from '@/types'
 import { storage } from '@/lib/storage'
+import { useAuthAction } from '@/hooks/useAuthAction'
+import AuthModal from '@/components/auth/AuthModal'
 import { v4 as uuidv4 } from 'uuid'
 import toast from 'react-hot-toast'
 
@@ -19,6 +22,8 @@ export default function ExcerptsPage() {
   const [filtersExpanded, setFiltersExpanded] = useState(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const { executeWithAuth, showAuthModal, closeAuthModal } = useAuthAction()
+  const router = useRouter()
 
   useEffect(() => {
     const loadedExcerpts = storage.getExcerpts()
@@ -497,6 +502,11 @@ export default function ExcerptsPage() {
       ) : (
         renderExcerpts()
       )}
+      
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={closeAuthModal}
+      />
     </div>
   )
 }
