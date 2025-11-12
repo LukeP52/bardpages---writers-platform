@@ -11,6 +11,8 @@ import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
 import { Excerpt, Reference, Citation } from '@/types'
 import { storage } from '@/lib/storage'
 import { FileParser } from '@/lib/fileParser'
+import { useAuthAction } from '@/hooks/useAuthAction'
+import AuthModal from '@/components/auth/AuthModal'
 import toast from 'react-hot-toast'
 
 interface ExcerptFormProps {
@@ -45,6 +47,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState('')
   const [isUploadingFile, setIsUploadingFile] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
+  const { executeWithAuth, showAuthModal, closeAuthModal } = useAuthAction()
   const quillRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -249,6 +252,19 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       return
     }
 
+    // Check authentication before proceeding with save
+    const canProceed = executeWithAuth(() => {
+      // This will only run if authenticated
+      performSave()
+    })
+    
+    if (!canProceed) {
+      // User needs to authenticate, form data is preserved
+      return
+    }
+  }
+  
+  const performSave = async () => {
     setIsSubmitting(true)
 
     try {
@@ -742,6 +758,12 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             }}
           />
         )}
+        
+        {/* Authentication Modal */}
+        <AuthModal 
+          isOpen={showAuthModal}
+          onClose={closeAuthModal}
+        />
       </div>
     </div>
   )
