@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import ResponsiveLayout from '@/components/ResponsiveLayout'
 import { AuthProvider } from '@/contexts/AuthContext'
+import { StorageProvider } from '@/contexts/StorageContext'
 import { Toaster } from 'react-hot-toast'
 import './globals.css'
 import 'quill/dist/quill.snow.css'
@@ -27,9 +28,11 @@ export default function RootLayout({
       </head>
       <body className="antialiased bg-gray-50 font-inter">
         <AuthProvider>
-          <ResponsiveLayout>
-            {children}
-          </ResponsiveLayout>
+          <StorageProvider>
+            <ResponsiveLayout>
+              {children}
+            </ResponsiveLayout>
+          </StorageProvider>
         </AuthProvider>
         <Toaster
           position="top-right"

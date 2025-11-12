@@ -135,7 +135,7 @@ class InMemoryStorage {
     )
   }
 
-  getExcerpt(id: string): Excerpt | undefined {
+  getExcerpt(id: string): Excerpt | null {
     this.initializeFromLocalStorage()
     const existing = this.excerpts.get(id)
     if (existing) {
@@ -156,14 +156,15 @@ class InMemoryStorage {
               updatedAt: new Date(excerpt.updatedAt),
             })
           })
-          return this.excerpts.get(id)
+          const found = this.excerpts.get(id)
+          return found || null
         }
       } catch (error) {
         console.error('Error loading excerpt from localStorage:', error)
       }
     }
 
-    return undefined
+    return null
   }
 
   saveExcerpt(excerpt: Excerpt): void {
@@ -198,11 +199,10 @@ class InMemoryStorage {
     }
   }
 
-  deleteExcerpt(id: string): boolean {
+  deleteExcerpt(id: string): void {
     this.initializeFromLocalStorage()
-    const result = this.excerpts.delete(id)
+    this.excerpts.delete(id)
     this.saveToLocalStorage()
-    return result
   }
 
   getExcerptsByTag(tagName: string): Excerpt[] {
@@ -321,11 +321,10 @@ class InMemoryStorage {
     this.saveToLocalStorage()
   }
 
-  deleteStoryboard(id: string): boolean {
+  deleteStoryboard(id: string): void {
     this.initializeFromLocalStorage()
-    const result = this.storyboards.delete(id)
+    this.storyboards.delete(id)
     this.saveToLocalStorage()
-    return result
   }
 
   // Books
@@ -421,9 +420,10 @@ class InMemoryStorage {
     return Array.from(this.categories.values()).sort((a, b) => a.name.localeCompare(b.name))
   }
 
-  getCategory(id: string): Category | undefined {
+  getCategory(id: string): Category | null {
     this.initializeFromLocalStorage()
-    return this.categories.get(id)
+    const category = this.categories.get(id)
+    return category || null
   }
 
   saveCategory(category: Category): void {
@@ -432,7 +432,7 @@ class InMemoryStorage {
     this.saveToLocalStorage()
   }
 
-  deleteCategory(id: string): boolean {
+  deleteCategory(id: string): void {
     this.initializeFromLocalStorage()
     // Remove this category from all tag mappings
     this.tagCategoryMappings.forEach((categoryIds, tagName) => {
@@ -448,9 +448,8 @@ class InMemoryStorage {
       }
     })
     
-    const result = this.categories.delete(id)
+    this.categories.delete(id)
     this.saveToLocalStorage()
-    return result
   }
 
   // Tag-Category mappings

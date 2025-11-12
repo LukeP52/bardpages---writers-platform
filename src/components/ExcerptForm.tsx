@@ -9,7 +9,7 @@ import ReferenceManager, { AddReferenceButton } from '@/components/ReferenceMana
 import CitationWorkflow from '@/components/CitationWorkflow'
 import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
 import { Excerpt, Reference, Citation } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 import { FileParser } from '@/lib/fileParser'
 import { useAuthAction } from '@/hooks/useAuthAction'
 import AuthModal from '@/components/auth/AuthModal'
@@ -48,6 +48,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [isUploadingFile, setIsUploadingFile] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
+  const storage = useStorage()
   const quillRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -136,9 +137,21 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   }, [title, content, author, status, tags, references, citations, date, saveDraft])
 
   useEffect(() => {
-    setAvailableTags(storage.getAllTags())
-    setAvailableAuthors(storage.getUsedAuthors())
-  }, [])
+    const loadData = async () => {
+      try {
+        const [tags, authors] = await Promise.all([
+          storage.getAllTags(),
+          storage.getUsedAuthors()
+        ])
+        setAvailableTags(tags)
+        setAvailableAuthors(authors)
+      } catch (error) {
+        console.error('Failed to load tags and authors:', error)
+      }
+    }
+    
+    loadData()
+  }, [storage])
 
   useEffect(() => {
     if (excerpt) {
@@ -160,31 +173,45 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     return text ? text.split(/\s+/).length : 0
   }
 
-  const addTag = (tag: string) => {
+  const addTag = async (tag: string) => {
     const trimmedTag = tag.trim()
     if (trimmedTag && !tags.includes(trimmedTag)) {
-      // Check if this tag already exists in storage
-      const allTags = storage.getAllTags()
-      if (allTags.includes(trimmedTag)) {
-        // Tag exists, just add it
-        setTags(prev => [...prev, trimmedTag])
-        setNewTag('')
-      } else {
-        // New tag, show category assignment modal
-        setSelectedTagForAssignment(trimmedTag)
-        setShowCategoryAssignmentModal(true)
+      try {
+        // Check if this tag already exists in storage
+        const allTags = await storage.getAllTags()
+        if (allTags.includes(trimmedTag)) {
+          // Tag exists, just add it
+          setTags(prev => [...prev, trimmedTag])
+          setNewTag('')
+        } else {
+          // New tag, show category assignment modal
+          setSelectedTagForAssignment(trimmedTag)
+          setShowCategoryAssignmentModal(true)
+        }
+      } catch (error) {
+        console.error('Failed to check existing tags:', error)
+        toast.error('Failed to check existing tags')
       }
     }
   }
 
-  const handleCategoryAssignment = (categoryIds: string[]) => {
+  const handleCategoryAssignment = async (categoryIds: string[]) => {
     if (selectedTagForAssignment) {
-      storage.addPremadeTagWithCategories(selectedTagForAssignment, categoryIds)
-      setTags(prev => [...prev, selectedTagForAssignment])
-      setNewTag('')
-      setSelectedTagForAssignment('')
-      const categoryNames = categoryIds.map(id => storage.getCategory(id)?.name).filter(Boolean)
-      toast.success(`Tag "${selectedTagForAssignment}" added to ${categoryNames.length > 1 ? categoryNames.join(', ') : categoryNames[0] || 'category'}!`)
+      try {
+        await storage.addPremadeTagWithCategories(selectedTagForAssignment, categoryIds)
+        setTags(prev => [...prev, selectedTagForAssignment])
+        setNewTag('')
+        setSelectedTagForAssignment('')
+        
+        const categoryPromises = categoryIds.map(id => storage.getCategory(id))
+        const categories = await Promise.all(categoryPromises)
+        const categoryNames = categories.filter(Boolean).map(cat => cat!.name)
+        
+        toast.success(`Tag "${selectedTagForAssignment}" added to ${categoryNames.length > 1 ? categoryNames.join(', ') : categoryNames[0] || 'category'}!`)
+      } catch (error) {
+        console.error('Failed to add tag with categories:', error)
+        toast.error('Failed to add tag with categories')
+      }
     }
   }
 
@@ -288,10 +315,10 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       }
 
       console.log('Saving excerpt:', excerptData.id, excerptData.title)
-      storage.saveExcerpt(excerptData)
+      await storage.saveExcerpt(excerptData)
       
       // Verify it was saved
-      const saved = storage.getExcerpt(excerptData.id)
+      const saved = await storage.getExcerpt(excerptData.id)
       console.log('Verification - saved excerpt retrieved:', saved ? 'SUCCESS' : 'FAILED')
       
       if (!saved) {
@@ -752,7 +779,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         {showCategoryAssignmentModal && (
           <CategoryAssignmentModal
             tagName={selectedTagForAssignment}
-            currentCategoryIds={storage.getTagCategories(selectedTagForAssignment).map(cat => cat.id)}
+            currentCategoryIds={[]} // We'll handle this in the modal component
             onAssign={handleCategoryAssignment}
             onClose={() => {
               setShowCategoryAssignmentModal(false)

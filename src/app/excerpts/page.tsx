@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Excerpt } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 import { useAuthAction } from '@/hooks/useAuthAction'
 import AuthModal from '@/components/auth/AuthModal'
 import { v4 as uuidv4 } from 'uuid'
@@ -22,33 +22,59 @@ export default function ExcerptsPage() {
   const [filtersExpanded, setFiltersExpanded] = useState(false)
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
+  const storage = useStorage()
   const router = useRouter()
 
   useEffect(() => {
-    const loadedExcerpts = storage.getExcerpts()
-    const usedTags = storage.getUsedTags()
-    const usedAuthors = storage.getUsedAuthors()
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        const [loadedExcerpts, usedTags, usedAuthors] = await Promise.all([
+          storage.getExcerpts(),
+          storage.getUsedTags(),
+          storage.getUsedAuthors()
+        ])
+        
+        setExcerpts(loadedExcerpts)
+        setFilteredExcerpts(loadedExcerpts)
+        setAvailableTags(usedTags)
+        setAvailableAuthors(usedAuthors)
+      } catch (error) {
+        console.error('Failed to load excerpts data:', error)
+        toast.error('Failed to load excerpts')
+      } finally {
+        setIsLoading(false)
+      }
+    }
     
-    setExcerpts(loadedExcerpts)
-    setFilteredExcerpts(loadedExcerpts)
-    setAvailableTags(usedTags)
-    setAvailableAuthors(usedAuthors)
-  }, [])
+    loadData()
+  }, [storage])
 
   useEffect(() => {
-    const filters = {
-      tags: selectedTags.length > 0 ? selectedTags : undefined,
-      status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
-      authors: selectedAuthors.length > 0 ? selectedAuthors : undefined,
-      dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-      dateTo: dateTo ? new Date(dateTo) : undefined,
-      search: searchQuery || undefined
-    }
+    const applyFilters = async () => {
+      try {
+        const filters = {
+          tags: selectedTags.length > 0 ? selectedTags : undefined,
+          status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
+          authors: selectedAuthors.length > 0 ? selectedAuthors : undefined,
+          dateFrom: dateFrom ? new Date(dateFrom) : undefined,
+          dateTo: dateTo ? new Date(dateTo) : undefined,
+          search: searchQuery || undefined
+        }
 
-    const filtered = storage.filterExcerpts(filters)
-    setFilteredExcerpts(filtered)
-  }, [selectedTags, selectedStatuses, selectedAuthors, searchQuery, dateFrom, dateTo])
+        const filtered = await storage.filterExcerpts(filters)
+        setFilteredExcerpts(filtered)
+      } catch (error) {
+        console.error('Failed to filter excerpts:', error)
+      }
+    }
+    
+    if (!isLoading) {
+      applyFilters()
+    }
+  }, [selectedTags, selectedStatuses, selectedAuthors, searchQuery, dateFrom, dateTo, storage, isLoading])
 
   const toggleTag = (tag: string) => {
     setSelectedTags(prev =>
@@ -84,18 +110,23 @@ export default function ExcerptsPage() {
     setDateTo('')
   }
 
-  const handleDeleteExcerpt = (excerpt: Excerpt) => {
+  const handleDeleteExcerpt = async (excerpt: Excerpt) => {
     const confirmed = window.confirm(`Are you sure you want to delete "${excerpt.title}"? This action cannot be undone.`)
     
     if (confirmed) {
-      storage.deleteExcerpt(excerpt.id)
-      
-      // Refresh the excerpts list
-      const updatedExcerpts = storage.getExcerpts()
-      setExcerpts(updatedExcerpts)
-      setFilteredExcerpts(updatedExcerpts)
-      
-      toast.success('Excerpt deleted successfully!')
+      try {
+        await storage.deleteExcerpt(excerpt.id)
+        
+        // Refresh the excerpts list
+        const updatedExcerpts = await storage.getExcerpts()
+        setExcerpts(updatedExcerpts)
+        setFilteredExcerpts(updatedExcerpts)
+        
+        toast.success('Excerpt deleted successfully!')
+      } catch (error) {
+        console.error('Failed to delete excerpt:', error)
+        toast.error('Failed to delete excerpt')
+      }
     }
   }
 
@@ -131,28 +162,32 @@ export default function ExcerptsPage() {
     }
   }
 
-  const debugStorage = () => {
+  const debugStorage = async () => {
     console.log('=== STORAGE DEBUG ===')
-    const loadedExcerpts = storage.getExcerpts()
-    console.log('Excerpts from storage:', loadedExcerpts.length)
-    loadedExcerpts.forEach((excerpt, i) => {
-      console.log(`${i + 1}. ${excerpt.title} (ID: ${excerpt.id})`)
-    })
+    try {
+      const loadedExcerpts = await storage.getExcerpts()
+      console.log('Excerpts from storage:', loadedExcerpts.length)
+      loadedExcerpts.forEach((excerpt, i) => {
+        console.log(`${i + 1}. ${excerpt.title} (ID: ${excerpt.id})`)
+      })
 
-    // Check localStorage directly
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem('bardpages_excerpts')
-      if (stored) {
-        const parsed = JSON.parse(stored)
-        console.log('localStorage direct check:', parsed.length, 'excerpts')
-      } else {
-        console.log('localStorage direct check: NO DATA')
+      // Check localStorage directly (only if not using cloud storage)
+      if (!storage.isUsingCloud && typeof window !== 'undefined') {
+        const stored = localStorage.getItem('bardpages_excerpts')
+        if (stored) {
+          const parsed = JSON.parse(stored)
+          console.log('localStorage direct check:', parsed.length, 'excerpts')
+        } else {
+          console.log('localStorage direct check: NO DATA')
+        }
       }
+    } catch (error) {
+      console.error('Debug storage error:', error)
     }
     console.log('=== END DEBUG ===')
   }
 
-  const createTestExcerpt = () => {
+  const createTestExcerpt = async () => {
     const testExcerpt: Excerpt = {
       id: uuidv4(),
       title: 'Debug Test Excerpt',
@@ -167,20 +202,26 @@ export default function ExcerptsPage() {
       wordCount: 12
     }
     
-    console.log('Creating test excerpt with ID:', testExcerpt.id)
-    storage.saveExcerpt(testExcerpt)
-    
-    // Test immediate retrieval
-    const retrieved = storage.getExcerpt(testExcerpt.id)
-    console.log('Immediate retrieval test:', retrieved ? 'SUCCESS' : 'FAILED')
-    
-    // Force refresh the state
-    const updated = storage.getExcerpts()
-    setExcerpts(updated)
-    setFilteredExcerpts(updated)
-    
-    // Test edit URL
-    console.log('Edit URL would be:', `/excerpts/${testExcerpt.id}/edit`)
+    try {
+      console.log('Creating test excerpt with ID:', testExcerpt.id)
+      await storage.saveExcerpt(testExcerpt)
+      
+      // Test immediate retrieval
+      const retrieved = await storage.getExcerpt(testExcerpt.id)
+      console.log('Immediate retrieval test:', retrieved ? 'SUCCESS' : 'FAILED')
+      
+      // Force refresh the state
+      const updated = await storage.getExcerpts()
+      setExcerpts(updated)
+      setFilteredExcerpts(updated)
+      
+      // Test edit URL
+      console.log('Edit URL would be:', `/excerpts/${testExcerpt.id}/edit`)
+      toast.success('Test excerpt created successfully!')
+    } catch (error) {
+      console.error('Failed to create test excerpt:', error)
+      toast.error('Failed to create test excerpt')
+    }
   }
 
   const testDirectStorage = () => {
@@ -474,7 +515,14 @@ export default function ExcerptsPage() {
       </div>
 
       {/* Content */}
-      {filteredExcerpts.length === 0 ? (
+      {isLoading ? (
+        <div className="text-center py-16">
+          <div className="card bg-white p-12">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-slate-600">Loading excerpts...</p>
+          </div>
+        </div>
+      ) : filteredExcerpts.length === 0 ? (
         <div className="text-center py-16">
           <div className="card bg-white p-12">
             <div className="text-8xl font-bold text-black mb-6">
