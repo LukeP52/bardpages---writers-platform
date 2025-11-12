@@ -43,6 +43,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState('')
   const [isUploadingFile, setIsUploadingFile] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
+  const [tempExcerptId] = useState(() => excerpt?.id || `temp-${uuidv4()}`)
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const storage = useStorage()
   const quillRef = useRef<any>(null)
@@ -303,6 +304,12 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       }
 
       await storage.saveExcerpt(excerptData)
+      
+      // If this is a new excerpt (tempExcerptId was used), transfer citation data
+      if (!excerpt?.id && tempExcerptId !== excerptData.id) {
+        const { transferCitationData } = await import('@/stores/citationStore')
+        transferCitationData(tempExcerptId, excerptData.id)
+      }
       
       // Verify it was saved
       const saved = await storage.getExcerpt(excerptData.id)
@@ -725,14 +732,10 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           </div>
 
           {/* Citation Manager */}
-          {excerpt?.id && (
-            <CitationManager excerptId={excerpt.id} />
-          )}
+          <CitationManager excerptId={tempExcerptId} />
 
           {/* Bibliography */}
-          {excerpt?.id && (
-            <Bibliography excerptId={excerpt.id} />
-          )}
+          <Bibliography excerptId={tempExcerptId} />
 
           <div className="divider"></div>
 

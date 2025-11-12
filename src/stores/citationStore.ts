@@ -301,3 +301,30 @@ export const useCitationStore = create<CitationStore>()(
     { name: 'citation-store' }
   )
 )
+
+// Helper function to transfer citation data from temporary ID to permanent ID
+export const transferCitationData = (fromExcerptId: string, toExcerptId: string) => {
+  const store = useCitationStore.getState()
+  const sourceDocument = store.documents[fromExcerptId]
+  
+  if (sourceDocument && fromExcerptId !== toExcerptId) {
+    // Copy the document with new excerpt ID
+    const newDocument = {
+      ...sourceDocument,
+      excerptId: toExcerptId,
+      annotations: sourceDocument.annotations.map(annotation => ({
+        ...annotation,
+        excerptId: toExcerptId
+      }))
+    }
+    
+    // Add to new ID and remove old ID
+    useCitationStore.setState((state) => {
+      const newDocuments = { ...state.documents }
+      newDocuments[toExcerptId] = newDocument
+      delete newDocuments[fromExcerptId]
+      
+      return { documents: newDocuments }
+    })
+  }
+}
