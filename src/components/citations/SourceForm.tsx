@@ -48,6 +48,7 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🚨 SourceForm: handleSubmit called - FORM SUBMISSION STARTED!')
     e.preventDefault()
     
     console.log('🔵 SourceForm: Form submitted', { 
@@ -105,7 +106,14 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
       </div>
       
       <div className="flex-1 overflow-y-auto">
-        <form id="source-form" onSubmit={handleSubmit} className="p-4 space-y-3">
+        <form 
+          id="source-form" 
+          onSubmit={(e) => {
+            console.log('🚨 FORM onSubmit triggered!')
+            handleSubmit(e)
+          }} 
+          className="p-4 space-y-3"
+        >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="form-group">
             <label className="form-label">
@@ -289,6 +297,12 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
               type="submit"
               disabled={isSubmitting || !formData.title.trim() || !formData.author.trim()}
               className="btn btn-primary"
+              onClick={() => {
+                console.log('🚨 SUBMIT BUTTON CLICKED!', {
+                  formValid: !!(formData.title.trim() && formData.author.trim()),
+                  isSubmitting
+                })
+              }}
             >
               {isSubmitting ? (
                 <>
