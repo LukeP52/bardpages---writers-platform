@@ -29,12 +29,24 @@ interface SortableCitationItemProps {
   index: number
   reference?: Reference
   onDelete: (id: string) => void
-  onMove: (id: string, position: number) => void
   onEditText: (id: string) => void
+  editingCitationId?: string | null
   selectedRange?: { index: number; length: number } | null
+  onConfirmEdit?: (citationId: string) => void
+  onCancelEdit?: () => void
 }
 
-function SortableCitationItem({ citation, index, reference, onDelete, onMove, onEditText, selectedRange }: SortableCitationItemProps) {
+function SortableCitationItem({ 
+  citation, 
+  index, 
+  reference, 
+  onDelete, 
+  onEditText, 
+  editingCitationId, 
+  selectedRange, 
+  onConfirmEdit, 
+  onCancelEdit 
+}: SortableCitationItemProps) {
   const {
     attributes,
     listeners,
@@ -48,11 +60,17 @@ function SortableCitationItem({ citation, index, reference, onDelete, onMove, on
     transition,
   }
 
+  const isEditing = editingCitationId === citation.id
+
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className="flex items-center justify-between p-3 bg-slate-50 rounded-lg border border-slate-200"
+      className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+        isEditing 
+          ? 'bg-amber-50 border-amber-300 ring-2 ring-amber-200' 
+          : 'bg-slate-50 border-slate-200'
+      }`}
     >
       <div className="flex-1 flex items-center gap-3">
         <div
@@ -77,32 +95,50 @@ function SortableCitationItem({ citation, index, reference, onDelete, onMove, on
         </div>
       </div>
       <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => onEditText(citation.id)}
-          className="text-green-600 hover:text-green-800 text-xs px-2 py-1 rounded hover:bg-green-50"
-          title="Edit cited text"
-        >
-          Edit Text
-        </button>
-        {selectedRange && (
-          <button
-            type="button"
-            onClick={() => onMove(citation.id, selectedRange.index + selectedRange.length)}
-            className="text-blue-600 hover:text-blue-800 text-xs px-2 py-1 rounded hover:bg-blue-50"
-            title="Move citation to selected position"
-          >
-            Move Here
-          </button>
+        {isEditing ? (
+          <>
+            <button
+              type="button"
+              onClick={() => onConfirmEdit?.(citation.id)}
+              disabled={!selectedRange}
+              className={`text-xs px-3 py-1 rounded font-medium ${
+                selectedRange
+                  ? 'text-green-600 hover:text-green-800 hover:bg-green-50 border border-green-300'
+                  : 'text-gray-400 border border-gray-200 cursor-not-allowed'
+              }`}
+              title={selectedRange ? 'Confirm new citation location' : 'Select text first'}
+            >
+              ✓ Confirm
+            </button>
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="text-gray-600 hover:text-gray-800 text-xs px-3 py-1 rounded hover:bg-gray-50 border border-gray-300"
+              title="Cancel editing"
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              type="button"
+              onClick={() => onEditText(citation.id)}
+              className="text-green-600 hover:text-green-800 text-xs px-2 py-1 rounded hover:bg-green-50"
+              title="Edit cited text"
+            >
+              Edit Text
+            </button>
+            <button
+              type="button"
+              onClick={() => onDelete(citation.id)}
+              className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50"
+              title="Delete citation"
+            >
+              ×
+            </button>
+          </>
         )}
-        <button
-          type="button"
-          onClick={() => onDelete(citation.id)}
-          className="text-red-600 hover:text-red-800 text-xs px-2 py-1 rounded hover:bg-red-50"
-          title="Delete citation"
-        >
-          ×
-        </button>
       </div>
     </div>
   )
@@ -311,38 +347,14 @@ export default function CitationWorkflow({
     console.log('Citation deleted and renumbered successfully!')
   }
 
-  const moveCitation = (citationId: string, newPosition: number) => {
-    const citation = citations.find(c => c.id === citationId)
-    if (!citation) {
-      console.error('Citation not found')
-      return
-    }
-
-    const citationIndex = citations.findIndex(c => c.id === citationId) + 1
-    const citationMarker = `<sup>[${citationIndex}]</sup>`
-
-    // Remove the old citation marker and insert at new position
-    let newContent = content.replace(citationMarker, '')
-    
-    // For simplicity, append at end - in a real app you'd want more sophisticated positioning
-    newContent += citationMarker
-    
-    onContentChange(newContent)
-    
-    // Update citation position in the list
-    const updatedCitations = citations.map(c => 
-      c.id === citationId 
-        ? { ...c, startPos: newPosition, endPos: newPosition + citationMarker.length }
-        : c
-    )
-    
-    onCitationsChange(updatedCitations)
-    console.log('Citation moved successfully!')
-  }
 
   const editCitationText = (citationId: string) => {
+    setEditingCitationId(citationId)
+  }
+
+  const confirmEditCitationText = (citationId: string) => {
     if (!selectedRange || !selectedText.trim()) {
-      alert('Please select new text in the editor first, then click "Edit Text" for the citation you want to update.')
+      console.error('No text selected')
       return
     }
 
@@ -383,13 +395,14 @@ export default function CitationWorkflow({
     onContentChange(newContent)
     onCitationsChange(updatedCitations)
     
+    // Exit edit mode
+    setEditingCitationId(null)
+    
     console.log('Citation text updated successfully!')
-    // Clear selection after updating
-    setTimeout(() => {
-      if (typeof window !== 'undefined') {
-        window.getSelection()?.removeAllRanges()
-      }
-    }, 100)
+  }
+
+  const cancelEditCitationText = () => {
+    setEditingCitationId(null)
   }
 
   const formatReference = (ref: Reference) => {
@@ -434,7 +447,18 @@ export default function CitationWorkflow({
                 ×
               </button>
             </div>
-            {selectedText && (
+            {editingCitationId ? (
+              <div className="mt-4 p-3 bg-amber-50/80 border border-amber-200/60 rounded-xl backdrop-blur-sm">
+                <p className="text-sm text-amber-800 font-medium">
+                  <strong>Editing citation:</strong> Highlight new text in the editor, then click "Confirm"
+                </p>
+                {selectedText && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Selected: "{selectedText}"
+                  </p>
+                )}
+              </div>
+            ) : selectedText ? (
               <div className="mt-4 p-3 bg-blue-50/80 border border-blue-200/60 rounded-xl backdrop-blur-sm">
                 <p className="text-sm text-blue-800 font-medium">
                   <strong>Selected text:</strong> "{selectedText}"
@@ -443,7 +467,7 @@ export default function CitationWorkflow({
                   Choose which reference to cite this text with, or manage existing citations below:
                 </p>
               </div>
-            )}
+            ) : null}
             {!selectedText && citations.length > 0 && (
               <div className="mt-4 p-3 bg-amber-50/80 border border-amber-200/60 rounded-xl backdrop-blur-sm">
                 <p className="text-sm text-amber-800 font-medium">
@@ -515,9 +539,11 @@ export default function CitationWorkflow({
                                   index={index}
                                   reference={reference}
                                   selectedRange={selectedRange}
+                                  editingCitationId={editingCitationId}
                                   onDelete={deleteCitation}
-                                  onMove={moveCitation}
                                   onEditText={editCitationText}
+                                  onConfirmEdit={confirmEditCitationText}
+                                  onCancelEdit={cancelEditCitationText}
                                 />
                               )
                             })}
@@ -568,9 +594,11 @@ export default function CitationWorkflow({
                                 index={index}
                                 reference={reference}
                                 selectedRange={selectedRange}
+                                editingCitationId={editingCitationId}
                                 onDelete={deleteCitation}
-                                onMove={moveCitation}
                                 onEditText={editCitationText}
+                                onConfirmEdit={confirmEditCitationText}
+                                onCancelEdit={cancelEditCitationText}
                               />
                             )
                           })}
