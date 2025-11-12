@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore'
 import { User } from 'firebase/auth'
 import { db, isConfigured } from '@/lib/firebase'
+import { SIZE_LIMITS, formatFileSize } from '@/lib/constants'
 import { Excerpt, Storyboard, Category } from '@/types'
 
 // Utility function to convert Firestore timestamps to JavaScript dates
@@ -76,10 +77,9 @@ export class FirestoreService {
     
     // Check content size before saving (Firestore has 1MB limit per document)
     const contentSize = new Blob([excerpt.content]).size
-    const MAX_CONTENT_SIZE = 1000000 // ~1MB
     
-    if (contentSize > MAX_CONTENT_SIZE) {
-      throw new Error(`Excerpt content is too large for cloud storage (${Math.round(contentSize / 1024)}KB). Maximum allowed is ${Math.round(MAX_CONTENT_SIZE / 1024)}KB.`)
+    if (contentSize > SIZE_LIMITS.MAX_EXCERPT_CONTENT_SIZE) {
+      throw new Error(`Excerpt content is too large for cloud storage (${formatFileSize(contentSize)}). Maximum allowed: ${formatFileSize(SIZE_LIMITS.MAX_EXCERPT_CONTENT_SIZE)}.`)
     }
     
     const excerptRef = doc(db, 'users', this.userId, 'excerpts', excerpt.id)

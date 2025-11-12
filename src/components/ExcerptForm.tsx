@@ -11,6 +11,7 @@ import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
 import { Excerpt, Reference, Citation } from '@/types'
 import { useStorage } from '@/contexts/StorageContext'
 import { FileParser } from '@/lib/fileParser'
+import { SIZE_LIMITS, formatFileSize, getContentSizeStatus } from '@/lib/constants'
 import { useAuthAction } from '@/hooks/useAuthAction'
 import AuthModal from '@/components/auth/AuthModal'
 import toast from 'react-hot-toast'
@@ -372,6 +373,24 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       return
     }
     
+    // Image size restrictions
+    const MAX_IMAGE_SIZE = SIZE_LIMITS.MAX_IMAGE_FILE_SIZE
+    const MAX_TOTAL_CONTENT_SIZE = SIZE_LIMITS.MAX_TOTAL_CONTENT_WITH_IMAGES
+    
+    if (file.size > MAX_IMAGE_SIZE) {
+      toast.error(`Image file is too large (${formatFileSize(file.size)}). Maximum allowed: ${formatFileSize(MAX_IMAGE_SIZE)}.`)
+      return
+    }
+    
+    // Check if adding this image would exceed content size limit
+    const currentContentSize = new Blob([content]).size
+    const estimatedImageSize = file.size * SIZE_LIMITS.BASE64_SIZE_MULTIPLIER
+    
+    if (currentContentSize + estimatedImageSize > MAX_TOTAL_CONTENT_SIZE) {
+      toast.error(`Adding this image would make the excerpt too large. Current: ${formatFileSize(currentContentSize)}, Image: ~${formatFileSize(estimatedImageSize)}. Maximum total: ${formatFileSize(MAX_TOTAL_CONTENT_SIZE)}.`)
+      return
+    }
+    
     // Create data URL for preview and attachment
     const reader = new FileReader()
     reader.onload = (event) => {
@@ -383,8 +402,15 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         // Append the image to the end of the content with some spacing
         const newContent = content.trim() + (content.trim() ? '<br><br>' : '') + imageTag
         
+        // Final size check after processing
+        const finalContentSize = new Blob([newContent]).size
+        if (finalContentSize > MAX_TOTAL_CONTENT_SIZE) {
+          toast.error(`The processed image is too large for this excerpt. Please use a smaller image. Size would be: ${formatFileSize(finalContentSize)}.`)
+          return
+        }
+        
         setContent(newContent)
-        toast.success('Image file attached to content!')
+        toast.success(`Image attached! Content size: ${formatFileSize(finalContentSize)}`)
         
         // Clear the file input
         e.target.value = ''
@@ -402,9 +428,17 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     // Append the image to the end of the content with some spacing
     const newContent = content.trim() + (content.trim() ? '<br><br>' : '') + imageTag
     
+    // Check content size after adding URL image
+    const finalContentSize = new Blob([newContent]).size
+    
+    if (finalContentSize > SIZE_LIMITS.MAX_TOTAL_CONTENT_WITH_IMAGES) {
+      toast.error(`Adding this image URL would make the excerpt too large (${formatFileSize(finalContentSize)}). Maximum allowed: ${formatFileSize(SIZE_LIMITS.MAX_TOTAL_CONTENT_WITH_IMAGES)}.`)
+      return
+    }
+    
     setContent(newContent)
     setImageUrl('') // Clear the input after adding
-    toast.success('Image URL attached to content!')
+    toast.success(`Image URL attached! Content size: ${formatFileSize(finalContentSize)}`)
   }
 
   const handleCancel = () => {
@@ -562,8 +596,19 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
                   className="min-h-[400px]"
                 />
               </div>
-              <div className="mt-3 text-sm text-slate-500 font-medium">
-                Word count: {getWordCount(content)}
+              <div className="mt-3 flex justify-between text-sm text-slate-500 font-medium">
+                <span>Word count: {getWordCount(content)}</span>
+                <span className={`${(() => {
+                  const status = getContentSizeStatus(content)
+                  switch (status) {
+                    case 'exceeded':
+                    case 'danger': return 'text-red-600'
+                    case 'warning': return 'text-yellow-600'
+                    default: return 'text-slate-500'
+                  }
+                })()}`}>
+                  Content size: {formatFileSize(new Blob([content]).size)} / {formatFileSize(SIZE_LIMITS.MAX_EXCERPT_CONTENT_SIZE)}
+                </span>
               </div>
             </div>
           </div>

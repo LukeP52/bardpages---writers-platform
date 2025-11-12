@@ -1,3 +1,5 @@
+import { SIZE_LIMITS, SUPPORTED_FORMATS, formatFileSize } from '@/lib/constants'
+
 export interface ParsedFileContent {
   title: string
   content: string
@@ -129,12 +131,11 @@ Alternatively, save your document as a .txt or .md file and re-upload for automa
   }
   
   static getSupportedFormats(): string[] {
-    return ['.txt', '.md', '.docx', '.doc', '.rtf', '.html']
+    return [...SUPPORTED_FORMATS.DOCUMENTS]
   }
   
   static getMaxFileSize(): number {
-    // 10MB limit
-    return 10 * 1024 * 1024
+    return SIZE_LIMITS.MAX_DOCUMENT_FILE_SIZE
   }
   
   static validateFile(file: File): { valid: boolean; error?: string } {
@@ -142,7 +143,7 @@ Alternatively, save your document as a .txt or .md file and re-upload for automa
     if (file.size > this.getMaxFileSize()) {
       return {
         valid: false,
-        error: `File size too large. Maximum size is ${this.getMaxFileSize() / (1024 * 1024)}MB`
+        error: `File size too large. Maximum size is ${formatFileSize(this.getMaxFileSize())}`
       }
     }
     

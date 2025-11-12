@@ -5,6 +5,7 @@ import { User } from 'firebase/auth'
 import { useAuth } from '@/contexts/AuthContext'
 import { FirestoreService, createFirestoreService } from '@/lib/firestore'
 import { storage as localStorageService } from '@/lib/storage'
+import { SIZE_LIMITS, formatFileSize } from '@/lib/constants'
 import { Excerpt, Storyboard, Category } from '@/types'
 import toast from 'react-hot-toast'
 
@@ -97,11 +98,10 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       }
       
       // Filter out excerpts with content too large for Firestore (1MB limit)
-      const MAX_CONTENT_SIZE = 1000000 // ~1MB in bytes
       const validExcerpts = localExcerpts.filter(excerpt => {
         const contentSize = new Blob([excerpt.content]).size
-        if (contentSize > MAX_CONTENT_SIZE) {
-          console.warn('MigrateToCloud: Skipping excerpt with large content:', excerpt.title, `(${Math.round(contentSize / 1024)}KB)`)
+        if (contentSize > SIZE_LIMITS.MAX_EXCERPT_CONTENT_SIZE) {
+          console.warn('MigrateToCloud: Skipping excerpt with large content:', excerpt.title, `(${formatFileSize(contentSize)})`)
           return false
         }
         return true
