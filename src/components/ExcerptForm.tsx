@@ -338,20 +338,25 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       const text = quillRef.current.getText(range.index, range.length)
       setSelectedText(text.trim())
       setSelectedRange(range)
-    } else {
+    } else if (!showCitationWorkflow) {
+      // Only clear selection if citation workflow is not open
+      // This prevents clearing when modal steals focus
       setSelectedText('')
       setSelectedRange(null)
     }
   }
 
   const handleAddReference = () => {
-    // Get current selection from Quill
+    // Get current selection from Quill and preserve it
     if (quillRef.current) {
       const selection = quillRef.current.getSelection()
       if (selection && selection.length > 0) {
         const text = quillRef.current.getText(selection.index, selection.length)
         setSelectedText(text.trim())
         setSelectedRange(selection)
+        console.log('Selection captured:', { selection, text: text.trim() })
+      } else {
+        console.log('No text selected for citation')
       }
     }
     setShowCitationWorkflow(true)
@@ -811,7 +816,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
             onReferencesChange={setReferences}
             onCitationsChange={setCitations}
             onContentChange={setContent}
-            onClose={() => setShowCitationWorkflow(false)}
+            onClose={() => {
+              setShowCitationWorkflow(false)
+              // Clear selection state when modal closes
+              setTimeout(() => {
+                setSelectedText('')
+                setSelectedRange(null)
+              }, 100) // Small delay to prevent race conditions
+            }}
           />
         )}
 
