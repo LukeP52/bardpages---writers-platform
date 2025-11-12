@@ -151,20 +151,37 @@ export default function SimpleCitations({ excerptId, sources, onSourcesChange }:
 
       {/* Simple Modal */}
       {showForm && (
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="border-b border-slate-200/60 p-4">
-              <h3 className="text-lg font-semibold text-slate-900">Add New Source</h3>
+        <div 
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowForm(false)
+            }
+          }}
+        >
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+               onClick={(e) => e.stopPropagation()}>
+            <div className="border-b border-gray-200 p-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-semibold text-gray-900">Add New Source</h3>
+                <button 
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ✕
+                </button>
+              </div>
             </div>
             
             <form onSubmit={handleSubmit} className="p-4 space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="form-label">Type</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                   <select
                     value={formData.type}
                     onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as Source['type'] }))}
-                    className="input"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="book">Book</option>
                     <option value="journal">Journal Article</option>
@@ -174,12 +191,12 @@ export default function SimpleCitations({ excerptId, sources, onSourcesChange }:
                 </div>
 
                 <div>
-                  <label className="form-label">Year</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
                   <input
                     type="number"
                     value={formData.year}
                     onChange={(e) => setFormData(prev => ({ ...prev, year: parseInt(e.target.value) }))}
-                    className="input"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     min="1900"
                     max={new Date().getFullYear() + 10}
                   />
@@ -187,72 +204,72 @@ export default function SimpleCitations({ excerptId, sources, onSourcesChange }:
               </div>
 
               <div>
-                <label className="form-label">Title *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Title *</label>
                 <input
                   type="text"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  className="input"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Enter the title..."
                   required
                 />
               </div>
 
               <div>
-                <label className="form-label">Author *</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Author *</label>
                 <input
                   type="text"
                   value={formData.author}
                   onChange={(e) => setFormData(prev => ({ ...prev, author: e.target.value }))}
-                  className="input"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Author name"
                   required
                 />
               </div>
 
               <div>
-                <label className="form-label">Publication</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Publication</label>
                 <input
                   type="text"
                   value={formData.publication}
                   onChange={(e) => setFormData(prev => ({ ...prev, publication: e.target.value }))}
-                  className="input"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   placeholder="Journal, publisher, etc."
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="form-label">Pages</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Pages</label>
                   <input
                     type="text"
                     value={formData.pages}
                     onChange={(e) => setFormData(prev => ({ ...prev, pages: e.target.value }))}
-                    className="input"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="123-145"
                   />
                 </div>
 
                 <div>
-                  <label className="form-label">URL</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">URL</label>
                   <input
                     type="url"
                     value={formData.url}
                     onChange={(e) => setFormData(prev => ({ ...prev, url: e.target.value }))}
-                    className="input"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     placeholder="https://example.com"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-slate-200/60">
-                <button type="submit" className="btn btn-primary">
+              <div className="flex gap-3 pt-4 border-t border-gray-200">
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                   Add Source
                 </button>
                 <button 
                   type="button" 
                   onClick={() => setShowForm(false)}
-                  className="btn btn-ghost"
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300"
                 >
                   Cancel
                 </button>
