@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Citation, Reference } from '@/types'
 
 interface CitationLocationEditorProps {
@@ -11,6 +11,7 @@ interface CitationLocationEditorProps {
   selectedRange: { index: number; length: number } | null
   onConfirm: (citationId: string, newText: string, newRange: { index: number; length: number }) => void
   onCancel: () => void
+  quillRef?: React.MutableRefObject<any | null>
 }
 
 export default function CitationLocationEditor({
@@ -20,17 +21,53 @@ export default function CitationLocationEditor({
   selectedText,
   selectedRange,
   onConfirm,
-  onCancel
+  onCancel,
+  quillRef
 }: CitationLocationEditorProps) {
+  const [currentSelectedText, setCurrentSelectedText] = useState('')
+  const [currentSelectedRange, setCurrentSelectedRange] = useState<{ index: number; length: number } | null>(null)
   const [hasValidSelection, setHasValidSelection] = useState(false)
 
+  const handleSelectionChange = useCallback(() => {
+    if (!quillRef?.current) return
+    
+    try {
+      const selection = quillRef.current.getSelection()
+      if (selection && selection.length > 0) {
+        const text = quillRef.current.getText(selection.index, selection.length)
+        setCurrentSelectedText(text.trim())
+        setCurrentSelectedRange(selection)
+        setHasValidSelection(text.trim().length > 0)
+      } else {
+        setCurrentSelectedText('')
+        setCurrentSelectedRange(null)
+        setHasValidSelection(false)
+      }
+    } catch (error) {
+      console.warn('Error getting Quill selection:', error)
+    }
+  }, [quillRef])
+
   useEffect(() => {
-    setHasValidSelection(!!selectedRange && !!selectedText.trim())
-  }, [selectedRange, selectedText])
+    if (quillRef?.current) {
+      // Set up selection change listener
+      quillRef.current.on('selection-change', handleSelectionChange)
+      
+      // Initial check
+      handleSelectionChange()
+      
+      return () => {
+        // Clean up listener
+        if (quillRef.current) {
+          quillRef.current.off('selection-change', handleSelectionChange)
+        }
+      }
+    }
+  }, [handleSelectionChange, quillRef])
 
   const handleConfirm = () => {
-    if (selectedRange && selectedText.trim()) {
-      onConfirm(citation.id, selectedText, selectedRange)
+    if (currentSelectedRange && currentSelectedText.trim()) {
+      onConfirm(citation.id, currentSelectedText, currentSelectedRange)
     }
   }
 
@@ -81,7 +118,7 @@ export default function CitationLocationEditor({
             <div className="bg-green-50 rounded-lg p-4">
               <h4 className="text-sm font-semibold text-green-800 mb-2">New Location Selected</h4>
               <div className="text-sm text-green-700">
-                <strong>New text:</strong> "{selectedText}"
+                <strong>New text:</strong> "{currentSelectedText}"
               </div>
             </div>
           ) : (

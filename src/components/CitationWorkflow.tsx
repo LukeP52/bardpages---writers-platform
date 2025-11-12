@@ -738,6 +738,7 @@ export default function CitationWorkflow({
           selectedRange={selectedRange}
           onConfirm={confirmEditCitationLocation}
           onCancel={cancelEditCitationLocation}
+          quillRef={quillRef}
         />
       )}
     </div>

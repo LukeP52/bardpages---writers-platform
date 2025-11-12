@@ -19,9 +19,15 @@ export default function ExcerptDetailPage({ params }: ExcerptDetailPageProps) {
 
   useEffect(() => {
     const loadExcerpt = async () => {
-      const loadedExcerpt = await storage.getExcerpt(params.id)
-      setExcerpt(loadedExcerpt || null)
-      setIsLoading(false)
+      try {
+        const loadedExcerpt = await storage.getExcerpt(params.id)
+        setExcerpt(loadedExcerpt || null)
+      } catch (error) {
+        console.error('Error loading excerpt:', error)
+        setExcerpt(null)
+      } finally {
+        setIsLoading(false)
+      }
     }
     
     loadExcerpt()

@@ -11,7 +11,7 @@ import CategoryAssignmentModal from '@/components/CategoryAssignmentModal'
 import { Excerpt, Reference, Citation } from '@/types'
 import { useStorage } from '@/contexts/StorageContext'
 import { FileParser } from '@/lib/fileParser'
-import { SIZE_LIMITS, formatFileSize, getContentSizeStatus } from '@/lib/constants'
+import { SIZE_LIMITS, formatFileSize, getContentSizeStatus, isExcerptSizeValid } from '@/lib/constants'
 import { useAuthAction } from '@/hooks/useAuthAction'
 import AuthModal from '@/components/auth/AuthModal'
 
@@ -299,6 +299,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     try {
       const now = new Date()
       const selectedDate = new Date(date)
+      
+      // Ensure all references have proper Date objects
+      const processedReferences = references.map(ref => ({
+        ...ref,
+        createdAt: ref.createdAt instanceof Date ? ref.createdAt : new Date(ref.createdAt),
+        accessDate: ref.accessDate ? (ref.accessDate instanceof Date ? ref.accessDate : new Date(ref.accessDate)) : undefined
+      }))
+      
       const excerptData: Excerpt = {
         id: excerpt?.id || uuidv4(),
         title: title.trim(),
@@ -306,12 +314,22 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         author: author.trim() || undefined,
         status,
         tags,
-        references,
+        references: processedReferences,
         citations,
         createdAt: excerpt?.createdAt || selectedDate,
         updatedAt: now,
         wordCount: getWordCount(content)
       }
+
+      // Validate complete excerpt size including references
+      const sizeValidation = isExcerptSizeValid(excerptData)
+      if (!sizeValidation.valid) {
+        console.error(sizeValidation.message || 'Excerpt is too large to save')
+        console.log(`Size breakdown: Content ${formatFileSize(sizeValidation.contentSize)}, References ${formatFileSize(sizeValidation.referencesSize)}`)
+        return
+      }
+      
+      console.log(`Saving excerpt: Total size ${formatFileSize(sizeValidation.size)} (Content: ${formatFileSize(sizeValidation.contentSize)}, References: ${formatFileSize(sizeValidation.referencesSize)})`)
 
       await storage.saveExcerpt(excerptData)
       
@@ -329,7 +347,19 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       router.push('/excerpts')
     } catch (error) {
       console.error('Error saving excerpt:', error)
-      console.error('There was an error saving your excerpt. Please try again.')
+      
+      // Provide more specific error messages
+      if (error instanceof Error) {
+        if (error.message.includes('size') || error.message.includes('large')) {
+          console.error('Excerpt is too large to save. Try reducing content or removing some references.')
+        } else if (error.message.includes('JSON')) {
+          console.error('There was a problem processing your references. Please check that all reference data is valid.')
+        } else {
+          console.error(`Save failed: ${error.message}`)
+        }
+      } else {
+        console.error('There was an error saving your excerpt. Please try again.')
+      }
     } finally {
       setIsSubmitting(false)
     }
