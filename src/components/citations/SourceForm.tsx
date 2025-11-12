@@ -34,7 +34,17 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
   })
 
   const handleChange = (field: keyof typeof formData, value: string | number) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    console.log('🔶 SourceForm: Field changed', { field, value })
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value }
+      console.log('🔶 SourceForm: Form data updated', {
+        title: newData.title,
+        author: newData.author,
+        titleValid: !!newData.title.trim(),
+        authorValid: !!newData.author.trim()
+      })
+      return newData
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -279,6 +289,14 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
               type="submit"
               disabled={isSubmitting || !formData.title.trim() || !formData.author.trim()}
               className="btn btn-primary"
+              onClick={(e) => {
+                console.log('🔴 SourceForm: Submit button clicked', {
+                  isSubmitting,
+                  titleValid: !!formData.title.trim(),
+                  authorValid: !!formData.author.trim(),
+                  buttonDisabled: isSubmitting || !formData.title.trim() || !formData.author.trim()
+                })
+              }}
             >
               {isSubmitting ? (
                 <>
