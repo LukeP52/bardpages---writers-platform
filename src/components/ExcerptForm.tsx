@@ -43,7 +43,15 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [selectedTagForAssignment, setSelectedTagForAssignment] = useState('')
   const [isUploadingFile, setIsUploadingFile] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
-  const [tempExcerptId] = useState(() => excerpt?.id || `temp-${uuidv4()}`)
+  const [tempExcerptId] = useState(() => {
+    const id = excerpt?.id || `temp-${uuidv4()}`
+    console.log('🟠 ExcerptForm: tempExcerptId generated', { 
+      excerptId: excerpt?.id, 
+      tempExcerptId: id,
+      isNewExcerpt: !excerpt?.id 
+    })
+    return id
+  })
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const storage = useStorage()
   const quillRef = useRef<any>(null)

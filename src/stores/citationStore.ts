@@ -88,24 +88,49 @@ export const useCitationStore = create<CitationStore>()(
         },
         
         addSource: (excerptId: string, sourceData) => {
+          console.log('🟢 CitationStore: addSource called', { excerptId, sourceData })
+          
           const newSource: Source = {
             ...sourceData,
             id: `source-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             createdAt: new Date().toISOString()
           }
           
+          console.log('🟢 CitationStore: Created new source object', newSource)
+          
           const { documents } = get()
+          console.log('🟢 CitationStore: Current documents state', Object.keys(documents))
+          
           const document = documents[excerptId] || initializeDocument(excerptId)
+          console.log('🟢 CitationStore: Document for excerpt', { excerptId, existingDocument: !!documents[excerptId], sourceCount: document.sources.length })
+          
+          const updatedDocument = {
+            ...document,
+            sources: [...document.sources, newSource],
+            updatedAt: new Date().toISOString()
+          }
+          
+          console.log('🟢 CitationStore: Updated document', { 
+            excerptId, 
+            oldSourceCount: document.sources.length,
+            newSourceCount: updatedDocument.sources.length,
+            newSource: newSource.id
+          })
           
           set({
             documents: {
               ...documents,
-              [excerptId]: {
-                ...document,
-                sources: [...document.sources, newSource],
-                updatedAt: new Date().toISOString()
-              }
+              [excerptId]: updatedDocument
             }
+          })
+          
+          // Verify the state was updated
+          const verification = get()
+          console.log('🟢 CitationStore: State verification after addSource', {
+            excerptId,
+            documentExists: !!verification.documents[excerptId],
+            sourceCount: verification.documents[excerptId]?.sources.length || 0,
+            sources: verification.documents[excerptId]?.sources.map(s => ({ id: s.id, title: s.title })) || []
           })
           
           return newSource
@@ -271,7 +296,14 @@ export const useCitationStore = create<CitationStore>()(
         
         getSourcesForExcerpt: (excerptId: string) => {
           const { documents } = get()
-          return documents[excerptId]?.sources || []
+          const sources = documents[excerptId]?.sources || []
+          console.log('🟦 CitationStore: getSourcesForExcerpt called', {
+            excerptId,
+            documentExists: !!documents[excerptId],
+            sourcesCount: sources.length,
+            sources: sources.map(s => ({ id: s.id, title: s.title }))
+          })
+          return sources
         },
         
         getAnnotationsForExcerpt: (excerptId: string) => {

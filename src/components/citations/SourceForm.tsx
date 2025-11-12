@@ -40,7 +40,15 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('🔵 SourceForm: Form submitted', { 
+      formData, 
+      excerptId, 
+      isEditing: !!source,
+      sourceId: source?.id 
+    })
+    
     if (!formData.title.trim() || !formData.author.trim()) {
+      console.log('❌ SourceForm: Validation failed - missing title or author')
       alert('Title and Author are required fields.')
       return
     }
@@ -51,20 +59,27 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
       let savedSource: Source
       
       if (source) {
+        console.log('🟡 SourceForm: Updating existing source', source.id)
         // Update existing source
         updateSource(excerptId, source.id, formData)
         savedSource = { ...source, ...formData }
+        console.log('🟡 SourceForm: Source updated', savedSource)
       } else {
+        console.log('🟢 SourceForm: Creating new source for excerptId:', excerptId)
         // Create new source
         savedSource = addSource(excerptId, formData)
+        console.log('🟢 SourceForm: New source created with ID:', savedSource.id, savedSource)
       }
       
+      console.log('🔵 SourceForm: About to call onSave callback with source:', savedSource)
       onSave?.(savedSource)
+      console.log('🔵 SourceForm: onSave callback completed')
     } catch (error) {
-      console.error('Error saving source:', error)
+      console.error('❌ SourceForm: Error saving source:', error)
       alert('Failed to save source. Please try again.')
     } finally {
       setIsSubmitting(false)
+      console.log('🔵 SourceForm: Form submission process completed')
     }
   }
 
@@ -79,8 +94,8 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
         </p>
       </div>
       
-      <form id="source-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto">
-        <div className="p-4 space-y-3">
+      <div className="flex-1 overflow-y-auto">
+        <form id="source-form" onSubmit={handleSubmit} className="p-4 space-y-3">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div className="form-group">
             <label className="form-label">
@@ -259,38 +274,34 @@ export default function SourceForm({ excerptId, source, onSave, onCancel }: Sour
           </div>
         )}
 
-        </div>
-      </form>
-      
-      <div className="border-t border-slate-200/60 p-4 flex-shrink-0">
-        <div className="flex gap-3">
-          <button
-            type="submit"
-            form="source-form"
-            disabled={isSubmitting || !formData.title.trim() || !formData.author.trim()}
-            className="btn btn-primary"
-          >
-            {isSubmitting ? (
-              <>
-                <LoadingSpinner size="sm" color="white" className="mr-2" />
-                Saving...
-              </>
-            ) : (
-              source ? 'Update Source' : 'Add Source'
-            )}
-          </button>
-          
-          {onCancel && (
+          <div className="flex gap-3 pt-4 border-t border-slate-200/60 mt-4">
             <button
-              type="button"
-              onClick={onCancel}
-              className="btn btn-ghost"
-              disabled={isSubmitting}
+              type="submit"
+              disabled={isSubmitting || !formData.title.trim() || !formData.author.trim()}
+              className="btn btn-primary"
             >
-              Cancel
+              {isSubmitting ? (
+                <>
+                  <LoadingSpinner size="sm" color="white" className="mr-2" />
+                  Saving...
+                </>
+              ) : (
+                source ? 'Update Source' : 'Add Source'
+              )}
             </button>
-          )}
-        </div>
+            
+            {onCancel && (
+              <button
+                type="button"
+                onClick={onCancel}
+                className="btn btn-ghost"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
       </div>
     </div>
   )

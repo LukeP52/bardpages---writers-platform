@@ -20,6 +20,8 @@ interface CitationManagerProps {
 }
 
 export default function CitationManager({ excerptId }: CitationManagerProps) {
+  console.log('🔵 CitationManager: Component rendered', { excerptId })
+  
   const { 
     getSourcesForExcerpt, 
     getAnnotationsForExcerpt, 
@@ -38,6 +40,13 @@ export default function CitationManager({ excerptId }: CitationManagerProps) {
     annotations,
     sources
   } = useTextAnnotation(excerptId)
+  
+  console.log('🔵 CitationManager: Hook data', {
+    excerptId,
+    sourcesCount: sources.length,
+    annotationsCount: annotations.length,
+    sources: sources.map(s => ({ id: s.id, title: s.title }))
+  })
   
   const [showSourceForm, setShowSourceForm] = useState(false)
   const [editingSource, setEditingSource] = useState<Source | null>(null)
@@ -61,14 +70,30 @@ export default function CitationManager({ excerptId }: CitationManagerProps) {
   }
 
   const handleSourceSaved = (source: Source) => {
+    console.log('🔵 CitationManager: Source saved callback called', { 
+      source,
+      excerptId,
+      currentSourcesCount: sources.length
+    })
+    
     setShowSourceForm(false)
     setEditingSource(null)
     
     // If we were in the annotation flow, continue with the new source
     if (selectedSourceForAnnotation === 'new' && currentSelection?.isValid) {
+      console.log('🔵 CitationManager: Auto-creating annotation for new source')
       addAnnotation(source.id)
       setSelectedSourceForAnnotation(null)
     }
+    
+    // Force a re-render to check if sources are updated
+    setTimeout(() => {
+      console.log('🔵 CitationManager: Sources after save (delayed check)', {
+        excerptId,
+        sourcesCount: sources.length,
+        sourcesList: sources.map(s => ({ id: s.id, title: s.title }))
+      })
+    }, 100)
   }
 
   const handleStartAnnotation = (sourceId?: string) => {

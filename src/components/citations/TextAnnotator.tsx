@@ -126,15 +126,34 @@ export default function TextAnnotator({
 export const useTextAnnotation = (excerptId: string) => {
   const store = useCitationStore()
   
+  const sources = store.getSourcesForExcerpt(excerptId)
+  const annotations = store.getAnnotationsForExcerpt(excerptId)
+  
+  console.log('🟦 useTextAnnotation: Hook called', {
+    excerptId,
+    sourcesCount: sources.length,
+    annotationsCount: annotations.length,
+    storeState: {
+      documentsCount: Object.keys(store.documents).length,
+      documentIds: Object.keys(store.documents),
+      excerptDocument: store.documents[excerptId] ? {
+        sourcesCount: store.documents[excerptId].sources.length,
+        annotationsCount: store.documents[excerptId].annotations.length
+      } : null
+    }
+  })
+  
   return {
     isAnnotating: store.uiState.isAnnotating,
     currentSelection: store.uiState.currentSelection,
     startAnnotating: () => {
+      console.log('🟦 useTextAnnotation: startAnnotating called', excerptId)
       store.setCurrentExcerpt(excerptId)
       store.startAnnotating()
     },
     stopAnnotating: store.stopAnnotating,
     addAnnotation: (sourceId: string) => {
+      console.log('🟦 useTextAnnotation: addAnnotation called', { excerptId, sourceId })
       const { currentSelection } = store.uiState
       if (currentSelection?.isValid && currentSelection.text.trim()) {
         const annotation = store.addAnnotation(excerptId, {
@@ -148,7 +167,7 @@ export const useTextAnnotation = (excerptId: string) => {
       }
       return null
     },
-    annotations: store.getAnnotationsForExcerpt(excerptId),
-    sources: store.getSourcesForExcerpt(excerptId)
+    annotations,
+    sources
   }
 }
