@@ -193,6 +193,27 @@ export default function TagManagerPage() {
     }
   }
 
+  const deleteCategory = async (categoryId: string) => {
+    try {
+      const category = await storage.getCategory(categoryId)
+      if (!category) return
+      
+      // Check if category has any tags assigned to it by looking at groupedTags
+      const categoryTags = groupedTags[category.name] || []
+      
+      if (categoryTags.length > 0) {
+        console.log(`Category "${category.name}" has ${categoryTags.length} tags assigned and cannot be deleted. Reassign the tags first.`)
+        return
+      }
+      
+      await storage.deleteCategory(categoryId)
+      await loadData()
+      console.log(`Category "${category.name}" has been deleted.`)
+    } catch (error) {
+      console.error('Failed to delete category:', error)
+    }
+  }
+
 
   const categorizeTag = (tag: string): string => {
     const tagLower = tag.toLowerCase()
@@ -369,6 +390,62 @@ export default function TagManagerPage() {
             </div>
           </div>
         </div>
+
+        {/* Categories List */}
+        {categories.length > 0 && (
+          <div className="card bg-white">
+            <div className="p-6 border-b-2 border-black">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-black tracking-wide">
+                    CATEGORIES ({categories.length})
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-2">
+                    Organize your tags into categories. Delete empty categories or reassign tags first.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {categories.map((category) => {
+                  const categoryTags = groupedTags[category.name] || []
+                  return (
+                    <div
+                      key={category.id}
+                      className="border border-gray-200 rounded p-4 bg-gray-50 hover:bg-gray-100 transition-colors group"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          ></div>
+                          <span className="font-bold text-sm text-black">
+                            {category.name}
+                          </span>
+                        </div>
+                        <button
+                          onClick={() => deleteCategory(category.id)}
+                          className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Delete category"
+                        >
+                          <XMarkIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-600 mb-2">
+                        {category.description}
+                      </p>
+                      <div className="text-xs text-gray-500">
+                        {categoryTags.length} tags
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* All Tags List */}
         <div className="card bg-white">
