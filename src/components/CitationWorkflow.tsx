@@ -110,15 +110,7 @@ export default function CitationWorkflow({
     }
 
     const noteId = `cite-${Date.now()}`
-    const newCitation: Citation = {
-      id: uuidv4(),
-      referenceId,
-      startPos: selectedRange.index,
-      endPos: selectedRange.index + selectedRange.length,
-      text: selectedText,
-      noteId
-    }
-
+    
     // Calculate citation number (should be sequential)
     const citationNumber = citations.length + 1
     
@@ -126,21 +118,25 @@ export default function CitationWorkflow({
     const quill = quillRef.current
     const insertPosition = selectedRange.index + selectedRange.length
     
-    // Insert the citation marker as formatted text at the correct position
-    quill.insertText(insertPosition, `[${citationNumber}]`, { 
-      script: 'super',
-      color: '#2563eb',
-      bold: false
-    })
+    // Insert the citation as a custom embed
+    quill.insertEmbed(insertPosition, 'citation', {
+      id: noteId,
+      number: citationNumber
+    }, 'user')
     
-    // Update the citation positions to account for the inserted text
-    const citationMarkerLength = `[${citationNumber}]`.length
-    const updatedCitation: Citation = {
-      ...newCitation,
-      endPos: selectedRange.index + selectedRange.length + citationMarkerLength
+    // Create citation object with updated positions
+    // Embeds in Quill are 1 character long
+    const newCitation: Citation = {
+      id: uuidv4(),
+      referenceId,
+      startPos: selectedRange.index,
+      endPos: selectedRange.index + selectedRange.length + 1, // embed is 1 character
+      text: selectedText,
+      noteId
     }
 
-    onCitationsChange([...citations, updatedCitation])
+    // Update citations list - Quill's onChange will handle content updates automatically
+    onCitationsChange([...citations, newCitation])
     
     console.log('Citation added successfully!')
     onClose()
@@ -159,25 +155,34 @@ export default function CitationWorkflow({
     }
 
     const quill = quillRef.current
-    const currentText = quill.getText()
     
-    // Find and remove the citation marker from the text
-    // Look for pattern [X] where X is the citation number
-    const citationIndex = citations.findIndex(c => c.id === citationId) + 1
-    const citationMarker = `[${citationIndex}]`
+    // Find the citation embed in the editor
+    const delta = quill.getContents()
+    let position = 0
+    let found = false
     
-    // Search for the citation marker in the vicinity of the stored position
-    const searchStart = Math.max(0, citation.endPos - citationMarker.length - 10)
-    const searchEnd = Math.min(currentText.length, citation.endPos + 10)
-    const searchText = currentText.substring(searchStart, searchEnd)
-    const markerPosition = searchText.indexOf(citationMarker)
-    
-    if (markerPosition !== -1) {
-      const actualPosition = searchStart + markerPosition
-      quill.deleteText(actualPosition, citationMarker.length)
+    delta.ops.forEach((op: any, index: number) => {
+      if (op.insert && typeof op.insert === 'object' && op.insert.citation) {
+        if (op.insert.citation.id === citation.noteId) {
+          // Delete this embed
+          quill.deleteText(position, 1)
+          found = true
+          return
+        }
+      }
+      
+      if (typeof op.insert === 'string') {
+        position += op.insert.length
+      } else if (op.insert && typeof op.insert === 'object') {
+        position += 1 // embeds count as 1 character
+      }
+    })
+
+    if (!found) {
+      console.warn('Citation embed not found in editor, removing from list anyway')
     }
 
-    // Remove citation from list and update numbers
+    // Remove citation from list - Quill's onChange will handle content updates
     const updatedCitations = citations.filter(c => c.id !== citationId)
     onCitationsChange(updatedCitations)
     
@@ -198,36 +203,30 @@ export default function CitationWorkflow({
 
     const quill = quillRef.current
     const citationIndex = citations.findIndex(c => c.id === citationId) + 1
-    const citationMarker = `[${citationIndex}]`
 
-    // First, remove the citation from its current position
-    const currentText = quill.getText()
-    const searchStart = Math.max(0, citation.endPos - citationMarker.length - 10)
-    const searchEnd = Math.min(currentText.length, citation.endPos + 10)
-    const searchText = currentText.substring(searchStart, searchEnd)
-    const markerPosition = searchText.indexOf(citationMarker)
+    // First delete the citation
+    deleteCitation(citationId)
     
-    if (markerPosition !== -1) {
-      const actualPosition = searchStart + markerPosition
-      quill.deleteText(actualPosition, citationMarker.length)
-    }
+    // Small delay to ensure deletion is processed, then re-add at new position
+    setTimeout(() => {
+      if (quillRef.current) {
+        // Re-insert the citation at the new position
+        quill.insertEmbed(newPosition, 'citation', {
+          id: citation.noteId,
+          number: citationIndex
+        }, 'user')
 
-    // Insert at new position
-    quill.insertText(newPosition, citationMarker, { 
-      script: 'super',
-      color: '#2563eb',
-      bold: false
-    })
-
-    // Update citation position
-    const updatedCitations = citations.map(c => 
-      c.id === citationId 
-        ? { ...c, startPos: newPosition, endPos: newPosition + citationMarker.length }
-        : c
-    )
-    
-    onCitationsChange(updatedCitations)
-    console.log('Citation moved successfully!')
+        // Update citation position in the list
+        const updatedCitations = citations.map(c => 
+          c.id === citationId 
+            ? { ...c, startPos: newPosition, endPos: newPosition + 1 } // embeds are 1 character
+            : c
+        )
+        
+        onCitationsChange(updatedCitations)
+        console.log('Citation moved successfully!')
+      }
+    }, 100)
   }
 
   const formatReference = (ref: Reference) => {
