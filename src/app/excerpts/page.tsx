@@ -170,6 +170,23 @@ export default function ExcerptsPage() {
     }
   }
 
+  const handleSelectDropdownChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const value = e.target.value
+    
+    if (value === 'multiple') {
+      // Enter selection mode without selecting anything
+      setIsSelectionMode(true)
+      setSelectedExcerptIds([])
+    } else if (value === 'all') {
+      // Enter selection mode and select all excerpts
+      setIsSelectionMode(true)
+      setSelectedExcerptIds(filteredExcerpts.map(e => e.id))
+    }
+    
+    // Reset dropdown to default after selection
+    e.target.value = ''
+  }
+
   const handleBulkDelete = async () => {
     if (selectedExcerptIds.length === 0) {
       toast.error('No excerpts selected')
@@ -487,12 +504,26 @@ export default function ExcerptsPage() {
         
         <div className="flex items-center gap-3">
           {filteredExcerpts.length > 0 && (
-            <button
-              onClick={toggleSelectionMode}
-              className={`btn btn-sm ${isSelectionMode ? 'bg-blue-600 text-white' : 'btn-outline'}`}
-            >
-              {isSelectionMode ? 'Exit Selection' : 'Select Multiple'}
-            </button>
+            <div className="flex items-center gap-2">
+              <select
+                onChange={handleSelectDropdownChange}
+                className="input text-sm"
+                defaultValue=""
+              >
+                <option value="" disabled>Select...</option>
+                <option value="multiple">Multiple</option>
+                <option value="all">All</option>
+              </select>
+              
+              {isSelectionMode && (
+                <button
+                  onClick={toggleSelectionMode}
+                  className="btn btn-sm btn-ghost"
+                >
+                  Exit Selection
+                </button>
+              )}
+            </div>
           )}
           <Link
             href="/excerpts/new"
