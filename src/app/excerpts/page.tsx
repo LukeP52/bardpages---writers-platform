@@ -411,6 +411,7 @@ export default function ExcerptsPage() {
                     </div>
                   )}
                 </div>
+                </div>
               </div>
               
               {!isSelectionMode && (
