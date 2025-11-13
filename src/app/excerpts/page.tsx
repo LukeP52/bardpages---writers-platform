@@ -331,7 +331,12 @@ export default function ExcerptsPage() {
                     {excerpt.title}
                   </a>
                   <p className="text-sm text-gray-500 mt-1">
-                    {(dateDisplayMode === 'created' ? excerpt.createdAt : excerpt.updatedAt).toLocaleDateString()}
+                    {(() => {
+                      const date = dateDisplayMode === 'created' ? excerpt.createdAt : excerpt.updatedAt
+                      // Display date the same way as shown in the form (ISO date part)
+                      const isoDate = new Date(date).toISOString().split('T')[0]
+                      return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+                    })()}
                   </p>
                 </div>
               </div>
