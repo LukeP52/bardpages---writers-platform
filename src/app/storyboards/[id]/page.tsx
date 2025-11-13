@@ -63,7 +63,11 @@ function SortableExcerptCard({
 
   const displayText = displayMode === 'title' 
     ? excerpt.title 
-    : new Date(excerpt.createdAt).toLocaleDateString()
+    : (() => {
+        const date = excerpt.createdAt
+        const isoDate = new Date(date).toISOString().split('T')[0]
+        return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+      })()
 
   return (
     <div
@@ -85,7 +89,11 @@ function SortableExcerptCard({
             {displayText.length > 30 ? `${displayText.substring(0, 30)}...` : displayText}
           </h3>
           <p className="text-xs text-gray-500 mt-1">
-            {new Date(excerpt.createdAt).toLocaleDateString()}
+            {(() => {
+              const date = excerpt.createdAt
+              const isoDate = new Date(date).toISOString().split('T')[0]
+              return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+            })()}
           </p>
         </div>
       </div>
@@ -579,7 +587,11 @@ export default function StoryboardEditPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>Updated {storyboard.updatedAt.toLocaleDateString()}</span>
+              <span>Updated {(() => {
+                const date = storyboard.updatedAt
+                const isoDate = new Date(date).toISOString().split('T')[0]
+                return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+              })()}</span>
             </div>
           </div>
         </div>
@@ -874,7 +886,11 @@ export default function StoryboardEditPage() {
                               )}
                               <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
                                 <span>{excerpt.wordCount} words</span>
-                                <span>{new Date(excerpt.createdAt).toLocaleDateString()}</span>
+                                <span>{(() => {
+                                  const date = excerpt.createdAt
+                                  const isoDate = new Date(date).toISOString().split('T')[0]
+                                  return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+                                })()}</span>
                               </div>
                               {excerpt.tags.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
@@ -975,10 +991,18 @@ export default function StoryboardEditPage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-gray-900 text-sm leading-tight truncate">
-                        {(displayMode === 'title' ? activeExcerpt.title : new Date(activeExcerpt.createdAt).toLocaleDateString()).substring(0, 30)}...
+                        {(displayMode === 'title' ? activeExcerpt.title : (() => {
+                          const date = activeExcerpt.createdAt
+                          const isoDate = new Date(date).toISOString().split('T')[0]
+                          return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+                        })()).substring(0, 30)}...
                       </h3>
                       <p className="text-xs text-gray-500 mt-1">
-                        {new Date(activeExcerpt.createdAt).toLocaleDateString()}
+                        {(() => {
+                          const date = activeExcerpt.createdAt
+                          const isoDate = new Date(date).toISOString().split('T')[0]
+                          return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+                        })()}
                       </p>
                     </div>
                   </div>

@@ -209,7 +209,11 @@ export default function StoryboardsPage() {
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <span>{storyboard.sections.length} sections</span>
                         <span>{getStoryboardWordCount(storyboard)} words</span>
-                        <span>{storyboard.updatedAt.toLocaleDateString()}</span>
+                        <span>{(() => {
+                          const date = storyboard.updatedAt
+                          const isoDate = new Date(date).toISOString().split('T')[0]
+                          return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+                        })()}</span>
                       </div>
                       
                       {storyboard.sections.length > 0 && (
