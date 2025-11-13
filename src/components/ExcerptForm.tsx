@@ -332,6 +332,13 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   }
   
   const performSave = async () => {
+    console.log('🔵 FORM SUBMIT: performSave started', {
+      excerptId: excerpt?.id,
+      guestExcerptId,
+      user: !!user,
+      title: title.substring(0, 20) + '...'
+    })
+    
     setIsSubmitting(true)
 
     try {
@@ -340,6 +347,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       
       // Use existing excerpt ID, or guest ID if it exists, otherwise generate new UUID
       const excerptId = excerpt?.id || (!user ? guestExcerptId : uuidv4())
+      console.log('🔵 FORM SUBMIT: Using excerptId:', excerptId)
       
       const excerptData: Excerpt = {
         id: excerptId,
@@ -355,15 +363,17 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
 
       // Check if this excerpt already exists (from migration) to prevent duplicates
       const existingExcerpt = await storage.getExcerpt(excerptId)
+      console.log('🔵 FORM SUBMIT: Existing excerpt check:', !!existingExcerpt)
       
       if (existingExcerpt && user && excerptId === guestExcerptId) {
         // This excerpt was already migrated, just redirect without saving again
-        console.log('Excerpt already migrated, redirecting without duplicate save')
+        console.log('🔵 FORM SUBMIT: Excerpt already exists, skipping save')
         clearDraft()
         router.push('/excerpts')
         return
       }
       
+      console.log('🔵 FORM SUBMIT: Saving excerpt to storage')
       await storage.saveExcerpt(excerptData)
       
       // Verify it was saved

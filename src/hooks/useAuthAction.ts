@@ -26,21 +26,23 @@ export function useAuthAction() {
   // Trigger migration when user signs in
   useEffect(() => {
     const handleGuestDataMigration = async () => {
+      console.log('🟠 AUTH TRIGGER: handleGuestDataMigration called', { user: !!user, hasTriggeredMigration })
+      
       if (user && !hasTriggeredMigration) {
         const hasData = checkForGuestData()
-        console.log(`🔍 useAuthAction: Checking for guest data - found: ${hasData}`)
+        console.log('🟠 AUTH TRIGGER: Checking for guest data - found:', hasData)
         
         if (hasData) {
           try {
-            console.log('🔄 useAuthAction: Found guest data, migrating to user account...')
+            console.log('🟠 AUTH TRIGGER: Starting migration process...')
             setHasTriggeredMigration(true) // Set flag immediately to prevent multiple calls
             
             // Add a small delay to ensure storage context is ready
             await new Promise(resolve => setTimeout(resolve, 100))
             await migrateGuestData()
-            console.log('✅ useAuthAction: Guest data migration completed successfully!')
+            console.log('🟠 AUTH TRIGGER: Migration completed!')
           } catch (error) {
-            console.error('❌ useAuthAction: Failed to migrate guest data:', error)
+            console.error('🟠 AUTH TRIGGER: Migration failed:', error)
             setHasTriggeredMigration(false) // Reset on error so user can retry
           }
         }

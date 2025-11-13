@@ -168,14 +168,16 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [])
 
   const migrateGuestData = useCallback(async () => {
+    console.log('🟡 MIGRATION: migrateGuestData called')
+    
     if (!user || !isUsingCloud || !firestoreService) {
-      console.log('Cannot migrate guest data - user not signed in or cloud not available')
+      console.log('🟡 MIGRATION: Cannot migrate - user/cloud/firestore not available')
       return
     }
 
     // Add flag to prevent multiple concurrent migrations
     if (isLoading) {
-      console.log('Migration already in progress, skipping')
+      console.log('🟡 MIGRATION: Already in progress, skipping')
       return
     }
 
@@ -184,27 +186,33 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const guestCategories = guestStorage.getCategories()
     const guestStoryboards = guestStorage.getStoryboards()
 
+    console.log('🟡 MIGRATION: Found guest data:', {
+      excerpts: guestExcerpts.length,
+      excerptIds: guestExcerpts.map(e => e.id)
+    })
+
     // If no guest data, don't migrate
     if (guestExcerpts.length === 0 && guestCategories.length === 0 && guestStoryboards.length === 0) {
-      console.log('No guest data to migrate')
+      console.log('🟡 MIGRATION: No guest data to migrate')
       return
     }
 
     try {
       setIsLoading(true)
-      console.log(`Starting migration of ${guestExcerpts.length} excerpts, ${guestCategories.length} categories, ${guestStoryboards.length} storyboards`)
+      console.log(`🟡 MIGRATION: Starting migration of ${guestExcerpts.length} excerpts`)
       
       // Migrate excerpts to the user's cloud storage
       for (const excerpt of guestExcerpts) {
+        console.log('🟡 MIGRATION: Saving excerpt to Firestore:', excerpt.id)
         await firestoreService.saveExcerpt(excerpt)
-        console.log(`Migrated excerpt: ${excerpt.title}`)
+        console.log('🟡 MIGRATION: Saved to Firestore, now clearing from guest storage')
         
         // Immediately clear each guest excerpt after successful migration
         try {
           guestStorage.deleteExcerpt(excerpt.id)
-          console.log(`Cleared migrated guest excerpt: ${excerpt.id}`)
+          console.log('🟡 MIGRATION: Cleared from guest storage:', excerpt.id)
         } catch (error) {
-          console.warn(`Could not clear guest excerpt ${excerpt.id}:`, error)
+          console.warn(`🟡 MIGRATION: Could not clear guest excerpt ${excerpt.id}:`, error)
         }
       }
 
