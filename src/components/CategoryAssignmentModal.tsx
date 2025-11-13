@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { v4 as uuidv4 } from 'uuid'
 import { XMarkIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { Category } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 
 interface CategoryAssignmentModalProps {
   tagName: string
@@ -25,6 +25,8 @@ export default function CategoryAssignmentModal({
   const [newCategoryName, setNewCategoryName] = useState('')
   const [newCategoryDescription, setNewCategoryDescription] = useState('')
   const [newCategoryColor, setNewCategoryColor] = useState('#3B82F6')
+  
+  const storage = useStorage()
 
   const colorOptions = [
     '#3B82F6', '#10B981', '#EF4444', '#8B5CF6', '#F59E0B',
@@ -35,9 +37,13 @@ export default function CategoryAssignmentModal({
     loadCategories()
   }, [])
 
-  const loadCategories = () => {
-    const allCategories = storage.getCategories()
-    setCategories(allCategories)
+  const loadCategories = async () => {
+    try {
+      const allCategories = await storage.getCategories()
+      setCategories(allCategories)
+    } catch (error) {
+      console.error('Failed to load categories:', error)
+    }
   }
 
   const handleAssign = () => {
@@ -47,27 +53,31 @@ export default function CategoryAssignmentModal({
     }
   }
 
-  const handleCreateCategory = () => {
+  const handleCreateCategory = async () => {
     if (!newCategoryName.trim()) {
       console.error('Category name is required')
       return
     }
 
-    const newCategory: Category = {
-      id: uuidv4(),
-      name: newCategoryName.trim(),
-      description: newCategoryDescription.trim() || undefined,
-      color: newCategoryColor,
-      createdAt: new Date()
-    }
+    try {
+      const newCategory: Category = {
+        id: uuidv4(),
+        name: newCategoryName.trim(),
+        description: newCategoryDescription.trim() || undefined,
+        color: newCategoryColor,
+        createdAt: new Date()
+      }
 
-    storage.saveCategory(newCategory)
-    setSelectedCategoryIds([...selectedCategoryIds, newCategory.id])
-    setNewCategoryName('')
-    setNewCategoryDescription('')
-    setShowNewCategoryForm(false)
-    loadCategories()
-    console.log(`Category "${newCategory.name}" created!`)
+      await storage.saveCategory(newCategory)
+      setSelectedCategoryIds([...selectedCategoryIds, newCategory.id])
+      setNewCategoryName('')
+      setNewCategoryDescription('')
+      setShowNewCategoryForm(false)
+      await loadCategories()
+      console.log(`Category "${newCategory.name}" created!`)
+    } catch (error) {
+      console.error('Failed to create category:', error)
+    }
   }
 
   return (
@@ -88,41 +98,58 @@ export default function CategoryAssignmentModal({
         <div className="p-4">
           {!showNewCategoryForm ? (
             <>
-              <div className="space-y-2 mb-4">
-                {categories.map(category => (
-                  <label
-                    key={category.id}
-                    className={`flex items-center p-2 rounded border cursor-pointer transition-all ${
-                      selectedCategoryIds.includes(category.id)
-                        ? 'border-gray-400 bg-gray-50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selectedCategoryIds.includes(category.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedCategoryIds([...selectedCategoryIds, category.id])
-                        } else {
-                          setSelectedCategoryIds(selectedCategoryIds.filter(id => id !== category.id))
-                        }
-                      }}
-                      className="w-4 h-4 text-gray-600 border-gray-300 focus:ring-gray-500"
-                    />
-                    <div className="ml-2 flex-1">
-                      <div className="text-sm font-medium text-gray-900">{category.name}</div>
-                    </div>
-                  </label>
-                ))}
+              <div className="mb-3">
+                <p className="text-sm text-gray-600">
+                  Assign "{tagName}" to one or more categories:
+                </p>
               </div>
+              
+              {categories.length > 0 ? (
+                <div className="space-y-2 mb-4">
+                  {categories.map(category => (
+                    <label
+                      key={category.id}
+                      className={`flex items-center p-2 rounded border cursor-pointer transition-all ${
+                        selectedCategoryIds.includes(category.id)
+                          ? 'border-blue-400 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedCategoryIds.includes(category.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCategoryIds([...selectedCategoryIds, category.id])
+                          } else {
+                            setSelectedCategoryIds(selectedCategoryIds.filter(id => id !== category.id))
+                          }
+                        }}
+                        className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      />
+                      <div className="ml-2 flex items-center gap-2 flex-1">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: category.color }}
+                        ></div>
+                        <div className="text-sm font-medium text-gray-900">{category.name}</div>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-6 mb-4">
+                  <p className="text-sm text-gray-500 mb-2">No categories exist yet.</p>
+                  <p className="text-xs text-gray-400">Create your first category to organize tags.</p>
+                </div>
+              )}
 
               <button
                 onClick={() => setShowNewCategoryForm(true)}
                 className="w-full flex items-center justify-center gap-2 p-2 border border-dashed border-gray-300 rounded text-sm text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
               >
                 <PlusIcon className="w-4 h-4" />
-                Add Category
+                Create New Category
               </button>
             </>
           ) : (
@@ -163,9 +190,12 @@ export default function CategoryAssignmentModal({
             <button
               onClick={handleAssign}
               disabled={selectedCategoryIds.length === 0}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm font-medium transition-colors"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm font-medium transition-colors"
             >
-              Assign
+              {selectedCategoryIds.length === 0 
+                ? 'Select Categories' 
+                : `Assign to ${selectedCategoryIds.length} categor${selectedCategoryIds.length === 1 ? 'y' : 'ies'}`
+              }
             </button>
             <button
               onClick={onClose}
