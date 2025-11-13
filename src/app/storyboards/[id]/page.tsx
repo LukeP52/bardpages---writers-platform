@@ -633,9 +633,9 @@ export default function StoryboardEditPage() {
         switch (storyboardSortBy) {
           case 'name':
             return a.excerpt!.title.localeCompare(b.excerpt!.title)
-          case 'dateCreated':
+          case 'displayDate':
             return b.excerpt!.createdAt.getTime() - a.excerpt!.createdAt.getTime() // Newest first
-          case 'dateUpdated':
+          case 'lastEdited':
             return b.excerpt!.updatedAt.getTime() - a.excerpt!.updatedAt.getTime() // Newest first
           default:
             return a.section.order - b.section.order
