@@ -113,22 +113,25 @@ class InMemoryStorage {
     if (typeof window === 'undefined') return
 
     try {
-      // Save excerpts
-      localStorage.setItem(getStorageKey('excerpts', this.userId), JSON.stringify(Array.from(this.excerpts.values())))
+      const excerptKey = getStorageKey('excerpts', this.userId)
+      const excerptData = Array.from(this.excerpts.values())
       
-      // Save storyboards
+      console.log(`💾 Saving ${excerptData.length} excerpts to localStorage with key: ${excerptKey}`)
+      localStorage.setItem(excerptKey, JSON.stringify(excerptData))
+      
+      // Verify it was saved
+      const verification = localStorage.getItem(excerptKey)
+      if (verification) {
+        console.log(`✅ localStorage verification successful - ${JSON.parse(verification).length} excerpts saved`)
+      } else {
+        console.error(`❌ localStorage verification failed - NO DATA FOUND`)
+      }
+      
+      // Save other data
       localStorage.setItem(getStorageKey('storyboards', this.userId), JSON.stringify(Array.from(this.storyboards.values())))
-      
-      // Save books
       localStorage.setItem(getStorageKey('books', this.userId), JSON.stringify(Array.from(this.books.values())))
-      
-      // Save premade tags
       localStorage.setItem(getStorageKey('premade_tags', this.userId), JSON.stringify(Array.from(this.premadeTags)))
-      
-      // Save categories
       localStorage.setItem(getStorageKey('categories', this.userId), JSON.stringify(Array.from(this.categories.values())))
-      
-      // Save tag-category mappings
       localStorage.setItem(getStorageKey('tag_mappings', this.userId), JSON.stringify(Array.from(this.tagCategoryMappings.entries())))
     } catch (error) {
       console.error('Error saving to localStorage:', error)
