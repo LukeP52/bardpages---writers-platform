@@ -477,7 +477,7 @@ export default function ExcerptsPage() {
               className="input text-sm min-h-[44px]"
             >
               <option value="updated">Show: Last Updated</option>
-              <option value="created">Show: Date Created</option>
+              <option value="created">Show: Excerpt Date</option>
             </select>
             
             <select
@@ -491,8 +491,8 @@ export default function ExcerptsPage() {
             >
               <option value="dateUpdated-desc">Sort: Newest Updated</option>
               <option value="dateUpdated-asc">Sort: Oldest Updated</option>
-              <option value="dateCreated-desc">Sort: Newest Created</option>
-              <option value="dateCreated-asc">Sort: Oldest Created</option>
+              <option value="dateCreated-desc">Sort: Newest Excerpt Date</option>
+              <option value="dateCreated-asc">Sort: Oldest Excerpt Date</option>
               <option value="name-asc">Sort: Name A-Z</option>
               <option value="name-desc">Sort: Name Z-A</option>
               <option value="tags-asc">Sort: Tags A-Z</option>
@@ -531,10 +531,10 @@ export default function ExcerptsPage() {
           <select
             value={dateDisplayMode}
             onChange={(e) => setDateDisplayMode(e.target.value as 'created' | 'updated')}
-            className="input text-sm"
+            className="input text-sm flex-1"
           >
             <option value="updated">Show: Last Updated</option>
-            <option value="created">Show: Date Created</option>
+            <option value="created">Show: Excerpt Date</option>
           </select>
           
           <select
@@ -544,12 +544,12 @@ export default function ExcerptsPage() {
               setSortBy(sort as any)
               setSortDirection(direction as any)
             }}
-            className="input text-sm"
+            className="input text-sm flex-1"
           >
             <option value="dateUpdated-desc">Sort: Newest Updated</option>
             <option value="dateUpdated-asc">Sort: Oldest Updated</option>
-            <option value="dateCreated-desc">Sort: Newest Created</option>
-            <option value="dateCreated-asc">Sort: Oldest Created</option>
+            <option value="dateCreated-desc">Sort: Newest Excerpt Date</option>
+            <option value="dateCreated-asc">Sort: Oldest Excerpt Date</option>
             <option value="name-asc">Sort: Name A-Z</option>
             <option value="name-desc">Sort: Name Z-A</option>
             <option value="tags-asc">Sort: Tags A-Z</option>
