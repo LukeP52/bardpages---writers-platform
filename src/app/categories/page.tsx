@@ -22,8 +22,40 @@ export default function TagManagerPage() {
   const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
   const [tagToDelete, setTagToDelete] = useState('')
   const [tagExcerptUsage, setTagExcerptUsage] = useState<{usedInExcerpts: boolean, excerptCount: number}>({usedInExcerpts: false, excerptCount: 0})
+  const [showSuggestedCategories, setShowSuggestedCategories] = useState(true)
   const storage = useStorage()
   const categorySuggestions = storage.getWriterCategorySuggestions()
+  
+  // Load suggested categories visibility preference
+  useEffect(() => {
+    const loadPreference = async () => {
+      if (storage.isUsingCloud) {
+        // For signed-in users, try to load preference from Firestore user settings
+        try {
+          // For now, use localStorage as a simple solution
+          // TODO: Later can be moved to user profile settings in Firestore
+          const savedPreference = localStorage.getItem('bardpages_hide_suggested_categories')
+          if (savedPreference !== null) {
+            setShowSuggestedCategories(savedPreference === 'false')
+          }
+        } catch (error) {
+          console.warn('Could not load suggested categories preference:', error)
+        }
+      } else {
+        // For guest users, use localStorage
+        try {
+          const savedPreference = localStorage.getItem('bardpages_hide_suggested_categories')
+          if (savedPreference !== null) {
+            setShowSuggestedCategories(savedPreference === 'false')
+          }
+        } catch (error) {
+          console.warn('Could not load suggested categories preference:', error)
+        }
+      }
+    }
+    
+    loadPreference()
+  }, [storage.isUsingCloud])
 
   useEffect(() => {
     loadData()
@@ -143,6 +175,19 @@ export default function TagManagerPage() {
     }
   }
 
+  // Toggle suggested categories visibility
+  const toggleSuggestedCategories = () => {
+    const newValue = !showSuggestedCategories
+    setShowSuggestedCategories(newValue)
+    
+    // Save preference
+    try {
+      localStorage.setItem('bardpages_hide_suggested_categories', String(!newValue))
+    } catch (error) {
+      console.warn('Could not save suggested categories preference:', error)
+    }
+  }
+  
   const addSuggestedCategory = async (suggestion: { name: string; description: string; color: string }) => {
     try {
       const newCategory: Category = {
@@ -356,7 +401,7 @@ export default function TagManagerPage() {
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Category Suggestions - Always visible, show remaining suggestions */}
+        {/* Category Suggestions - Toggleable visibility */}
         {(() => {
           // Filter out suggestions that already exist as categories
           const existingCategoryNames = categories.map(cat => cat.name.toLowerCase())
@@ -366,43 +411,63 @@ export default function TagManagerPage() {
           
           return availableSuggestions.length > 0 ? (
             <div className="card bg-white p-6 mb-8">
-              <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
-                SUGGESTED CATEGORIES FOR WRITERS
-              </h3>
-              <p className="text-sm text-gray-600 mb-6">
-                {categories.length === 0 
-                  ? 'Get started quickly with these writer-focused categories, or create your own below.'
-                  : 'Add more categories to better organize your tags.'
-                }
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {availableSuggestions.map((suggestion) => (
-                  <div
-                    key={suggestion.name}
-                    className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded transition-colors cursor-pointer"
-                    onClick={() => addSuggestedCategory(suggestion)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: suggestion.color }}
-                      ></div>
-                      <div>
-                        <div className="font-bold text-sm text-black">
-                          {suggestion.name}
-                        </div>
-                        <div className="text-xs text-gray-600">
-                          {suggestion.description}
-                        </div>
-                      </div>
-                    </div>
-                    <PlusIcon className="w-4 h-4 text-gray-400" />
-                  </div>
-                ))}
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-bold text-black tracking-wide">
+                  SUGGESTED CATEGORIES FOR WRITERS
+                </h3>
+                <button
+                  onClick={toggleSuggestedCategories}
+                  className="btn btn-ghost btn-sm text-gray-600 hover:text-gray-800"
+                  title={showSuggestedCategories ? 'Hide suggestions' : 'Show suggestions'}
+                >
+                  {showSuggestedCategories ? '−' : '+'}
+                </button>
               </div>
-              {categories.length > 0 && (
-                <p className="text-xs text-gray-500 mt-4">
-                  {categories.length} of {categorySuggestions.length} suggested categories created
+              
+              {showSuggestedCategories && (
+                <>
+                  <p className="text-sm text-gray-600 mb-6">
+                    {categories.length === 0 
+                      ? 'Get started quickly with these writer-focused categories, or create your own below.'
+                      : 'Add more categories to better organize your tags.'
+                    }
+                  </p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {availableSuggestions.map((suggestion) => (
+                      <div
+                        key={suggestion.name}
+                        className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded transition-colors cursor-pointer"
+                        onClick={() => addSuggestedCategory(suggestion)}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: suggestion.color }}
+                          ></div>
+                          <div>
+                            <div className="font-bold text-sm text-black">
+                              {suggestion.name}
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              {suggestion.description}
+                            </div>
+                          </div>
+                        </div>
+                        <PlusIcon className="w-4 h-4 text-gray-400" />
+                      </div>
+                    ))}
+                  </div>
+                  {categories.length > 0 && (
+                    <p className="text-xs text-gray-500 mt-4">
+                      {categories.length} of {categorySuggestions.length} suggested categories created
+                    </p>
+                  )}
+                </>
+              )}
+              
+              {!showSuggestedCategories && (
+                <p className="text-sm text-gray-500 italic">
+                  Suggestions hidden. Click + to show {availableSuggestions.length} available suggestions.
                 </p>
               )}
             </div>
