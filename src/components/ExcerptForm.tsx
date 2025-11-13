@@ -376,10 +376,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         router.push('/excerpts')
         return
       }
+      console.log('💾 CALLING storage.saveExcerpt...')
       await storage.saveExcerpt(excerptData)
+      console.log('💾 storage.saveExcerpt completed')
       
       // Verify it was saved
+      console.log('🔍 VERIFYING save...')
       const saved = await storage.getExcerpt(excerptData.id)
+      console.log('🔍 getExcerpt completed')
       
       console.log('✅ SAVE VERIFICATION:', {
         excerptId: excerptData.id,
@@ -410,7 +414,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       console.log(`✅ Excerpt ${mode === 'create' ? 'created' : 'updated'} successfully!`)
       router.push('/excerpts')
     } catch (error) {
-      console.error('Error saving excerpt:', error)
+      console.error('🚨 ERROR SAVING EXCERPT:', error)
+      console.error('🚨 Full error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        excerptId,
+        title: title.substring(0, 30) + '...',
+        tagsBeingSaved: tags
+      })
       console.error('There was an error saving your excerpt. Please try again.')
     } finally {
       setIsSubmitting(false)
