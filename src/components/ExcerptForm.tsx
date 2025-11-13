@@ -49,6 +49,11 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const quillRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  const getWordCount = (html: string): number => {
+    const text = html.replace(/<[^>]*>/g, '').trim()
+    return text ? text.split(/\s+/).length : 0
+  }
+
   // Auto-save functionality
   const getDraftKey = useCallback(() => {
     return `draft_excerpt_${excerpt?.id || 'new'}_${Date.now().toString().slice(-6)}`
@@ -193,11 +198,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       setExcerptLoaded(true)
     }
   }, [excerpt, excerptLoaded])
-
-  const getWordCount = (html: string): number => {
-    const text = html.replace(/<[^>]*>/g, '').trim()
-    return text ? text.split(/\s+/).length : 0
-  }
 
   const addTag = async (tag: string) => {
     const trimmedTag = tag.trim()
