@@ -592,7 +592,7 @@ export default function StoryboardEditPage() {
     })
   }
 
-  const handleStoryboardSort = async (sortType: 'order' | 'name' | 'dateCreated' | 'dateUpdated') => {
+  const handleStoryboardSort = async (sortType: 'order' | 'name' | 'displayDate' | 'lastEdited') => {
     if (!storyboard) return
     
     setStoryboardSortBy(sortType)
@@ -761,8 +761,8 @@ export default function StoryboardEditPage() {
               >
                 <option value="order">Manual Order</option>
                 <option value="name">Name A-Z</option>
-                <option value="dateCreated">Excerpt Date</option>
-                <option value="dateUpdated">Last Updated</option>
+                <option value="displayDate">Excerpt Date</option>
+                <option value="lastEdited">Last Updated</option>
               </select>
               
               {storyboardSortBy !== 'order' && (
