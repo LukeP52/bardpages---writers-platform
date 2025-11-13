@@ -284,23 +284,22 @@ export default function ExcerptsPage() {
 
 
   const renderExcerpts = () => (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {filteredExcerpts.map((excerpt, index) => (
         <div key={excerpt.id} className={`card bg-white hover:shadow-md transition-all ${
           selectedExcerptIds.includes(excerpt.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
         }`}>
           <div className="p-4">
-            {/* Mobile-optimized layout */}
-            <div className="md:hidden">
-              <div className="flex items-center justify-between mb-2">
-                {/* Selection checkbox or index for mobile */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 flex-1 min-w-0">
+                {/* Selection checkbox or index */}
                 {isSelectionMode ? (
                   <label className="flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={selectedExcerptIds.includes(excerpt.id)}
                       onChange={() => toggleExcerptSelection(excerpt.id)}
-                      className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                     />
                   </label>
                 ) : (
@@ -309,144 +308,45 @@ export default function ExcerptsPage() {
                   </span>
                 )}
                 
-                <span className={`px-2 py-1 text-xs font-bold rounded ${
-                  excerpt.status === 'final' ? 'bg-green-100 text-green-800' :
-                  excerpt.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {excerpt.status.toUpperCase()}
-                </span>
+                {/* Title and Date */}
+                <div className="flex-1 min-w-0">
+                  <a 
+                    href={`/excerpts/${excerpt.id}/edit`}
+                    onClick={() => {
+                      console.log('Title clicked for excerpt:', excerpt.id)
+                      cacheExcerptForEditing(excerpt)
+                    }}
+                    className="text-lg font-bold text-black hover:text-blue-600 transition-colors truncate block"
+                  >
+                    {excerpt.title}
+                  </a>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {excerpt.updatedAt.toLocaleDateString()}
+                  </p>
+                </div>
               </div>
               
-              {/* Title - clickable for mobile */}
-              <a 
-                href={`/excerpts/${excerpt.id}/edit`}
-                onClick={() => {
-                  console.log('Title clicked for excerpt:', excerpt.id)
-                  cacheExcerptForEditing(excerpt)
-                }}
-                className="block text-lg font-bold text-black hover:text-blue-600 transition-colors mb-3 line-clamp-2"
-              >
-                {excerpt.title}
-              </a>
-              
-              {/* Action buttons for mobile */}
+              {/* Action buttons */}
               {!isSelectionMode && (
-                <div className="flex gap-2">
+                <div className="flex gap-2 ml-4 shrink-0">
                   <a
                     href={`/excerpts/${excerpt.id}/edit`}
                     onClick={() => {
                       console.log('EDIT button clicked for excerpt:', excerpt.id)
                       cacheExcerptForEditing(excerpt)
                     }}
-                    className="flex-1 btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 text-sm font-medium min-h-[44px] flex items-center justify-center"
+                    className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm"
                   >
                     Edit
                   </a>
                   <button
                     onClick={() => handleDeleteExcerpt(excerpt)}
-                    className="flex-1 btn border border-red-300 text-red-600 hover:bg-red-500 hover:text-white px-4 py-3 text-sm font-medium min-h-[44px] flex items-center justify-center"
+                    className="btn btn-sm border border-red-300 text-red-600 hover:bg-red-500 hover:text-white px-3 py-1 text-sm"
                   >
                     Delete
                   </button>
                 </div>
               )}
-            </div>
-            
-            {/* Desktop layout - unchanged */}
-            <div className="hidden md:block">
-              <div className="flex items-start justify-between">
-                <div className="flex items-start gap-3 flex-1 min-w-0">
-                  {/* Selection checkbox or index */}
-                  {isSelectionMode ? (
-                    <label className="flex items-center mt-1 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={selectedExcerptIds.includes(excerpt.id)}
-                        onChange={() => toggleExcerptSelection(excerpt.id)}
-                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                      />
-                    </label>
-                  ) : (
-                    <span className="text-gray-600 font-bold font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                  )}
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                    <a 
-                      href={`/excerpts/${excerpt.id}/edit`}
-                      onClick={() => {
-                        console.log('Title clicked for excerpt:', excerpt.id)
-                        cacheExcerptForEditing(excerpt)
-                      }}
-                      className="text-lg font-bold text-black hover:text-blue-600 transition-colors truncate"
-                    >
-                      {excerpt.title}
-                    </a>
-                    <span className={`px-2 py-1 text-xs font-bold rounded ${
-                      excerpt.status === 'final' ? 'bg-green-100 text-green-800' :
-                      excerpt.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
-                      {excerpt.status.toUpperCase()}
-                    </span>
-                  </div>
-                  
-                  <div className="text-gray-700 text-sm mb-3 leading-relaxed">
-                    {getExcerptPreview(excerpt.content, 120)}
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-xs text-gray-500">
-                      <span>{excerpt.wordCount} words</span>
-                      {excerpt.author && (
-                        <span>by {excerpt.author}</span>
-                      )}
-                      <span>{excerpt.updatedAt.toLocaleDateString()}</span>
-                    </div>
-                    
-                    {excerpt.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1">
-                        {excerpt.tags.slice(0, 3).map(tag => (
-                          <span
-                            key={tag}
-                            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md"
-                          >
-                            {tag}
-                          </span>
-                        ))}
-                        {excerpt.tags.length > 3 && (
-                          <span className="text-xs text-gray-400">+{excerpt.tags.length - 3}</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  </div>
-                </div>
-                
-                {!isSelectionMode && (
-                  <div className="flex gap-2 ml-4 shrink-0">
-                    <a
-                      href={`/excerpts/${excerpt.id}/edit`}
-                      onClick={() => {
-                        console.log('EDIT button clicked for excerpt:', excerpt.id)
-                        cacheExcerptForEditing(excerpt)
-                      }}
-                      className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm"
-                    >
-                      Edit
-                    </a>
-                    <button
-                      onClick={() => handleDeleteExcerpt(excerpt)}
-                      className="btn btn-sm border border-red-300 text-red-600 hover:bg-red-500 hover:text-white px-3 py-1 text-sm"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                )}
-              </div>
             </div>
           </div>
         </div>
