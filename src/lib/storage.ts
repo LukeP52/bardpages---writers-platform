@@ -383,6 +383,20 @@ class InMemoryStorage {
     this.saveToLocalStorage()
     return result
   }
+  
+  // Complete tag deletion - removes from premade tags and category mappings
+  deleteTagCompletely(tag: string): boolean {
+    this.initializeFromLocalStorage()
+    
+    // Remove from premade tags
+    const deletedFromPremade = this.premadeTags.delete(tag)
+    
+    // Remove from tag-category mappings
+    const deletedFromMappings = this.tagCategoryMappings.delete(tag)
+    
+    this.saveToLocalStorage()
+    return deletedFromPremade || deletedFromMappings
+  }
 
   getAllTags(): string[] {
     // In the unified system, all tags are stored in premadeTags

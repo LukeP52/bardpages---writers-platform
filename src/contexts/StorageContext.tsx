@@ -28,6 +28,7 @@ interface StorageContextType {
   deleteCategory: (id: string) => Promise<void>
   addPremadeTagWithCategories: (tagName: string, categoryIds: string[]) => Promise<void>
   getTagCategories: (tagName: string) => Promise<Category[]>
+  deleteTagCompletely: (tagName: string) => Promise<void>
   getWriterCategorySuggestions: () => Array<{ name: string; description: string; color: string }>
   
   // Storyboard operations
@@ -340,6 +341,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     getTagCategories: createStorageMethod(
       'getTagCategories',
       (tagName: string) => firestoreService!.getTagCategories(tagName)
+    ),
+    
+    deleteTagCompletely: createStorageMethod(
+      'deleteTagCompletely',
+      (tagName: string) => firestoreService!.deleteTagCompletely(tagName)
     ),
     
     getWriterCategorySuggestions: () => currentLocalStorage.getWriterCategorySuggestions(),

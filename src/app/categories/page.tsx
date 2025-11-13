@@ -19,6 +19,9 @@ export default function TagManagerPage() {
   const [currentCategoryIds, setCurrentCategoryIds] = useState<string[]>([])
   const [groupedTags, setGroupedTags] = useState<{ [key: string]: string[] }>({})
   const [isLoadingGroups, setIsLoadingGroups] = useState(false)
+  const [showDeleteConfirmModal, setShowDeleteConfirmModal] = useState(false)
+  const [tagToDelete, setTagToDelete] = useState('')
+  const [tagExcerptUsage, setTagExcerptUsage] = useState<{usedInExcerpts: boolean, excerptCount: number}>({usedInExcerpts: false, excerptCount: 0})
   const storage = useStorage()
   const categorySuggestions = storage.getWriterCategorySuggestions()
 
@@ -175,21 +178,63 @@ export default function TagManagerPage() {
     }
   }
 
-  const deleteTag = async (tag: string) => {
+  const initiateTagDeletion = async (tag: string) => {
     try {
       // Check if this tag is used in any excerpts
       const excerpts = await storage.getExcerpts()
-      const isUsedInExcerpts = excerpts.some(excerpt => excerpt.tags.includes(tag))
+      const excerptCount = excerpts.filter(excerpt => excerpt.tags.includes(tag)).length
+      const isUsedInExcerpts = excerptCount > 0
       
-      if (isUsedInExcerpts) {
-        console.log(`"${tag}" is currently used in excerpts and cannot be deleted. Remove it from excerpts first.`)
-        return
-      }
-      
-      // Since we're auto-populating, tags are removed automatically when not used
-      await loadData()
+      setTagToDelete(tag)
+      setTagExcerptUsage({ usedInExcerpts: isUsedInExcerpts, excerptCount })
+      setShowDeleteConfirmModal(true)
     } catch (error) {
-      console.error('Failed to delete tag:', error)
+      console.error('Failed to check tag usage:', error)
+    }
+  }
+  
+  const deleteTagFromManagerOnly = async () => {
+    try {
+      // Delete the tag completely from tag management (premade tags and category mappings)
+      await storage.deleteTagCompletely(tagToDelete)
+      console.log(`Tag "${tagToDelete}" removed from tag manager but kept in excerpts.`)
+      
+      // Reload data
+      await loadData()
+      
+      // Close modal
+      setShowDeleteConfirmModal(false)
+      setTagToDelete('')
+    } catch (error) {
+      console.error('Failed to delete tag from manager:', error)
+    }
+  }
+  
+  const deleteTagFromEverywhere = async () => {
+    try {
+      // First, remove tag from all excerpts
+      const excerpts = await storage.getExcerpts()
+      const updatedExcerpts = excerpts.map(excerpt => ({
+        ...excerpt,
+        tags: excerpt.tags.filter(t => t !== tagToDelete)
+      }))
+      
+      // Save all updated excerpts
+      await Promise.all(updatedExcerpts.map(excerpt => storage.saveExcerpt(excerpt)))
+      
+      // Then delete the tag from tag management
+      await storage.deleteTagCompletely(tagToDelete)
+      
+      console.log(`Tag "${tagToDelete}" completely removed from system.`)
+      
+      // Reload data
+      await loadData()
+      
+      // Close modal
+      setShowDeleteConfirmModal(false)
+      setTagToDelete('')
+    } catch (error) {
+      console.error('Failed to delete tag everywhere:', error)
     }
   }
 
@@ -202,8 +247,26 @@ export default function TagManagerPage() {
       const categoryTags = groupedTags[category.name] || []
       
       if (categoryTags.length > 0) {
-        console.log(`Category "${category.name}" has ${categoryTags.length} tags assigned and cannot be deleted. Reassign the tags first.`)
-        return
+        const confirmed = window.confirm(
+          `Category "${category.name}" has ${categoryTags.length} tag${categoryTags.length !== 1 ? 's' : ''} assigned to it.\n\nDeleting this category will move all its tags to "Uncategorized".\n\nDo you want to continue?`
+        )
+        
+        if (!confirmed) return
+        
+        // Move tags to uncategorized by removing their category assignments
+        for (const tag of categoryTags) {
+          try {
+            await storage.addPremadeTagWithCategories(tag, [])
+          } catch (error) {
+            console.error(`Failed to uncategorize tag "${tag}":`, error)
+          }
+        }
+      } else {
+        const confirmed = window.confirm(
+          `Are you sure you want to delete the category "${category.name}"?\n\nThis action cannot be undone.`
+        )
+        
+        if (!confirmed) return
       }
       
       await storage.deleteCategory(categoryId)
@@ -531,7 +594,7 @@ export default function TagManagerPage() {
                                   <PencilIcon className="w-3 h-3" />
                                 </button>
                                 <button
-                                  onClick={() => deleteTag(tag)}
+                                  onClick={() => initiateTagDeletion(tag)}
                                   className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
                                   title="Delete tag"
                                 >
@@ -576,6 +639,75 @@ export default function TagManagerPage() {
             setSelectedTagForAssignment('')
           }}
         />
+      )}
+      
+      {/* Tag Deletion Confirmation Modal */}
+      {showDeleteConfirmModal && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg border border-gray-300 w-full max-w-md">
+            <div className="p-6">
+              <h3 className="text-lg font-bold text-black mb-4">
+                Delete Tag "{tagToDelete}"?
+              </h3>
+              
+              {tagExcerptUsage.usedInExcerpts ? (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-700">
+                    This tag is currently used in <strong>{tagExcerptUsage.excerptCount}</strong> excerpt{tagExcerptUsage.excerptCount !== 1 ? 's' : ''}.
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    Choose how you'd like to handle this tag:
+                  </p>
+                  
+                  <div className="space-y-3">
+                    <button
+                      onClick={deleteTagFromManagerOnly}
+                      className="w-full btn bg-orange-600 hover:bg-orange-700 text-white py-3 text-sm"
+                    >
+                      Remove from Tag Manager Only
+                      <span className="block text-xs opacity-90 mt-1">
+                        Keep in excerpts, remove from quick-select list
+                      </span>
+                    </button>
+                    
+                    <button
+                      onClick={deleteTagFromEverywhere}
+                      className="w-full btn bg-red-600 hover:bg-red-700 text-white py-3 text-sm"
+                    >
+                      Delete from Everywhere
+                      <span className="block text-xs opacity-90 mt-1">
+                        Remove from all excerpts and tag manager
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-700">
+                    This tag is not currently used in any excerpts. It will be removed from your tag manager.
+                  </p>
+                  
+                  <button
+                    onClick={deleteTagFromManagerOnly}
+                    className="w-full btn bg-red-600 hover:bg-red-700 text-white py-3 text-sm"
+                  >
+                    Delete Tag
+                  </button>
+                </div>
+              )}
+              
+              <button
+                onClick={() => {
+                  setShowDeleteConfirmModal(false)
+                  setTagToDelete('')
+                }}
+                className="w-full btn btn-ghost mt-3 py-2 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

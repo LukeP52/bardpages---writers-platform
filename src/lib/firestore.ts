@@ -287,6 +287,14 @@ export class FirestoreService {
     
     return categories
   }
+  
+  // Delete tag completely - removes from tag-category mappings
+  async deleteTagCompletely(tagName: string): Promise<void> {
+    this.checkAvailability()
+    
+    const tagRef = doc(db, 'users', this.userId, 'tagCategories', tagName)
+    await deleteDoc(tagRef)
+  }
 
   // STORYBOARD OPERATIONS
   async saveStoryboard(storyboard: Storyboard): Promise<void> {
