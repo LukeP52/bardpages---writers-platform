@@ -156,7 +156,7 @@ export default function StoryboardEditPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [openCategoryDropdowns, setOpenCategoryDropdowns] = useState<Set<string>>(new Set())
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-  const [storyboardSortBy, setStoryboardSortBy] = useState<'order' | 'name' | 'displayDate' | 'lastEdited'>('order')
+  const [storyboardSortBy, setStoryboardSortBy] = useState<'order' | 'name' | 'dateCreated' | 'dateUpdated'>('order')
   const [storyboardSortReversed, setStoryboardSortReversed] = useState(false)
   const categoryDropdownRef = React.useRef<HTMLDivElement>(null)
 
@@ -592,7 +592,7 @@ export default function StoryboardEditPage() {
     })
   }
 
-  const handleStoryboardSort = async (sortType: 'order' | 'name' | 'displayDate' | 'lastEdited') => {
+  const handleStoryboardSort = async (sortType: 'order' | 'name' | 'dateCreated' | 'dateUpdated') => {
     if (!storyboard) return
     
     setStoryboardSortBy(sortType)
@@ -633,10 +633,10 @@ export default function StoryboardEditPage() {
         switch (storyboardSortBy) {
           case 'name':
             return a.excerpt!.title.localeCompare(b.excerpt!.title)
-          case 'displayDate':
-            return b.excerpt!.createdAt.getTime() - a.excerpt!.createdAt.getTime()
-          case 'lastEdited':
-            return b.excerpt!.updatedAt.getTime() - a.excerpt!.updatedAt.getTime()
+          case 'dateCreated':
+            return b.excerpt!.createdAt.getTime() - a.excerpt!.createdAt.getTime() // Newest first
+          case 'dateUpdated':
+            return b.excerpt!.updatedAt.getTime() - a.excerpt!.updatedAt.getTime() // Newest first
           default:
             return a.section.order - b.section.order
         }
@@ -761,8 +761,8 @@ export default function StoryboardEditPage() {
               >
                 <option value="order">Manual Order</option>
                 <option value="name">Name A-Z</option>
-                <option value="displayDate">Excerpt Date</option>
-                <option value="lastEdited">Last Edited</option>
+                <option value="dateCreated">Excerpt Date</option>
+                <option value="dateUpdated">Last Updated</option>
               </select>
               
               {storyboardSortBy !== 'order' && (
