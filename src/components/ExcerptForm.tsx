@@ -119,7 +119,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       // Only save if there's meaningful content
       if (excerptData.title !== 'Untitled Excerpt' || excerptData.content) {
         guestStorage.saveExcerpt(excerptData)
-        console.log('Updated guest excerpt:', guestExcerptId)
+        // Guest excerpt saved to storage
       }
     }
   }, [user, storage.isLoading, title, content, author, status, tags, date, excerpt, getWordCount, guestExcerptId])
@@ -127,7 +127,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   // Load draft data on component mount
   useEffect(() => {
     const draft = loadDraft()
-    console.log('🔥 ExcerptForm: loadDraft returned:', draft)
+    // Loading draft data
     if (draft && !excerpt) {
       // Only load draft for new excerpts, not when editing existing ones
       setTitle(draft.title || '')
@@ -332,13 +332,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   }
   
   const performSave = async () => {
-    console.log('🔵 FORM SUBMIT: performSave started', {
-      excerptId: excerpt?.id,
-      guestExcerptId,
-      user: !!user,
-      title: title.substring(0, 20) + '...'
-    })
-    
     setIsSubmitting(true)
 
     try {
@@ -347,7 +340,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       
       // Use existing excerpt ID, or guest ID if this started as guest work, otherwise generate new UUID  
       const excerptId = excerpt?.id || guestExcerptId || uuidv4()
-      console.log('🔵 FORM SUBMIT: Using excerptId:', excerptId)
       
       const excerptData: Excerpt = {
         id: excerptId,
@@ -363,17 +355,13 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
 
       // Check if this excerpt already exists (from migration) to prevent duplicates
       const existingExcerpt = await storage.getExcerpt(excerptId)
-      console.log('🔵 FORM SUBMIT: Existing excerpt check:', !!existingExcerpt)
       
       if (existingExcerpt && user && excerptId === guestExcerptId) {
         // This excerpt was already migrated, just redirect without saving again
-        console.log('🔵 FORM SUBMIT: Excerpt already exists, skipping save')
         clearDraft()
         router.push('/excerpts')
         return
       }
-      
-      console.log('🔵 FORM SUBMIT: Saving excerpt to storage')
       await storage.saveExcerpt(excerptData)
       
       // Verify it was saved
@@ -391,7 +379,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         try {
           const guestStorage = createStorage()
           guestStorage.deleteExcerpt(guestExcerptId)
-          console.log('Cleared guest excerpt from storage after authenticated save')
+          // Guest excerpt cleared from storage after authenticated save
         } catch (error) {
           console.warn('Could not clear guest excerpt:', error)
         }

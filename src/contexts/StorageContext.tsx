@@ -138,7 +138,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
         localStorage.removeItem('bardpages_tag_mappings')
       }
       
-      console.log(`Migrated ${validExcerpts.length} excerpts and ${localCategories.length} categories to cloud storage!`)
+      console.log(`Initial migration completed: ${validExcerpts.length} excerpts and ${localCategories.length} categories`)
       setMigrationCompleted(true)
       
     } catch (error) {
