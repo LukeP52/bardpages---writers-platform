@@ -345,8 +345,8 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       const now = new Date()
       const selectedDate = new Date(date)
       
-      // Use existing excerpt ID, or guest ID if it exists, otherwise generate new UUID
-      const excerptId = excerpt?.id || (!user ? guestExcerptId : uuidv4())
+      // Use existing excerpt ID, or guest ID if this started as guest work, otherwise generate new UUID  
+      const excerptId = excerpt?.id || guestExcerptId || uuidv4()
       console.log('🔵 FORM SUBMIT: Using excerptId:', excerptId)
       
       const excerptData: Excerpt = {
