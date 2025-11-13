@@ -38,6 +38,10 @@ interface StorageContextType {
   // Migration
   migrateToCloud: () => Promise<void>
   
+  // Guest migration
+  checkForGuestData: () => boolean
+  migrateGuestData: () => Promise<void>
+  
   // State
   isUsingCloud: boolean
   isLoading: boolean
@@ -151,6 +155,72 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [firestoreService, migrateToCloud, migrationCompleted])
 
+  // Guest data migration functions
+  const checkForGuestData = useCallback(() => {
+    if (typeof window === 'undefined') return false
+    
+    const guestStorage = createStorage()
+    const guestExcerpts = guestStorage.getExcerpts()
+    const guestCategories = guestStorage.getCategories()
+    const guestStoryboards = guestStorage.getStoryboards()
+    
+    return guestExcerpts.length > 0 || guestCategories.length > 0 || guestStoryboards.length > 0
+  }, [])
+
+  const migrateGuestData = useCallback(async () => {
+    if (!user || !isUsingCloud || !firestoreService) {
+      console.log('Cannot migrate guest data - user not signed in or cloud not available')
+      return
+    }
+
+    const guestStorage = createStorage()
+    const guestExcerpts = guestStorage.getExcerpts()
+    const guestCategories = guestStorage.getCategories()
+    const guestStoryboards = guestStorage.getStoryboards()
+
+    try {
+      setIsLoading(true)
+      
+      // Migrate excerpts to the user's cloud storage
+      for (const excerpt of guestExcerpts) {
+        await firestoreService.saveExcerpt(excerpt)
+        console.log(`Migrated excerpt: ${excerpt.title}`)
+      }
+
+      // Migrate categories
+      for (const category of guestCategories) {
+        await firestoreService.saveCategory(category)
+        console.log(`Migrated category: ${category.name}`)
+      }
+
+      // Migrate storyboards  
+      for (const storyboard of guestStoryboards) {
+        await firestoreService.saveStoryboard(storyboard)
+        console.log(`Migrated storyboard: ${storyboard.title}`)
+      }
+
+      // Clear guest data after successful migration
+      if (typeof window !== 'undefined') {
+        const keysToRemove = []
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i)
+          if (key?.startsWith('bardpages_guest_')) {
+            keysToRemove.push(key)
+          }
+        }
+        keysToRemove.forEach(key => localStorage.removeItem(key))
+      }
+
+      console.log(`Successfully migrated ${guestExcerpts.length} excerpts, ${guestCategories.length} categories, and ${guestStoryboards.length} storyboards from guest mode to your account!`)
+      
+    } catch (error) {
+      console.error('Failed to migrate guest data:', error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }, [user, isUsingCloud, firestoreService])
+
   // Create wrapper functions that route to appropriate storage
   const createStorageMethod = <T extends any[], R>(
     localMethodName: string,
@@ -262,6 +332,10 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     
     // Migration
     migrateToCloud,
+    
+    // Guest migration
+    checkForGuestData,
+    migrateGuestData,
     
     // State
     isUsingCloud,
