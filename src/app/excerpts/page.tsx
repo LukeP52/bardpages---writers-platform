@@ -290,97 +290,163 @@ export default function ExcerptsPage() {
           selectedExcerptIds.includes(excerpt.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''
         }`}>
           <div className="p-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3 flex-1 min-w-0">
-                {/* Selection checkbox or index */}
+            {/* Mobile-optimized layout */}
+            <div className="md:hidden">
+              <div className="flex items-center justify-between mb-2">
+                {/* Selection checkbox or index for mobile */}
                 {isSelectionMode ? (
-                  <label className="flex items-center mt-1 cursor-pointer">
+                  <label className="flex items-center cursor-pointer">
                     <input
                       type="checkbox"
                       checked={selectedExcerptIds.includes(excerpt.id)}
                       onChange={() => toggleExcerptSelection(excerpt.id)}
-                      className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-5 h-5 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
                     />
                   </label>
                 ) : (
-                  <span className="text-gray-600 font-bold font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
+                  <span className="text-gray-600 font-bold font-mono text-sm bg-gray-100 px-2 py-1 rounded">
                     {String(index + 1).padStart(2, '0')}
                   </span>
                 )}
                 
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3 mb-2">
-                  <a 
-                    href={`/excerpts/${excerpt.id}/edit`}
-                    onClick={() => {
-                      console.log('Title clicked for excerpt:', excerpt.id)
-                      cacheExcerptForEditing(excerpt)
-                    }}
-                    className="text-lg font-bold text-black hover:text-blue-600 transition-colors truncate"
-                  >
-                    {excerpt.title}
-                  </a>
-                  <span className={`px-2 py-1 text-xs font-bold rounded ${
-                    excerpt.status === 'final' ? 'bg-green-100 text-green-800' :
-                    excerpt.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-gray-100 text-gray-800'
-                  }`}>
-                    {excerpt.status.toUpperCase()}
-                  </span>
-                </div>
-                
-                <div className="text-gray-700 text-sm mb-3 leading-relaxed">
-                  {getExcerptPreview(excerpt.content, 120)}
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span>{excerpt.wordCount} words</span>
-                    {excerpt.author && (
-                      <span>by {excerpt.author}</span>
-                    )}
-                    <span>{excerpt.updatedAt.toLocaleDateString()}</span>
-                  </div>
-                  
-                  {excerpt.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {excerpt.tags.slice(0, 3).map(tag => (
-                        <span
-                          key={tag}
-                          className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                      {excerpt.tags.length > 3 && (
-                        <span className="text-xs text-gray-400">+{excerpt.tags.length - 3}</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-                </div>
+                <span className={`px-2 py-1 text-xs font-bold rounded ${
+                  excerpt.status === 'final' ? 'bg-green-100 text-green-800' :
+                  excerpt.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {excerpt.status.toUpperCase()}
+                </span>
               </div>
               
+              {/* Title - clickable for mobile */}
+              <a 
+                href={`/excerpts/${excerpt.id}/edit`}
+                onClick={() => {
+                  console.log('Title clicked for excerpt:', excerpt.id)
+                  cacheExcerptForEditing(excerpt)
+                }}
+                className="block text-lg font-bold text-black hover:text-blue-600 transition-colors mb-3 line-clamp-2"
+              >
+                {excerpt.title}
+              </a>
+              
+              {/* Action buttons for mobile */}
               {!isSelectionMode && (
-                <div className="flex gap-2 ml-4 shrink-0">
+                <div className="flex gap-2">
                   <a
                     href={`/excerpts/${excerpt.id}/edit`}
                     onClick={() => {
                       console.log('EDIT button clicked for excerpt:', excerpt.id)
                       cacheExcerptForEditing(excerpt)
                     }}
-                    className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm"
+                    className="flex-1 btn bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 text-sm font-medium min-h-[44px] flex items-center justify-center"
                   >
                     Edit
                   </a>
                   <button
                     onClick={() => handleDeleteExcerpt(excerpt)}
-                    className="btn btn-sm border border-red-300 text-red-600 hover:bg-red-500 hover:text-white px-3 py-1 text-sm"
+                    className="flex-1 btn border border-red-300 text-red-600 hover:bg-red-500 hover:text-white px-4 py-3 text-sm font-medium min-h-[44px] flex items-center justify-center"
                   >
                     Delete
                   </button>
                 </div>
               )}
+            </div>
+            
+            {/* Desktop layout - unchanged */}
+            <div className="hidden md:block">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  {/* Selection checkbox or index */}
+                  {isSelectionMode ? (
+                    <label className="flex items-center mt-1 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedExcerptIds.includes(excerpt.id)}
+                        onChange={() => toggleExcerptSelection(excerpt.id)}
+                        className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                    </label>
+                  ) : (
+                    <span className="text-gray-600 font-bold font-mono text-sm bg-gray-100 px-2 py-1 rounded mt-1">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                  )}
+                  
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                    <a 
+                      href={`/excerpts/${excerpt.id}/edit`}
+                      onClick={() => {
+                        console.log('Title clicked for excerpt:', excerpt.id)
+                        cacheExcerptForEditing(excerpt)
+                      }}
+                      className="text-lg font-bold text-black hover:text-blue-600 transition-colors truncate"
+                    >
+                      {excerpt.title}
+                    </a>
+                    <span className={`px-2 py-1 text-xs font-bold rounded ${
+                      excerpt.status === 'final' ? 'bg-green-100 text-green-800' :
+                      excerpt.status === 'review' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {excerpt.status.toUpperCase()}
+                    </span>
+                  </div>
+                  
+                  <div className="text-gray-700 text-sm mb-3 leading-relaxed">
+                    {getExcerptPreview(excerpt.content, 120)}
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4 text-xs text-gray-500">
+                      <span>{excerpt.wordCount} words</span>
+                      {excerpt.author && (
+                        <span>by {excerpt.author}</span>
+                      )}
+                      <span>{excerpt.updatedAt.toLocaleDateString()}</span>
+                    </div>
+                    
+                    {excerpt.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1">
+                        {excerpt.tags.slice(0, 3).map(tag => (
+                          <span
+                            key={tag}
+                            className="px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-md"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                        {excerpt.tags.length > 3 && (
+                          <span className="text-xs text-gray-400">+{excerpt.tags.length - 3}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  </div>
+                </div>
+                
+                {!isSelectionMode && (
+                  <div className="flex gap-2 ml-4 shrink-0">
+                    <a
+                      href={`/excerpts/${excerpt.id}/edit`}
+                      onClick={() => {
+                        console.log('EDIT button clicked for excerpt:', excerpt.id)
+                        cacheExcerptForEditing(excerpt)
+                      }}
+                      className="btn btn-sm bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 text-sm"
+                    >
+                      Edit
+                    </a>
+                    <button
+                      onClick={() => handleDeleteExcerpt(excerpt)}
+                      className="btn btn-sm border border-red-300 text-red-600 hover:bg-red-500 hover:text-white px-3 py-1 text-sm"
+                    >
+                      Delete
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -393,51 +459,126 @@ export default function ExcerptsPage() {
   return (
     <div className="container py-12">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-black tracking-tight mb-1">
-            EXCERPTS
-          </h1>
-          <p className="text-black font-mono text-xs">
-            YOUR STORY FRAGMENTS
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-3">
-          {filteredExcerpts.length > 0 && (
+      <div className="mb-6">
+        {/* Mobile header layout */}
+        <div className="md:hidden">
+          <div className="flex flex-col space-y-4">
+            <div>
+              <h1 className="text-2xl font-bold text-black tracking-tight mb-1">
+                EXCERPTS
+              </h1>
+              <p className="text-black font-mono text-xs">
+                YOUR STORY FRAGMENTS
+              </p>
+            </div>
+            
             <div className="flex items-center gap-2">
-              <select
-                onChange={handleSelectDropdownChange}
-                className="input text-sm"
-                defaultValue=""
+              <Link
+                href="/excerpts/new"
+                className="flex-1 btn btn-primary min-h-[44px] flex items-center justify-center"
               >
-                <option value="" disabled>Select...</option>
-                <option value="select">Select</option>
-                <option value="select-all">Select All</option>
-              </select>
+                + NEW EXCERPT
+              </Link>
               
-              {isSelectionMode && selectedExcerptIds.length > 0 && (
-                <button
-                  onClick={handleBulkDelete}
-                  className="btn btn-sm bg-red-600 hover:bg-red-700 text-white"
+              {filteredExcerpts.length > 0 && (
+                <select
+                  onChange={handleSelectDropdownChange}
+                  className="input text-sm min-h-[44px]"
+                  defaultValue=""
                 >
-                  Delete ({selectedExcerptIds.length})
-                </button>
+                  <option value="" disabled>Select...</option>
+                  <option value="select">Select</option>
+                  <option value="select-all">Select All</option>
+                </select>
               )}
             </div>
-          )}
-          <Link
-            href="/excerpts/new"
-            className="btn btn-primary"
-          >
-            + NEW EXCERPT
-          </Link>
+            
+            {isSelectionMode && selectedExcerptIds.length > 0 && (
+              <button
+                onClick={handleBulkDelete}
+                className="w-full btn bg-red-600 hover:bg-red-700 text-white min-h-[44px]"
+              >
+                Delete ({selectedExcerptIds.length}) Selected
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {/* Desktop header layout */}
+        <div className="hidden md:flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-black tracking-tight mb-1">
+              EXCERPTS
+            </h1>
+            <p className="text-black font-mono text-xs">
+              YOUR STORY FRAGMENTS
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {filteredExcerpts.length > 0 && (
+              <div className="flex items-center gap-2">
+                <select
+                  onChange={handleSelectDropdownChange}
+                  className="input text-sm"
+                  defaultValue=""
+                >
+                  <option value="" disabled>Select...</option>
+                  <option value="select">Select</option>
+                  <option value="select-all">Select All</option>
+                </select>
+                
+                {isSelectionMode && selectedExcerptIds.length > 0 && (
+                  <button
+                    onClick={handleBulkDelete}
+                    className="btn btn-sm bg-red-600 hover:bg-red-700 text-white"
+                  >
+                    Delete ({selectedExcerptIds.length})
+                  </button>
+                )}
+              </div>
+            )}
+            <Link
+              href="/excerpts/new"
+              className="btn btn-primary"
+            >
+              + NEW EXCERPT
+            </Link>
+          </div>
         </div>
       </div>
 
       {/* Search and Filters */}
       <div className="mb-8 space-y-6">
-        <div className="flex gap-4">
+        {/* Mobile search and filters */}
+        <div className="md:hidden space-y-3">
+          <input
+            type="text"
+            placeholder="SEARCH EXCERPTS..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="input w-full min-h-[44px] text-base"
+          />
+          <div className="flex gap-2">
+            <button
+              onClick={() => setFiltersExpanded(!filtersExpanded)}
+              className="flex-1 btn btn-outline min-h-[44px]"
+            >
+              FILTERS {filtersExpanded ? '−' : '+'}
+            </button>
+            {(selectedTags.length > 0 || selectedStatuses.length > 0 || selectedAuthors.length > 0 || searchQuery || dateFrom || dateTo) && (
+              <button
+                onClick={clearAllFilters}
+                className="btn btn-ghost min-h-[44px] px-4"
+              >
+                CLEAR
+              </button>
+            )}
+          </div>
+        </div>
+        
+        {/* Desktop search and filters */}
+        <div className="hidden md:flex gap-4">
           <input
             type="text"
             placeholder="SEARCH EXCERPTS..."
