@@ -101,7 +101,8 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [guestExcerptId] = useState(() => excerpt?.id || `guest-${Date.now()}`)
   
   const saveToGuestStorage = useCallback(() => {
-    if (!user && (title || content || author)) {
+    // Only save to guest storage if user is NOT authenticated and migration is not in progress
+    if (!user && !storage.isLoading && (title || content || author)) {
       const guestStorage = createStorage()
       const excerptData: Excerpt = {
         id: guestExcerptId, // Use consistent ID to update same excerpt
@@ -121,7 +122,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         console.log('Updated guest excerpt:', guestExcerptId)
       }
     }
-  }, [user, title, content, author, status, tags, date, excerpt, getWordCount, guestExcerptId])
+  }, [user, storage.isLoading, title, content, author, status, tags, date, excerpt, getWordCount, guestExcerptId])
 
   // Load draft data on component mount
   useEffect(() => {
@@ -146,9 +147,15 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   // Auto-save draft data when fields change
   useEffect(() => {
     const timeoutId = setTimeout(() => {
+      // Prevent auto-save during migration to avoid race conditions
+      if (storage.isLoading) {
+        console.log('Skipping auto-save - migration in progress')
+        return
+      }
+      
       if (title || content || author) {
         if (user) {
-          // For signed-in users, save to drafts
+          // For signed-in users, save to drafts (not guest storage)
           saveDraft({
             title,
             content,
@@ -165,7 +172,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     }, 1000) // Debounce for 1 second
 
     return () => clearTimeout(timeoutId)
-  }, [title, content, author, status, tags, date, user, saveDraft, saveToGuestStorage])
+  }, [title, content, author, status, tags, date, user, saveDraft, saveToGuestStorage, storage.isLoading])
 
   useEffect(() => {
     const loadData = async () => {
