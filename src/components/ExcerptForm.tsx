@@ -258,6 +258,11 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   }
 
   const removeTag = (tagToRemove: string) => {
+    console.log('✂️ REMOVING TAG:', {
+      tagToRemove,
+      currentTags: tags,
+      afterRemoval: tags.filter(tag => tag !== tagToRemove)
+    })
     setTags(prev => prev.filter(tag => tag !== tagToRemove))
   }
 
@@ -352,6 +357,15 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         updatedAt: now,
         wordCount: getWordCount(content)
       }
+      
+      console.log('💾 SAVING EXCERPT:', {
+        id: excerptId,
+        mode,
+        title: title.substring(0, 30) + '...',
+        tagsBeingSaved: tags,
+        originalTags: excerpt?.tags,
+        tagsChanged: JSON.stringify(tags) !== JSON.stringify(excerpt?.tags)
+      })
 
       // Check if this excerpt already exists (from migration) to prevent duplicates
       const existingExcerpt = await storage.getExcerpt(excerptId)
@@ -366,6 +380,14 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       
       // Verify it was saved
       const saved = await storage.getExcerpt(excerptData.id)
+      
+      console.log('✅ SAVE VERIFICATION:', {
+        excerptId: excerptData.id,
+        savedSuccessfully: !!saved,
+        savedTags: saved?.tags,
+        expectedTags: excerptData.tags,
+        tagsMatch: JSON.stringify(saved?.tags) === JSON.stringify(excerptData.tags)
+      })
       
       if (!saved) {
         throw new Error('Failed to save excerpt to storage')
@@ -385,7 +407,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         }
       }
       
-      console.log(`Excerpt ${mode === 'create' ? 'created' : 'updated'} successfully!`)
+      console.log(`✅ Excerpt ${mode === 'create' ? 'created' : 'updated'} successfully!`)
       router.push('/excerpts')
     } catch (error) {
       console.error('Error saving excerpt:', error)
