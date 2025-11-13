@@ -156,6 +156,7 @@ export default function StoryboardEditPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [openCategoryDropdowns, setOpenCategoryDropdowns] = useState<Set<string>>(new Set())
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  const [storyboardSortBy, setStoryboardSortBy] = useState<'order' | 'name' | 'displayDate' | 'lastEdited'>('order')
   const categoryDropdownRef = React.useRef<HTMLDivElement>(null)
 
   // Close category dropdowns when clicking outside
@@ -535,6 +536,61 @@ export default function StoryboardEditPage() {
     return { sections: storyboard.sections.length, words }
   }
 
+  const getSortedStoryboardSections = () => {
+    if (!storyboard) return []
+    
+    const validSections = storyboard.sections
+      .map(section => ({ section, excerpt: getExcerptById(section.excerptId) }))
+      .filter(({ excerpt }) => excerpt !== null)
+    
+    if (storyboardSortBy === 'order') {
+      return validSections.sort((a, b) => a.section.order - b.section.order)
+    }
+    
+    return validSections.sort((a, b) => {
+      switch (storyboardSortBy) {
+        case 'name':
+          return a.excerpt!.title.localeCompare(b.excerpt!.title)
+        case 'displayDate':
+          // Sort by the excerpt's creation date (which is the display date)
+          return b.excerpt!.createdAt.getTime() - a.excerpt!.createdAt.getTime() // Newest first
+        case 'lastEdited':
+          return b.excerpt!.updatedAt.getTime() - a.excerpt!.updatedAt.getTime() // Newest first
+        default:
+          return a.section.order - b.section.order
+      }
+    })
+  }
+
+  const handleStoryboardSort = async (sortType: 'order' | 'name' | 'displayDate' | 'lastEdited') => {
+    if (!storyboard) return
+    
+    setStoryboardSortBy(sortType)
+    
+    if (sortType === 'order') {
+      // Reset to original order
+      const originalSections = [...storyboard.sections].sort((a, b) => a.order - b.order)
+      const updatedStoryboard = {
+        ...storyboard,
+        sections: originalSections
+      }
+      setStoryboard(updatedStoryboard)
+      return
+    }
+    
+    // Apply the sort and update section orders
+    const sortedSections = getSortedStoryboardSections()
+    const reorderedSections = sortedSections.map(({ section }, index) => ({
+      ...section,
+      order: index
+    }))
+    
+    await saveStoryboard({
+      ...storyboard,
+      sections: reorderedSections
+    })
+  }
+
   if (!storyboard) {
     return (
       <div className="h-screen flex items-center justify-center">
@@ -600,18 +656,34 @@ export default function StoryboardEditPage() {
       {/* Simple Controls Bar */}
       <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          {/* Add Excerpts Button - Left Side */}
-          <button
-            onClick={() => setShowExcerptsDropdown(!showExcerptsDropdown)}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            Add Excerpts ({availableExcerpts.length})
-          </button>
+          {/* Left Side - Add Excerpts and Sort */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowExcerptsDropdown(!showExcerptsDropdown)}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Add Excerpts ({availableExcerpts.length})
+            </button>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700">Sort:</label>
+              <select
+                value={storyboardSortBy}
+                onChange={(e) => handleStoryboardSort(e.target.value as any)}
+                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+              >
+                <option value="order">Manual Order</option>
+                <option value="name">Name A-Z</option>
+                <option value="displayDate">Display Date</option>
+                <option value="lastEdited">Last Edited</option>
+              </select>
+            </div>
+          </div>
           
-          {/* Display Mode - Right Side */}
+          {/* Right Side - Display Mode */}
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium text-gray-700">Display:</label>
             <select
@@ -965,20 +1037,17 @@ export default function StoryboardEditPage() {
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 auto-rows-max"
                 >
                   <AnimatePresence>
-                    {storyboard.sections
-                      .map(section => ({ section, excerpt: getExcerptById(section.excerptId) }))
-                      .filter(({ excerpt }) => excerpt !== null)
-                      .map(({ section, excerpt }, index) => (
-                        <SortableExcerptCard
-                          key={section.id}
-                          section={section}
-                          excerpt={excerpt!}
-                          index={index}
-                          displayMode={displayMode}
-                          onRemove={removeSection}
-                          isBeingDraggedOver={false}
-                        />
-                      ))}
+                    {getSortedStoryboardSections().map(({ section, excerpt }, index) => (
+                      <SortableExcerptCard
+                        key={section.id}
+                        section={section}
+                        excerpt={excerpt!}
+                        index={index}
+                        displayMode={displayMode}
+                        onRemove={removeSection}
+                        isBeingDraggedOver={false}
+                      />
+                    ))}
                   </AnimatePresence>
                 </motion.div>
               </SortableContext>
