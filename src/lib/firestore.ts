@@ -73,14 +73,10 @@ export class FirestoreService {
 
   // EXCERPT OPERATIONS
   async saveExcerpt(excerpt: Excerpt): Promise<void> {
-    console.log('🌐 FIRESTORE: Starting saveExcerpt for', excerpt.id)
-    console.log('🌐 FIRESTORE: Tags being saved:', excerpt.tags)
-    
     this.checkAvailability()
     
     // Check content size before saving (Firestore has 1MB limit per document)
     const contentSize = new Blob([excerpt.content]).size
-    console.log('🌐 FIRESTORE: Content size check:', contentSize, 'bytes')
     
     if (contentSize > SIZE_LIMITS.MAX_EXCERPT_CONTENT_SIZE) {
       throw new Error(`Excerpt content is too large for cloud storage (${formatFileSize(contentSize)}). Maximum allowed: ${formatFileSize(SIZE_LIMITS.MAX_EXCERPT_CONTENT_SIZE)}.`)
@@ -89,16 +85,7 @@ export class FirestoreService {
     const excerptRef = doc(db, 'users', this.userId, 'excerpts', excerpt.id)
     const excerptData = prepareForStorage(excerpt)
     
-    console.log('🌐 FIRESTORE: Prepared data for storage:', {
-      id: excerptData.id,
-      title: excerptData.title.substring(0, 30) + '...',
-      tags: excerptData.tags,
-      hasContent: !!excerptData.content
-    })
-    
-    console.log('🌐 FIRESTORE: Calling setDoc...')
     await setDoc(excerptRef, excerptData)
-    console.log('🌐 FIRESTORE: setDoc completed successfully')
   }
 
   async getExcerpt(id: string): Promise<Excerpt | null> {
