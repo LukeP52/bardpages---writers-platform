@@ -111,7 +111,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         author: author.trim() || undefined,
         status,
         tags,
-        createdAt: excerpt?.createdAt || new Date(date),
+        createdAt: excerpt?.createdAt || new Date(date + 'T12:00:00'),
         updatedAt: new Date(),
         wordCount: getWordCount(content)
       }
@@ -348,7 +348,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         author: author.trim() || undefined,
         status,
         tags,
-        createdAt: excerpt?.createdAt || selectedDate,
+        createdAt: excerpt?.createdAt || new Date(date + 'T12:00:00'),
         updatedAt: now,
         wordCount: getWordCount(content)
       }
