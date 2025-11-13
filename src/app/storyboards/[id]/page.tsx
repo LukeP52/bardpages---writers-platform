@@ -597,186 +597,32 @@ export default function StoryboardEditPage() {
         </div>
       </div>
 
-      {/* Filters Bar */}
+      {/* Simple Controls Bar */}
       <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          {/* Search and Date Filters */}
-          <div className="flex items-center gap-4 flex-1">
-            <div className="relative">
-              <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search excerpts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 w-64 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">From:</label>
-              <input
-                type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">To:</label>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-
-          {/* Actions and Display Mode */}
-          <div className="flex items-center gap-4">
-            {/* Add Excerpts Button */}
-            <button
-              onClick={() => setShowExcerptsDropdown(!showExcerptsDropdown)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Add Excerpts ({filteredAvailableExcerpts.length})
-            </button>
-            
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Display:</label>
-              <select
-                value={displayMode}
-                onChange={(e) => setDisplayMode(e.target.value as 'title' | 'date')}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              >
-                <option value="title">Title</option>
-                <option value="date">Date</option>
-              </select>
-            </div>
-            
-            {(searchQuery || selectedTags.length > 0 || selectedAuthors.length > 0 || dateFrom || dateTo) && (
-              <button
-                onClick={clearAllFilters}
-                className="px-4 py-2 text-sm bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-        </div>
-        
-        {/* Tag Categories and Authors Filters */}
-        <div className="mt-4 flex items-center gap-6 flex-wrap">
-          {Object.keys(tagCategories).length > 0 && (
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-sm font-medium text-gray-700">Categories:</span>
-              <div ref={categoryDropdownRef} className="flex flex-wrap gap-2">
-                {Object.entries(tagCategories).map(([category, tags]) => {
-                  const selectedInCategory = getSelectedTagsInCategory(tags)
-                  return (
-                    <div key={category} className="relative">
-                      <button
-                        onClick={() => toggleCategoryDropdown(category)}
-                        className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg transition-colors ${
-                          selectedInCategory.length > 0
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
-                        }`}
-                      >
-                        <span className="font-medium">{category}</span>
-                        {selectedInCategory.length > 0 && (
-                          <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
-                            {selectedInCategory.length}
-                          </span>
-                        )}
-                        <svg className={`w-4 h-4 transition-transform ${
-                          openCategoryDropdowns.has(category) ? 'rotate-180' : ''
-                        }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                      
-                      <AnimatePresence>
-                        {openCategoryDropdowns.has(category) && (
-                          <motion.div
-                            initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                            className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-64 max-h-80 overflow-y-auto"
-                          >
-                            <div className="p-3">
-                              <div className="flex items-center justify-between mb-3 pb-2 border-b">
-                                <h4 className="font-medium text-gray-900">{category}</h4>
-                                <span className="text-xs text-gray-500">{selectedInCategory.length}/{tags.length} selected</span>
-                              </div>
-                              <div className="space-y-2">
-                                {tags.map(tag => (
-                                  <label key={tag} className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedTags.includes(tag)}
-                                      onChange={() => toggleTagInCategory(tag, category)}
-                                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
-                                    />
-                                    <span className="text-sm text-gray-700 flex-1">{tag}</span>
-                                    <span className="text-xs text-gray-400">
-                                      {excerpts.filter(e => e.tags.includes(tag)).length}
-                                    </span>
-                                  </label>
-                                ))}
-                              </div>
-                              
-                              {selectedInCategory.length > 0 && (
-                                <div className="mt-3 pt-3 border-t">
-                                  <button
-                                    onClick={() => {
-                                      setSelectedTags(prev => prev.filter(tag => !tags.includes(tag)))
-                                    }}
-                                    className="w-full text-xs text-red-600 hover:text-red-700 transition-colors"
-                                  >
-                                    Clear {category} ({selectedInCategory.length})
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
-          )}
+        <div className="flex items-center justify-between">
+          {/* Add Excerpts Button - Left Side */}
+          <button
+            onClick={() => setShowExcerptsDropdown(!showExcerptsDropdown)}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Add Excerpts ({availableExcerpts.length})
+          </button>
           
-          {availableAuthors.length > 0 && (
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-700">Authors:</span>
-              <div className="flex flex-wrap gap-2">
-                {availableAuthors.map(author => (
-                  <button
-                    key={author}
-                    onClick={() => toggleAuthor(author)}
-                    className={`px-3 py-1 text-sm rounded-lg transition-colors ${
-                      selectedAuthors.includes(author)
-                        ? 'bg-blue-500 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-                    }`}
-                  >
-                    {author}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          {/* Display Mode - Right Side */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700">Display:</label>
+            <select
+              value={displayMode}
+              onChange={(e) => setDisplayMode(e.target.value as 'title' | 'date')}
+              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              <option value="title">Title</option>
+              <option value="date">Date</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -801,13 +647,14 @@ export default function StoryboardEditPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                className="absolute top-4 left-6 right-6 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-96"
+                className="absolute top-4 left-6 right-6 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[80vh]"
               >
+                {/* Header */}
                 <div className="p-4 border-b border-gray-200">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">Available Excerpts</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Add Excerpts to Storyboard</h3>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-gray-500">{filteredAvailableExcerpts.length} items</span>
+                      <span className="text-sm text-gray-500">{filteredAvailableExcerpts.length} available</span>
                       <button
                         onClick={() => setShowExcerptsDropdown(false)}
                         className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -818,14 +665,169 @@ export default function StoryboardEditPage() {
                       </button>
                     </div>
                   </div>
-                  
+                </div>
+
+                {/* Filters and Controls */}
+                <div className="p-4 border-b border-gray-200 space-y-4">
+                  {/* Search and Date Filters */}
+                  <div className="flex items-center gap-4 flex-wrap">
+                    <div className="relative flex-1 min-w-64">
+                      <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                      <input
+                        type="text"
+                        placeholder="Search excerpts..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">From:</label>
+                      <input
+                        type="date"
+                        value={dateFrom}
+                        onChange={(e) => setDateFrom(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <label className="text-sm font-medium text-gray-700">To:</label>
+                      <input
+                        type="date"
+                        value={dateTo}
+                        onChange={(e) => setDateTo(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                    </div>
+
+                    {(searchQuery || selectedTags.length > 0 || selectedAuthors.length > 0 || dateFrom || dateTo) && (
+                      <button
+                        onClick={clearAllFilters}
+                        className="px-4 py-2 text-sm bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                      >
+                        Clear Filters
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Tag Categories */}
+                  {Object.keys(tagCategories).length > 0 && (
+                    <div className="flex items-start gap-3 flex-wrap">
+                      <span className="text-sm font-medium text-gray-700 mt-2">Categories:</span>
+                      <div ref={categoryDropdownRef} className="flex flex-wrap gap-2">
+                        {Object.entries(tagCategories).map(([category, tags]) => {
+                          const selectedInCategory = getSelectedTagsInCategory(tags)
+                          return (
+                            <div key={category} className="relative">
+                              <button
+                                onClick={() => toggleCategoryDropdown(category)}
+                                className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-lg transition-colors ${
+                                  selectedInCategory.length > 0
+                                    ? 'border-blue-500 bg-blue-50 text-blue-700'
+                                    : 'border-gray-300 bg-white text-gray-700 hover:border-gray-400'
+                                }`}
+                              >
+                                <span className="font-medium">{category}</span>
+                                {selectedInCategory.length > 0 && (
+                                  <span className="bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                                    {selectedInCategory.length}
+                                  </span>
+                                )}
+                                <svg className={`w-4 h-4 transition-transform ${
+                                  openCategoryDropdowns.has(category) ? 'rotate-180' : ''
+                                }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </button>
+                              
+                              <AnimatePresence>
+                                {openCategoryDropdowns.has(category) && (
+                                  <motion.div
+                                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                                    transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                                    className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl z-50 min-w-64 max-h-80 overflow-y-auto"
+                                  >
+                                    <div className="p-3">
+                                      <div className="flex items-center justify-between mb-3 pb-2 border-b">
+                                        <h4 className="font-medium text-gray-900">{category}</h4>
+                                        <span className="text-xs text-gray-500">{selectedInCategory.length}/{tags.length} selected</span>
+                                      </div>
+                                      <div className="space-y-2">
+                                        {tags.map(tag => (
+                                          <label key={tag} className="flex items-center gap-2 p-2 rounded hover:bg-gray-50 cursor-pointer">
+                                            <input
+                                              type="checkbox"
+                                              checked={selectedTags.includes(tag)}
+                                              onChange={() => toggleTagInCategory(tag, category)}
+                                              className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                                            />
+                                            <span className="text-sm text-gray-700 flex-1">{tag}</span>
+                                            <span className="text-xs text-gray-400">
+                                              {excerpts.filter(e => e.tags.includes(tag)).length}
+                                            </span>
+                                          </label>
+                                        ))}
+                                      </div>
+                                      
+                                      {selectedInCategory.length > 0 && (
+                                        <div className="mt-3 pt-3 border-t">
+                                          <button
+                                            onClick={() => {
+                                              setSelectedTags(prev => prev.filter(tag => !tags.includes(tag)))
+                                            }}
+                                            className="w-full text-xs text-red-600 hover:text-red-700 transition-colors"
+                                          >
+                                            Clear {category} ({selectedInCategory.length})
+                                          </button>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </motion.div>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Authors Filter */}
+                  {availableAuthors.length > 0 && (
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-700">Authors:</span>
+                      <div className="flex flex-wrap gap-2">
+                        {availableAuthors.map(author => (
+                          <button
+                            key={author}
+                            onClick={() => toggleAuthor(author)}
+                            className={`px-3 py-1 text-sm rounded-lg transition-colors ${
+                              selectedAuthors.includes(author)
+                                ? 'bg-blue-500 text-white'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                            }`}
+                          >
+                            {author}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Selection Actions */}
                   {filteredAvailableExcerpts.length > 0 && (
-                    <div className="flex gap-2 mt-3">
+                    <div className="flex gap-2 pt-2">
                       <button
                         onClick={selectAllVisible}
                         className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-2 rounded transition-colors"
                       >
-                        Select All
+                        Select All Visible
                       </button>
                       {selectedExcerpts.size > 0 && (
                         <>
@@ -839,7 +841,7 @@ export default function StoryboardEditPage() {
                             onClick={clearSelection}
                             className="text-xs bg-gray-50 hover:bg-gray-100 text-gray-600 px-3 py-2 rounded transition-colors"
                           >
-                            Clear
+                            Clear Selection
                           </button>
                         </>
                       )}
