@@ -331,16 +331,7 @@ export default function ExcerptsPage() {
                     {excerpt.title}
                   </a>
                   <p className="text-sm text-gray-500 mt-1">
-                    {(() => {
-                      const date = dateDisplayMode === 'created' ? excerpt.createdAt : excerpt.updatedAt
-                      // For dates that appear to be UTC midnight (likely from old entries), 
-                      // add timezone offset to display the intended date
-                      if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
-                        const adjustedDate = new Date(date.getTime() + (date.getTimezoneOffset() * 60000))
-                        return adjustedDate.toLocaleDateString()
-                      }
-                      return date.toLocaleDateString()
-                    })()}
+                    {(dateDisplayMode === 'created' ? excerpt.createdAt : excerpt.updatedAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
