@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Storyboard, Excerpt, StoryboardSection } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 import { v4 as uuidv4 } from 'uuid'
 import {
   DndContext,
@@ -126,6 +126,7 @@ function useClickOutside(ref: React.RefObject<HTMLDivElement | null>, handler: (
 export default function StoryboardEditPage() {
   const params = useParams()
   const router = useRouter()
+  const storage = useStorage()
   const storyboardId = params.id as string
   
   const [storyboard, setStoryboard] = useState<Storyboard | null>(null)
@@ -188,55 +189,70 @@ export default function StoryboardEditPage() {
   }
 
   useEffect(() => {
-    const loadedStoryboard = storage.getStoryboard(storyboardId)
-    const loadedExcerpts = storage.getExcerpts()
-    
-    if (!loadedStoryboard) {
-      router.push('/storyboards')
-      return
-    }
+    const loadData = async () => {
+      try {
+        const [loadedStoryboard, loadedExcerpts, allTags, usedAuthors] = await Promise.all([
+          storage.getStoryboard(storyboardId),
+          storage.getExcerpts(),
+          storage.getAllTags(),
+          storage.getUsedAuthors()
+        ])
+        
+        if (!loadedStoryboard) {
+          router.push('/storyboards')
+          return
+        }
 
-    setStoryboard(loadedStoryboard)
-    setExcerpts(loadedExcerpts)
+        setStoryboard(loadedStoryboard)
+        setExcerpts(loadedExcerpts)
+        
+        // Filter out excerpts that are already in the storyboard
+        const usedExcerptIds = new Set(loadedStoryboard.sections.map(section => section.excerptId))
+        const available = loadedExcerpts.filter(excerpt => !usedExcerptIds.has(excerpt.id))
+        setAvailableExcerpts(available)
+        setFilteredAvailableExcerpts(available)
+        
+        // Set filter options
+        setAvailableTags(allTags)
+        setAvailableAuthors(usedAuthors)
+        
+        // Categorize tags
+        const categories: Record<string, string[]> = {}
+        allTags.forEach(tag => {
+          const category = categorizeTag(tag)
+          if (!categories[category]) categories[category] = []
+          categories[category].push(tag)
+        })
+        setTagCategories(categories)
+      } catch (error) {
+        console.error('Failed to load storyboard data:', error)
+      }
+    }
     
-    // Filter out excerpts that are already in the storyboard
-    const usedExcerptIds = new Set(loadedStoryboard.sections.map(section => section.excerptId))
-    const available = loadedExcerpts.filter(excerpt => !usedExcerptIds.has(excerpt.id))
-    setAvailableExcerpts(available)
-    setFilteredAvailableExcerpts(available)
-    
-    // Set filter options
-    const allTags = storage.getAllTags()
-    setAvailableTags(allTags)
-    setAvailableAuthors(storage.getUsedAuthors())
-    
-    // Categorize tags
-    const categories: Record<string, string[]> = {}
-    allTags.forEach(tag => {
-      const category = categorizeTag(tag)
-      if (!categories[category]) categories[category] = []
-      categories[category].push(tag)
-    })
-    setTagCategories(categories)
-  }, [storyboardId, router])
+    loadData()
+  }, [storyboardId, router, storage])
 
   const getExcerptById = (excerptId: string) => {
     return excerpts.find(excerpt => excerpt.id === excerptId)
   }
 
-  const saveStoryboard = (updatedStoryboard: Storyboard) => {
-    const storyboardToSave = {
-      ...updatedStoryboard,
-      updatedAt: new Date()
+  const saveStoryboard = async (updatedStoryboard: Storyboard) => {
+    try {
+      const storyboardToSave = {
+        ...updatedStoryboard,
+        updatedAt: new Date()
+      }
+      await storage.saveStoryboard(storyboardToSave)
+      setStoryboard(storyboardToSave)
+      
+      // Update available excerpts
+      const usedExcerptIds = new Set(storyboardToSave.sections.map(section => section.excerptId))
+      const available = excerpts.filter(excerpt => !usedExcerptIds.has(excerpt.id))
+      setAvailableExcerpts(available)
+      applyFilters(available)
+    } catch (error) {
+      console.error('Failed to save storyboard:', error)
     }
-    storage.saveStoryboard(storyboardToSave)
-    setStoryboard(storyboardToSave)
-    
-    // Update available excerpts
-    const usedExcerptIds = new Set(storyboardToSave.sections.map(section => section.excerptId))
-    const available = excerpts.filter(excerpt => !usedExcerptIds.has(excerpt.id))
-    setAvailableExcerpts(available)
-    applyFilters(available)
   }
 
   const addExcerptToStoryboard = (excerpt: Excerpt, position?: number) => {

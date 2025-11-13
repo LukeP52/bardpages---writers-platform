@@ -3,10 +3,11 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Storyboard, Excerpt } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 import { v4 as uuidv4 } from 'uuid'
 
 export default function StoryboardsPage() {
+  const storage = useStorage()
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
   const [showCreateForm, setShowCreateForm] = useState(false)
@@ -14,35 +15,55 @@ export default function StoryboardsPage() {
   const [newStoryboardDescription, setNewStoryboardDescription] = useState('')
 
   useEffect(() => {
-    const loadedStoryboards = storage.getStoryboards()
-    const loadedExcerpts = storage.getExcerpts()
-    setStoryboards(loadedStoryboards)
-    setExcerpts(loadedExcerpts)
-  }, [])
+    const loadData = async () => {
+      try {
+        const [loadedStoryboards, loadedExcerpts] = await Promise.all([
+          storage.getStoryboards(),
+          storage.getExcerpts()
+        ])
+        setStoryboards(loadedStoryboards)
+        setExcerpts(loadedExcerpts)
+      } catch (error) {
+        console.error('Failed to load storyboards data:', error)
+      }
+    }
+    
+    loadData()
+  }, [storage])
 
-  const createStoryboard = () => {
+  const createStoryboard = async () => {
     if (!newStoryboardTitle.trim()) return
 
-    const newStoryboard: Storyboard = {
-      id: uuidv4(),
-      title: newStoryboardTitle.trim(),
-      description: newStoryboardDescription.trim() || undefined,
-      sections: [],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
+    try {
+      const newStoryboard: Storyboard = {
+        id: uuidv4(),
+        title: newStoryboardTitle.trim(),
+        description: newStoryboardDescription.trim() || undefined,
+        sections: [],
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
 
-    storage.saveStoryboard(newStoryboard)
-    setStoryboards(storage.getStoryboards())
-    setNewStoryboardTitle('')
-    setNewStoryboardDescription('')
-    setShowCreateForm(false)
+      await storage.saveStoryboard(newStoryboard)
+      const updatedStoryboards = await storage.getStoryboards()
+      setStoryboards(updatedStoryboards)
+      setNewStoryboardTitle('')
+      setNewStoryboardDescription('')
+      setShowCreateForm(false)
+    } catch (error) {
+      console.error('Failed to create storyboard:', error)
+    }
   }
 
-  const deleteStoryboard = (id: string) => {
+  const deleteStoryboard = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this storyboard?')) {
-      storage.deleteStoryboard(id)
-      setStoryboards(storage.getStoryboards())
+      try {
+        await storage.deleteStoryboard(id)
+        const updatedStoryboards = await storage.getStoryboards()
+        setStoryboards(updatedStoryboards)
+      } catch (error) {
+        console.error('Failed to delete storyboard:', error)
+      }
     }
   }
 
