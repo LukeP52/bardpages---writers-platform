@@ -647,6 +647,8 @@ export default function StoryboardEditPage() {
   }
 
   const handleReverseToggle = async () => {
+    if (!storyboard) return
+    
     const newReversedState = !storyboardSortReversed
     setStoryboardSortReversed(newReversedState)
     
