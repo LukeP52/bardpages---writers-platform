@@ -366,7 +366,10 @@ class InMemoryStorage {
   // Premade Tags
   getPremadeTags(): string[] {
     this.initializeFromLocalStorage()
-    return Array.from(this.premadeTags).sort()
+    const result = Array.from(this.premadeTags).sort()
+    console.log(`getPremadeTags: premadeTags set contains:`, Array.from(this.premadeTags))
+    console.log(`getPremadeTags returning:`, result)
+    return result
   }
 
   addPremadeTag(tag: string): void {
@@ -400,7 +403,9 @@ class InMemoryStorage {
 
   getAllTags(): string[] {
     // In the unified system, all tags are stored in premadeTags
-    return this.getPremadeTags()
+    const result = this.getPremadeTags()
+    console.log(`getAllTags returning:`, result)
+    return result
   }
 
   clearPremadeTags(): void {
@@ -543,13 +548,20 @@ class InMemoryStorage {
     this.initializeFromLocalStorage()
     if (tag.trim()) {
       const trimmedTag = tag.trim()
+      console.log(`Storage: Adding premade tag "${trimmedTag}" to premadeTags set`)
+      console.log(`Storage: premadeTags before:`, Array.from(this.premadeTags))
       this.premadeTags.add(trimmedTag)
+      console.log(`Storage: premadeTags after:`, Array.from(this.premadeTags))
       
       if (categoryIds.length > 0) {
         this.assignTagToCategories(trimmedTag, categoryIds)
       }
       
+      console.log(`Storage: Saving to localStorage...`)
       this.saveToLocalStorage()
+      console.log(`Storage: Save complete`)
+    } else {
+      console.log(`Storage: Tag "${tag}" is empty or whitespace, not adding`)
     }
   }
 }
