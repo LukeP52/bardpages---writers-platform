@@ -191,13 +191,14 @@ export default function StoryboardEditPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [loadedStoryboard, loadedExcerpts, allTags, usedAuthors] = await Promise.all([
-          storage.getStoryboard(storyboardId),
+        const [loadedStoryboards, loadedExcerpts, allTags, usedAuthors] = await Promise.all([
+          storage.getStoryboards(),
           storage.getExcerpts(),
           storage.getAllTags(),
           storage.getUsedAuthors()
         ])
         
+        const loadedStoryboard = loadedStoryboards.find(sb => sb.id === storyboardId)
         if (!loadedStoryboard) {
           router.push('/storyboards')
           return
