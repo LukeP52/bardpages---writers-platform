@@ -417,10 +417,15 @@ export default function TagManagerPage() {
                 </h3>
                 <button
                   onClick={toggleSuggestedCategories}
-                  className="btn btn-ghost btn-sm text-gray-600 hover:text-gray-800"
+                  className="btn btn-ghost btn-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
                   title={showSuggestedCategories ? 'Hide suggestions' : 'Show suggestions'}
                 >
-                  {showSuggestedCategories ? '−' : '+'}
+                  <span className="text-xs font-medium">
+                    {showSuggestedCategories ? 'Hide' : 'Show'}
+                  </span>
+                  <span className="text-base">
+                    {showSuggestedCategories ? '−' : '+'}
+                  </span>
                 </button>
               </div>
               
@@ -467,7 +472,7 @@ export default function TagManagerPage() {
               
               {!showSuggestedCategories && (
                 <p className="text-sm text-gray-500 italic">
-                  Suggestions hidden. Click + to show {availableSuggestions.length} available suggestions.
+                  Suggestions hidden. Click "Show +" to display {availableSuggestions.length} available suggestions.
                 </p>
               )}
             </div>
@@ -642,19 +647,38 @@ export default function TagManagerPage() {
                     
                     {expandedCategories.has(category) && (
                       <div className="p-4 bg-white">
+                        {category === 'Uncategorized' && tags.length > 0 && (
+                          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
+                            <p className="text-sm text-blue-800 font-medium mb-1">
+                              📋 These tags aren't assigned to any category yet
+                            </p>
+                            <p className="text-xs text-blue-600">
+                              Click the pencil icon (✏️) next to any tag to assign it to a category
+                            </p>
+                          </div>
+                        )}
+                        
                         <div className="flex flex-wrap gap-2">
                           {tags.map((tag) => (
                               <div
                                 key={tag}
-                                className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded px-3 py-2 group transition-colors"
+                                className={`flex items-center gap-2 border rounded px-3 py-2 group transition-colors ${
+                                  category === 'Uncategorized' 
+                                    ? 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200'
+                                    : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                                }`}
                               >
                                 <span className="text-xs font-mono text-gray-800">
                                   {tag}
                                 </span>
                                 <button
                                   onClick={() => handleTagReassignment(tag)}
-                                  className="text-blue-500 hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
-                                  title="Reassign category"
+                                  className={`hover:text-blue-700 transition-opacity ml-1 ${
+                                    category === 'Uncategorized'
+                                      ? 'text-blue-600 opacity-100' // Always visible for uncategorized
+                                      : 'text-blue-500 opacity-0 group-hover:opacity-100' // Hidden by default for categorized
+                                  }`}
+                                  title={category === 'Uncategorized' ? 'Assign to category' : 'Reassign category'}
                                 >
                                   <PencilIcon className="w-3 h-3" />
                                 </button>
