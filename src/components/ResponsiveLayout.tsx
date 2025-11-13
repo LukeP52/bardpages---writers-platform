@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
 import Sidebar from '@/components/Sidebar'
 import MobileSidebar from '@/components/MobileSidebar'
+import AuthModal from '@/components/auth/AuthModal'
 
 interface ResponsiveLayoutProps {
   children: React.ReactNode
@@ -11,6 +12,7 @@ interface ResponsiveLayoutProps {
 
 export default function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showAuthModal, setShowAuthModal] = useState(false)
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -30,7 +32,7 @@ export default function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
           </div>
           <button
             onClick={() => setMobileMenuOpen(true)}
-            className="p-2 rounded-lg hover:bg-gray-100"
+            className="p-2 rounded-lg hover:bg-gray-100 min-h-[44px] min-w-[44px] flex items-center justify-center"
           >
             <Bars3Icon className="w-6 h-6 text-gray-600" />
           </button>
@@ -38,7 +40,14 @@ export default function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
       </div>
 
       {/* Mobile Sidebar */}
-      <MobileSidebar isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
+      <MobileSidebar 
+        isOpen={mobileMenuOpen} 
+        onClose={() => setMobileMenuOpen(false)}
+        onShowAuth={() => {
+          setShowAuthModal(true)
+          setMobileMenuOpen(false)
+        }}
+      />
 
       {/* Main Content */}
       <main className="flex-1 overflow-auto bg-white lg:ml-0">
@@ -46,6 +55,12 @@ export default function ResponsiveLayout({ children }: ResponsiveLayoutProps) {
           {children}
         </div>
       </main>
+      
+      {/* Global Auth Modal */}
+      <AuthModal 
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+      />
     </div>
   )
 }

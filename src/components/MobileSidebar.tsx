@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, useState } from 'react'
+import { Fragment } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Dialog, Transition } from '@headlessui/react'
@@ -16,8 +16,6 @@ import {
   ArrowRightOnRectangleIcon
 } from '@heroicons/react/24/outline'
 import { useAuth } from '@/contexts/AuthContext'
-import { useAuthAction } from '@/hooks/useAuthAction'
-import AuthModal from '@/components/auth/AuthModal'
 import { useRouter } from 'next/navigation'
 
 const navigationItems = [
@@ -31,13 +29,12 @@ const navigationItems = [
 interface MobileSidebarProps {
   isOpen: boolean
   onClose: () => void
+  onShowAuth: () => void
 }
 
-export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
+export default function MobileSidebar({ isOpen, onClose, onShowAuth }: MobileSidebarProps) {
   const pathname = usePathname()
   const { user, logout } = useAuth()
-  const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
-  const [showAuthModalLocal, setShowAuthModalLocal] = useState(false)
   const router = useRouter()
 
   const handleLogout = async () => {
@@ -86,7 +83,7 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                   </div>
                   <button
                     type="button"
-                    className="-m-2.5 p-2.5 text-gray-700"
+                    className="-m-2.5 p-2.5 text-gray-700 min-h-[44px] min-w-[44px] flex items-center justify-center"
                     onClick={onClose}
                   >
                     <span className="sr-only">Close sidebar</span>
@@ -160,11 +157,8 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
                         </div>
                       ) : (
                         <button
-                          onClick={() => {
-                            setShowAuthModalLocal(true)
-                            onClose()
-                          }}
-                          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors"
+                          onClick={onShowAuth}
+                          className="w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 hover:bg-blue-100 transition-colors min-h-[44px]"
                         >
                           <UserCircleIcon className="w-5 h-5 text-blue-600" />
                           <span>Sign In</span>
@@ -179,13 +173,6 @@ export default function MobileSidebar({ isOpen, onClose }: MobileSidebarProps) {
         </div>
       </Dialog>
       
-      <AuthModal 
-        isOpen={showAuthModal || showAuthModalLocal}
-        onClose={() => {
-          closeAuthModal()
-          setShowAuthModalLocal(false)
-        }}
-      />
     </Transition.Root>
   )
 }
