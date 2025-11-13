@@ -1,5 +1,13 @@
 import { Excerpt, Tag, Storyboard, Book, Category, TagCategoryMapping } from '@/types'
 
+// Helper function to get user-specific or guest storage keys
+export function getStorageKey(key: string, userId?: string): string {
+  if (userId) {
+    return `bardpages_user_${userId}_${key}`
+  }
+  return `bardpages_guest_${key}`
+}
+
 class InMemoryStorage {
   private excerpts: Map<string, Excerpt> = new Map()
   private tags: Map<string, Tag> = new Map()
@@ -9,13 +17,18 @@ class InMemoryStorage {
   private categories: Map<string, Category> = new Map()
   private tagCategoryMappings: Map<string, string[]> = new Map() // tagName -> categoryIds
   private isInitialized = false
+  private userId?: string
+
+  constructor(userId?: string) {
+    this.userId = userId
+  }
 
   private initializeFromLocalStorage() {
     if (this.isInitialized || typeof window === 'undefined') return
     
     try {
       // Load excerpts
-      const excerpts = localStorage.getItem('bardpages_excerpts')
+      const excerpts = localStorage.getItem(getStorageKey('excerpts', this.userId))
       if (excerpts) {
         const parsedExcerpts = JSON.parse(excerpts)
         parsedExcerpts.forEach((excerpt: any) => {
@@ -28,7 +41,7 @@ class InMemoryStorage {
       }
 
       // Load storyboards
-      const storyboards = localStorage.getItem('bardpages_storyboards')
+      const storyboards = localStorage.getItem(getStorageKey('storyboards', this.userId))
       if (storyboards) {
         const parsedStoryboards = JSON.parse(storyboards)
         parsedStoryboards.forEach((storyboard: any) => {
@@ -41,7 +54,7 @@ class InMemoryStorage {
       }
 
       // Load books
-      const books = localStorage.getItem('bardpages_books')
+      const books = localStorage.getItem(getStorageKey('books', this.userId))
       if (books) {
         const parsedBooks = JSON.parse(books)
         parsedBooks.forEach((book: any) => {
@@ -54,14 +67,14 @@ class InMemoryStorage {
       }
 
       // Load premade tags
-      const premadeTags = localStorage.getItem('bardpages_premade_tags')
+      const premadeTags = localStorage.getItem(getStorageKey('premade_tags', this.userId))
       if (premadeTags) {
         const parsedTags = JSON.parse(premadeTags)
         this.premadeTags = new Set(parsedTags)
       }
 
       // Load categories
-      const categories = localStorage.getItem('bardpages_categories')
+      const categories = localStorage.getItem(getStorageKey('categories', this.userId))
       if (categories) {
         const parsedCategories = JSON.parse(categories)
         parsedCategories.forEach((category: any) => {
@@ -73,7 +86,7 @@ class InMemoryStorage {
       }
 
       // Load tag-category mappings
-      const tagMappings = localStorage.getItem('bardpages_tag_mappings')
+      const tagMappings = localStorage.getItem(getStorageKey('tag_mappings', this.userId))
       if (tagMappings) {
         const parsedMappings = JSON.parse(tagMappings)
         // Handle both old single-category format and new multi-category format
@@ -101,22 +114,22 @@ class InMemoryStorage {
 
     try {
       // Save excerpts
-      localStorage.setItem('bardpages_excerpts', JSON.stringify(Array.from(this.excerpts.values())))
+      localStorage.setItem(getStorageKey('excerpts', this.userId), JSON.stringify(Array.from(this.excerpts.values())))
       
       // Save storyboards
-      localStorage.setItem('bardpages_storyboards', JSON.stringify(Array.from(this.storyboards.values())))
+      localStorage.setItem(getStorageKey('storyboards', this.userId), JSON.stringify(Array.from(this.storyboards.values())))
       
       // Save books
-      localStorage.setItem('bardpages_books', JSON.stringify(Array.from(this.books.values())))
+      localStorage.setItem(getStorageKey('books', this.userId), JSON.stringify(Array.from(this.books.values())))
       
       // Save premade tags
-      localStorage.setItem('bardpages_premade_tags', JSON.stringify(Array.from(this.premadeTags)))
+      localStorage.setItem(getStorageKey('premade_tags', this.userId), JSON.stringify(Array.from(this.premadeTags)))
       
       // Save categories
-      localStorage.setItem('bardpages_categories', JSON.stringify(Array.from(this.categories.values())))
+      localStorage.setItem(getStorageKey('categories', this.userId), JSON.stringify(Array.from(this.categories.values())))
       
       // Save tag-category mappings
-      localStorage.setItem('bardpages_tag_mappings', JSON.stringify(Array.from(this.tagCategoryMappings.entries())))
+      localStorage.setItem(getStorageKey('tag_mappings', this.userId), JSON.stringify(Array.from(this.tagCategoryMappings.entries())))
     } catch (error) {
       console.error('Error saving to localStorage:', error)
     }
@@ -139,7 +152,7 @@ class InMemoryStorage {
 
     if (typeof window !== 'undefined') {
       try {
-        const stored = localStorage.getItem('bardpages_excerpts')
+        const stored = localStorage.getItem(getStorageKey('excerpts', this.userId))
         if (stored) {
           const parsedExcerpts = JSON.parse(stored)
           parsedExcerpts.forEach((excerpt: any) => {
@@ -524,4 +537,10 @@ class InMemoryStorage {
   }
 }
 
+// Create storage instances
+export function createStorage(userId?: string) {
+  return new InMemoryStorage(userId)
+}
+
+// Default guest storage for backwards compatibility
 export const storage = new InMemoryStorage()

@@ -66,6 +66,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!isConfigured) {
       throw new Error('Firebase is not configured. Please set up your Firebase credentials.')
     }
+    
+    // Clear all localStorage to prevent data leakage between users
+    if (typeof window !== 'undefined') {
+      // Clear all BardPages related data
+      const keysToRemove = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key?.startsWith('bardpages_') || key?.startsWith('draft_excerpt_')) {
+          keysToRemove.push(key)
+        }
+      }
+      
+      keysToRemove.forEach(key => localStorage.removeItem(key))
+      console.log('Cleared localStorage on logout to prevent data leakage')
+    }
+    
     await signOut(auth)
   }
 

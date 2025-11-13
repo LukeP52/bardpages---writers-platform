@@ -12,6 +12,7 @@ import { FileParser } from '@/lib/fileParser'
 import { SIZE_LIMITS, formatFileSize, getContentSizeStatus } from '@/lib/constants'
 import { useAuthAction } from '@/hooks/useAuthAction'
 import AuthModal from '@/components/auth/AuthModal'
+import { useAuth } from '@/contexts/AuthContext'
 
 interface ExcerptFormProps {
   excerpt?: Excerpt
@@ -20,6 +21,7 @@ interface ExcerptFormProps {
 
 export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const router = useRouter()
+  const { user } = useAuth()
   const [title, setTitle] = useState(excerpt?.title || '')
   const [content, setContent] = useState(excerpt?.content || '')
   const [author, setAuthor] = useState(excerpt?.author || '')
@@ -42,6 +44,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [uploadProgress, setUploadProgress] = useState('')
   const [excerptLoaded, setExcerptLoaded] = useState(false)
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
+  const [showOfflineAuthModal, setShowOfflineAuthModal] = useState(false)
   const storage = useStorage()
   const quillRef = useRef<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -417,6 +420,19 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           <p className="text-slate-600 text-lg">
             {mode === 'create' ? 'Start crafting your story fragment' : 'Refine your narrative piece'}
           </p>
+          {!user && (
+            <div className="mt-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded-r-lg">
+              <div className="flex items-center">
+                <div className="text-blue-700">
+                  <svg className="w-5 h-5 mr-2 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm font-medium">Working offline</span> - Your work is saved locally. 
+                  <button onClick={() => setShowOfflineAuthModal(true)} className="text-blue-800 underline ml-1">Sign in to sync across devices</button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8">
@@ -767,8 +783,11 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         
         {/* Authentication Modal */}
         <AuthModal 
-          isOpen={showAuthModal}
-          onClose={closeAuthModal}
+          isOpen={showAuthModal || showOfflineAuthModal}
+          onClose={() => {
+            closeAuthModal()
+            setShowOfflineAuthModal(false)
+          }}
         />
       </div>
     </div>
