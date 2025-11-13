@@ -293,42 +293,58 @@ export default function TagManagerPage() {
       </div>
 
       <div className="max-w-4xl mx-auto space-y-8">
-        {/* Category Suggestions (show when no categories exist) */}
-        {categories.length === 0 && (
-          <div className="card bg-white p-6 mb-8">
-            <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
-              SUGGESTED CATEGORIES FOR WRITERS
-            </h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Get started quickly with these writer-focused categories, or create your own below.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              {categorySuggestions.map((suggestion) => (
-                <div
-                  key={suggestion.name}
-                  className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded transition-colors cursor-pointer"
-                  onClick={() => addSuggestedCategory(suggestion)}
-                >
-                  <div className="flex items-center gap-3">
-                    <div
-                      className="w-3 h-3 rounded-full"
-                      style={{ backgroundColor: suggestion.color }}
-                    ></div>
-                    <div>
-                      <div className="font-bold text-sm text-black">
-                        {suggestion.name}
-                      </div>
-                      <div className="text-xs text-gray-600">
-                        {suggestion.description}
+        {/* Category Suggestions - Always visible, show remaining suggestions */}
+        {(() => {
+          // Filter out suggestions that already exist as categories
+          const existingCategoryNames = categories.map(cat => cat.name.toLowerCase())
+          const availableSuggestions = categorySuggestions.filter(
+            suggestion => !existingCategoryNames.includes(suggestion.name.toLowerCase())
+          )
+          
+          return availableSuggestions.length > 0 ? (
+            <div className="card bg-white p-6 mb-8">
+              <h3 className="text-lg font-bold text-black mb-4 tracking-wide">
+                SUGGESTED CATEGORIES FOR WRITERS
+              </h3>
+              <p className="text-sm text-gray-600 mb-6">
+                {categories.length === 0 
+                  ? 'Get started quickly with these writer-focused categories, or create your own below.'
+                  : 'Add more categories to better organize your tags.'
+                }
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {availableSuggestions.map((suggestion) => (
+                  <div
+                    key={suggestion.name}
+                    className="flex items-center justify-between p-3 bg-gray-50 hover:bg-gray-100 border border-gray-200 rounded transition-colors cursor-pointer"
+                    onClick={() => addSuggestedCategory(suggestion)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{ backgroundColor: suggestion.color }}
+                      ></div>
+                      <div>
+                        <div className="font-bold text-sm text-black">
+                          {suggestion.name}
+                        </div>
+                        <div className="text-xs text-gray-600">
+                          {suggestion.description}
+                        </div>
                       </div>
                     </div>
+                    <PlusIcon className="w-4 h-4 text-gray-400" />
                   </div>
-                  <PlusIcon className="w-4 h-4 text-gray-400" />
-                </div>
-              ))}
+                ))}
+              </div>
+              {categories.length > 0 && (
+                <p className="text-xs text-gray-500 mt-4">
+                  {categories.length} of {categorySuggestions.length} suggested categories created
+                </p>
+              )}
             </div>
-          </div>
-        )}
+          ) : null
+        })()}
 
         {/* Add Category and Tag Forms */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
