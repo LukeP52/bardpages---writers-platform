@@ -12,18 +12,18 @@ import { v4 as uuidv4 } from 'uuid'
 export default function ExcerptsPage() {
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
   const [filteredExcerpts, setFilteredExcerpts] = useState<Excerpt[]>([])
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
-  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([])
   const [availableTags, setAvailableTags] = useState<string[]>([])
-  const [availableAuthors, setAvailableAuthors] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [filtersExpanded, setFiltersExpanded] = useState(false)
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [selectedExcerptIds, setSelectedExcerptIds] = useState<string[]>([])
   const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [dateDisplayMode, setDateDisplayMode] = useState<'created' | 'updated'>('updated')
+  const [sortBy, setSortBy] = useState<'name' | 'dateCreated' | 'dateUpdated' | 'tags'>('dateUpdated')
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
+  const [filterTags, setFilterTags] = useState<string[]>([])
+  const [filterDateFrom, setFilterDateFrom] = useState('')
+  const [filterDateTo, setFilterDateTo] = useState('')
   const { checkAuthAndProceed, showAuthModal, closeAuthModal } = useAuthAction()
   const storage = useStorage()
   const router = useRouter()
@@ -35,31 +35,17 @@ export default function ExcerptsPage() {
         console.log('=== LOADING EXCERPTS PAGE ===')
         console.log('Storage mode:', storage.isUsingCloud ? 'Cloud (Firestore)' : 'Local Storage')
         
-        const [loadedExcerpts, usedTags, usedAuthors] = await Promise.all([
+        const [loadedExcerpts, usedTags] = await Promise.all([
           storage.getExcerpts(),
-          storage.getUsedTags(),
-          storage.getUsedAuthors()
+          storage.getUsedTags()
         ])
         
         console.log(`Loaded ${loadedExcerpts.length} excerpts from storage`)
-        console.log('Excerpt IDs:', loadedExcerpts.map(e => `${e.id.slice(0,8)}... (${e.title.slice(0,20)}...)`))
         console.log('Used tags found:', usedTags)
-        console.log('Used authors found:', usedAuthors)
-        
-        // Debug: Show all tags from all excerpts
-        const allTagsFromExcerpts = new Set<string>()
-        const allAuthorsFromExcerpts = new Set<string>()
-        loadedExcerpts.forEach(excerpt => {
-          excerpt.tags.forEach(tag => allTagsFromExcerpts.add(tag))
-          if (excerpt.author) allAuthorsFromExcerpts.add(excerpt.author)
-        })
-        console.log('Debug: Tags extracted directly from excerpts:', Array.from(allTagsFromExcerpts))
-        console.log('Debug: Authors extracted directly from excerpts:', Array.from(allAuthorsFromExcerpts))
         
         setExcerpts(loadedExcerpts)
         setFilteredExcerpts(loadedExcerpts)
         setAvailableTags(usedTags)
-        setAvailableAuthors(usedAuthors)
       } catch (error) {
         console.error('Failed to load excerpts data:', error)
       } finally {
@@ -71,61 +57,85 @@ export default function ExcerptsPage() {
   }, [storage])
 
   useEffect(() => {
-    const applyFilters = async () => {
-      try {
-        const filters = {
-          tags: selectedTags.length > 0 ? selectedTags : undefined,
-          status: selectedStatuses.length > 0 ? selectedStatuses : undefined,
-          authors: selectedAuthors.length > 0 ? selectedAuthors : undefined,
-          dateFrom: dateFrom ? new Date(dateFrom) : undefined,
-          dateTo: dateTo ? new Date(dateTo) : undefined,
-          search: searchQuery || undefined
-        }
+    const applyFiltersAndSort = () => {
+      if (isLoading) return
 
-        const filtered = await storage.filterExcerpts(filters)
-        setFilteredExcerpts(filtered)
-      } catch (error) {
-        console.error('Failed to filter excerpts:', error)
+      let filtered = [...excerpts]
+      
+      // Apply search filter
+      if (searchQuery) {
+        const searchTerm = searchQuery.toLowerCase()
+        filtered = filtered.filter(excerpt =>
+          excerpt.title.toLowerCase().includes(searchTerm)
+        )
       }
+      
+      // Apply tag filter
+      if (filterTags.length > 0) {
+        filtered = filtered.filter(excerpt =>
+          filterTags.some(tag => excerpt.tags.includes(tag))
+        )
+      }
+      
+      // Apply date range filter
+      if (filterDateFrom) {
+        const fromDate = new Date(filterDateFrom)
+        filtered = filtered.filter(excerpt => {
+          const compareDate = sortBy === 'dateCreated' ? excerpt.createdAt : excerpt.updatedAt
+          return compareDate >= fromDate
+        })
+      }
+      
+      if (filterDateTo) {
+        const toDate = new Date(filterDateTo)
+        toDate.setHours(23, 59, 59, 999) // Include full day
+        filtered = filtered.filter(excerpt => {
+          const compareDate = sortBy === 'dateCreated' ? excerpt.createdAt : excerpt.updatedAt
+          return compareDate <= toDate
+        })
+      }
+      
+      // Apply sorting
+      filtered.sort((a, b) => {
+        let comparison = 0
+        
+        switch (sortBy) {
+          case 'name':
+            comparison = a.title.localeCompare(b.title)
+            break
+          case 'dateCreated':
+            comparison = a.createdAt.getTime() - b.createdAt.getTime()
+            break
+          case 'dateUpdated':
+            comparison = a.updatedAt.getTime() - b.updatedAt.getTime()
+            break
+          case 'tags':
+            comparison = (a.tags[0] || '').localeCompare(b.tags[0] || '')
+            break
+        }
+        
+        return sortDirection === 'desc' ? -comparison : comparison
+      })
+      
+      setFilteredExcerpts(filtered)
     }
     
-    if (!isLoading) {
-      applyFilters()
-    }
-  }, [selectedTags, selectedStatuses, selectedAuthors, searchQuery, dateFrom, dateTo, storage, isLoading])
+    applyFiltersAndSort()
+  }, [excerpts, searchQuery, filterTags, filterDateFrom, filterDateTo, sortBy, sortDirection, isLoading])
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev =>
+  const toggleFilterTag = (tag: string) => {
+    setFilterTags(prev =>
       prev.includes(tag)
         ? prev.filter(t => t !== tag)
         : [...prev, tag]
     )
   }
 
-  const toggleStatus = (status: string) => {
-    setSelectedStatuses(prev =>
-      prev.includes(status)
-        ? prev.filter(s => s !== status)
-        : [...prev, status]
-    )
-  }
-
-
-  const toggleAuthor = (author: string) => {
-    setSelectedAuthors(prev =>
-      prev.includes(author)
-        ? prev.filter(a => a !== author)
-        : [...prev, author]
-    )
-  }
-
   const clearAllFilters = () => {
-    setSelectedTags([])
-    setSelectedStatuses([])
-    setSelectedAuthors([])
     setSearchQuery('')
-    setDateFrom('')
-    setDateTo('')
+    setFilterTags([])
+    setFilterDateFrom('')
+    setFilterDateTo('')
   }
 
   const handleDeleteExcerpt = async (excerpt: Excerpt) => {
@@ -321,7 +331,7 @@ export default function ExcerptsPage() {
                     {excerpt.title}
                   </a>
                   <p className="text-sm text-gray-500 mt-1">
-                    {excerpt.updatedAt.toLocaleDateString()}
+                    {(dateDisplayMode === 'created' ? excerpt.createdAt : excerpt.updatedAt).toLocaleDateString()}
                   </p>
                 </div>
               </div>
@@ -448,17 +458,47 @@ export default function ExcerptsPage() {
         </div>
       </div>
 
-      {/* Search and Filters */}
+      {/* Search and Controls */}
       <div className="mb-8 space-y-6">
-        {/* Mobile search and filters */}
+        {/* Mobile layout */}
         <div className="md:hidden space-y-3">
           <input
             type="text"
-            placeholder="SEARCH EXCERPTS..."
+            placeholder="SEARCH BY NAME..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input w-full min-h-[44px] text-base"
           />
+          
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={dateDisplayMode}
+              onChange={(e) => setDateDisplayMode(e.target.value as 'created' | 'updated')}
+              className="input text-sm min-h-[44px]"
+            >
+              <option value="updated">Show: Last Updated</option>
+              <option value="created">Show: Date Created</option>
+            </select>
+            
+            <select
+              value={`${sortBy}-${sortDirection}`}
+              onChange={(e) => {
+                const [sort, direction] = e.target.value.split('-')
+                setSortBy(sort as any)
+                setSortDirection(direction as any)
+              }}
+              className="input text-sm min-h-[44px]"
+            >
+              <option value="dateUpdated-desc">Sort: Newest Updated</option>
+              <option value="dateUpdated-asc">Sort: Oldest Updated</option>
+              <option value="dateCreated-desc">Sort: Newest Created</option>
+              <option value="dateCreated-asc">Sort: Oldest Created</option>
+              <option value="name-asc">Sort: Name A-Z</option>
+              <option value="name-desc">Sort: Name Z-A</option>
+              <option value="tags-asc">Sort: Tags A-Z</option>
+            </select>
+          </div>
+          
           <div className="flex gap-2">
             <button
               onClick={() => setFiltersExpanded(!filtersExpanded)}
@@ -466,7 +506,8 @@ export default function ExcerptsPage() {
             >
               FILTERS {filtersExpanded ? '−' : '+'}
             </button>
-            {(selectedTags.length > 0 || selectedStatuses.length > 0 || selectedAuthors.length > 0 || searchQuery || dateFrom || dateTo) && (
+            
+            {(searchQuery || filterTags.length > 0 || filterDateFrom || filterDateTo) && (
               <button
                 onClick={clearAllFilters}
                 className="btn btn-ghost min-h-[44px] px-4"
@@ -477,80 +518,63 @@ export default function ExcerptsPage() {
           </div>
         </div>
         
-        {/* Desktop search and filters */}
-        <div className="hidden md:flex gap-4">
+        {/* Desktop layout */}
+        <div className="hidden md:flex gap-4 items-center">
           <input
             type="text"
-            placeholder="SEARCH EXCERPTS..."
+            placeholder="SEARCH BY NAME..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="input flex-1"
           />
+          
+          <select
+            value={dateDisplayMode}
+            onChange={(e) => setDateDisplayMode(e.target.value as 'created' | 'updated')}
+            className="input text-sm"
+          >
+            <option value="updated">Show: Last Updated</option>
+            <option value="created">Show: Date Created</option>
+          </select>
+          
+          <select
+            value={`${sortBy}-${sortDirection}`}
+            onChange={(e) => {
+              const [sort, direction] = e.target.value.split('-')
+              setSortBy(sort as any)
+              setSortDirection(direction as any)
+            }}
+            className="input text-sm"
+          >
+            <option value="dateUpdated-desc">Sort: Newest Updated</option>
+            <option value="dateUpdated-asc">Sort: Oldest Updated</option>
+            <option value="dateCreated-desc">Sort: Newest Created</option>
+            <option value="dateCreated-asc">Sort: Oldest Created</option>
+            <option value="name-asc">Sort: Name A-Z</option>
+            <option value="name-desc">Sort: Name Z-A</option>
+            <option value="tags-asc">Sort: Tags A-Z</option>
+          </select>
+          
           <button
             onClick={() => setFiltersExpanded(!filtersExpanded)}
             className="btn btn-outline"
           >
             FILTERS {filtersExpanded ? '−' : '+'}
           </button>
-          {(selectedTags.length > 0 || selectedStatuses.length > 0 || selectedAuthors.length > 0 || searchQuery || dateFrom || dateTo) && (
+          
+          {(searchQuery || filterTags.length > 0 || filterDateFrom || filterDateTo) && (
             <button
               onClick={clearAllFilters}
               className="btn btn-ghost"
             >
-              CLEAR ALL
+              CLEAR
             </button>
           )}
         </div>
 
         {filtersExpanded && (
-          <div className="card bg-white p-6 space-y-6">
-            {/* Status Filter */}
-            <div>
-              <p className="text-black font-bold text-sm mb-3 tracking-wide">
-                STATUS:
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {['draft', 'review', 'final'].map(status => (
-                  <button
-                    key={status}
-                    onClick={() => toggleStatus(status)}
-                    className={`px-4 py-2 card text-sm font-bold tracking-wide transition-colors ${
-                      selectedStatuses.includes(status) 
-                        ? 'bg-black text-white' 
-                        : 'bg-white text-black hover:bg-black hover:text-white'
-                    }`}
-                  >
-                    {status.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Authors Filter */}
-            {availableAuthors.length > 0 && (
-              <div>
-                <p className="text-black font-bold text-sm mb-3 tracking-wide">
-                  AUTHORS:
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {availableAuthors.map(author => (
-                    <button
-                      key={author}
-                      onClick={() => toggleAuthor(author)}
-                      className={`px-4 py-2 card text-sm font-bold tracking-wide transition-colors ${
-                        selectedAuthors.includes(author) 
-                          ? 'bg-black text-white' 
-                          : 'bg-white text-black hover:bg-black hover:text-white'
-                      }`}
-                    >
-                      {author.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Date Filter */}
+          <div className="card bg-white p-6 space-y-4">
+            {/* Date Range Filter */}
             <div>
               <p className="text-black font-bold text-sm mb-3 tracking-wide">
                 DATE RANGE:
@@ -560,8 +584,8 @@ export default function ExcerptsPage() {
                   <label className="block text-xs font-mono text-gray-600 mb-1">FROM:</label>
                   <input
                     type="date"
-                    value={dateFrom}
-                    onChange={(e) => setDateFrom(e.target.value)}
+                    value={filterDateFrom}
+                    onChange={(e) => setFilterDateFrom(e.target.value)}
                     className="input w-40"
                   />
                 </div>
@@ -569,8 +593,8 @@ export default function ExcerptsPage() {
                   <label className="block text-xs font-mono text-gray-600 mb-1">TO:</label>
                   <input
                     type="date"
-                    value={dateTo}
-                    onChange={(e) => setDateTo(e.target.value)}
+                    value={filterDateTo}
+                    onChange={(e) => setFilterDateTo(e.target.value)}
                     className="input w-40"
                   />
                 </div>
@@ -587,9 +611,9 @@ export default function ExcerptsPage() {
                   {availableTags.map(tag => (
                     <button
                       key={tag}
-                      onClick={() => toggleTag(tag)}
+                      onClick={() => toggleFilterTag(tag)}
                       className={`tag ${
-                        selectedTags.includes(tag) ? 'tag-active' : ''
+                        filterTags.includes(tag) ? 'tag-active' : ''
                       }`}
                     >
                       {tag}
@@ -602,30 +626,20 @@ export default function ExcerptsPage() {
         )}
 
         {/* Active Filters Summary */}
-        {(selectedTags.length > 0 || selectedStatuses.length > 0 || selectedAuthors.length > 0 || dateFrom || dateTo) && (
+        {(filterTags.length > 0 || filterDateFrom || filterDateTo) && (
           <div className="flex flex-wrap gap-2 items-center">
             <span className="text-sm font-bold text-black tracking-wide">ACTIVE FILTERS:</span>
-            {selectedStatuses.map(status => (
-              <span key={status} className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
-                Status: {status}
-              </span>
-            ))}
-            {selectedAuthors.map(author => (
-              <span key={author} className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
-                Author: {author}
-              </span>
-            ))}
-            {dateFrom && (
+            {filterDateFrom && (
               <span className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
-                From: {dateFrom}
+                From: {filterDateFrom}
               </span>
             )}
-            {dateTo && (
+            {filterDateTo && (
               <span className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
-                To: {dateTo}
+                To: {filterDateTo}
               </span>
             )}
-            {selectedTags.map(tag => (
+            {filterTags.map(tag => (
               <span key={tag} className="px-2 py-1 bg-gray-200 text-black text-xs font-mono">
                 Tag: {tag}
               </span>
