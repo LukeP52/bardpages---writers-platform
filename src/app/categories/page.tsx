@@ -23,6 +23,9 @@ export default function TagManagerPage() {
   const [tagToDelete, setTagToDelete] = useState('')
   const [tagExcerptUsage, setTagExcerptUsage] = useState<{usedInExcerpts: boolean, excerptCount: number}>({usedInExcerpts: false, excerptCount: 0})
   const [showSuggestedCategories, setShowSuggestedCategories] = useState(true)
+  const [showCategoryEditModal, setShowCategoryEditModal] = useState(false)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
+  const [categoryTagIds, setCategoryTagIds] = useState<string[]>([])
   const storage = useStorage()
   const categorySuggestions = storage.getWriterCategorySuggestions()
   
@@ -172,6 +175,60 @@ export default function TagManagerPage() {
       console.error('Failed to get tag categories:', error)
       setCurrentCategoryIds([])
       setShowCategoryAssignmentModal(true)
+    }
+  }
+
+  const handleCategoryEdit = async (category: Category) => {
+    try {
+      setEditingCategory(category)
+      const categoryTags = groupedTags[category.name] || []
+      setCategoryTagIds(categoryTags)
+      setShowCategoryEditModal(true)
+    } catch (error) {
+      console.error('Failed to load category tags:', error)
+    }
+  }
+
+  const handleCategoryTagUpdate = async (selectedTags: string[]) => {
+    if (!editingCategory) return
+    
+    try {
+      // Get currently assigned tags for this category
+      const currentTags = groupedTags[editingCategory.name] || []
+      
+      // Tags to remove from category (currently assigned but not in new selection)
+      const tagsToRemove = currentTags.filter(tag => !selectedTags.includes(tag))
+      
+      // Tags to add to category (in new selection but not currently assigned)
+      const tagsToAdd = selectedTags.filter(tag => !currentTags.includes(tag))
+      
+      // Remove tags from category by setting them to uncategorized
+      for (const tag of tagsToRemove) {
+        await storage.addPremadeTagWithCategories(tag, [])
+      }
+      
+      // Add tags to category
+      for (const tag of tagsToAdd) {
+        // Get current categories for this tag
+        const currentTagCategories = await storage.getTagCategories(tag)
+        const currentCategoryIds = currentTagCategories.map(cat => cat.id)
+        
+        // Add this category to the tag's categories (don't remove existing ones)
+        if (!currentCategoryIds.includes(editingCategory.id)) {
+          await storage.addPremadeTagWithCategories(tag, [...currentCategoryIds, editingCategory.id])
+        }
+      }
+      
+      // Reload data to reflect changes
+      await loadData()
+      
+      // Close modal
+      setShowCategoryEditModal(false)
+      setEditingCategory(null)
+      setCategoryTagIds([])
+      
+    } catch (error) {
+      console.error('Failed to update category tags:', error)
     }
   }
 
@@ -574,13 +631,22 @@ export default function TagManagerPage() {
                             {category.name}
                           </span>
                         </div>
-                        <button
-                          onClick={() => deleteCategory(category.id)}
-                          className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
-                          title="Delete category"
-                        >
-                          <XMarkIcon className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => handleCategoryEdit(category)}
+                            className="text-blue-500 hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Edit category tags"
+                          >
+                            <PencilIcon className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => deleteCategory(category.id)}
+                            className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Delete category"
+                          >
+                            <XMarkIcon className="w-4 h-4" />
+                          </button>
+                        </div>
                       </div>
                       <p className="text-xs text-gray-600 mb-2">
                         {category.description}
@@ -605,7 +671,7 @@ export default function TagManagerPage() {
                   ALL TAGS ({allTags.length})
                 </h3>
                 <p className="text-sm text-gray-600 mt-2">
-                  Tags from excerpts and manually added tags. All tags appear as quick-select options when creating excerpts.
+                  Tags from excerpts and manually added tags. Yellow tags are uncategorized.
                 </p>
               </div>
             </div>
@@ -625,77 +691,38 @@ export default function TagManagerPage() {
                 <p className="text-gray-600 text-sm">Loading categories...</p>
               </div>
             ) : (
-              <div className="space-y-4">
-                {Object.entries(groupedTags).map(([category, tags]) => (
-                  <div key={category} className="border border-gray-200 rounded">
-                    <button
-                      onClick={() => toggleCategory(category)}
-                      className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors text-left"
+              <div className="flex flex-wrap gap-2">
+                {allTags.map((tag) => {
+                  const isUncategorized = (groupedTags['Uncategorized'] || []).includes(tag)
+                  return (
+                    <div
+                      key={tag}
+                      className={`flex items-center gap-2 border rounded px-3 py-2 group transition-colors ${
+                        isUncategorized 
+                          ? 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200'
+                          : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
+                      }`}
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="font-bold text-black text-sm tracking-wide">
-                          {category.toUpperCase()}
-                        </span>
-                        <span className="text-xs text-gray-600 bg-gray-200 px-2 py-1 rounded">
-                          {tags.length}
-                        </span>
-                      </div>
-                      <span className="text-gray-500 text-sm">
-                        {expandedCategories.has(category) ? '−' : '+'}
+                      <span className="text-xs font-mono text-gray-800">
+                        {tag}
                       </span>
-                    </button>
-                    
-                    {expandedCategories.has(category) && (
-                      <div className="p-4 bg-white">
-                        {category === 'Uncategorized' && tags.length > 0 && (
-                          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
-                            <p className="text-sm text-blue-800 font-medium mb-1">
-                              📋 These tags aren't assigned to any category yet
-                            </p>
-                            <p className="text-xs text-blue-600">
-                              Click the pencil icon (✏️) next to any tag to assign it to a category
-                            </p>
-                          </div>
-                        )}
-                        
-                        <div className="flex flex-wrap gap-2">
-                          {tags.map((tag) => (
-                              <div
-                                key={tag}
-                                className={`flex items-center gap-2 border rounded px-3 py-2 group transition-colors ${
-                                  category === 'Uncategorized' 
-                                    ? 'bg-yellow-50 hover:bg-yellow-100 border-yellow-200'
-                                    : 'bg-gray-50 hover:bg-gray-100 border-gray-200'
-                                }`}
-                              >
-                                <span className="text-xs font-mono text-gray-800">
-                                  {tag}
-                                </span>
-                                <button
-                                  onClick={() => handleTagReassignment(tag)}
-                                  className={`hover:text-blue-700 transition-opacity ml-1 ${
-                                    category === 'Uncategorized'
-                                      ? 'text-blue-600 opacity-100' // Always visible for uncategorized
-                                      : 'text-blue-500 opacity-0 group-hover:opacity-100' // Hidden by default for categorized
-                                  }`}
-                                  title={category === 'Uncategorized' ? 'Assign to category' : 'Reassign category'}
-                                >
-                                  <PencilIcon className="w-3 h-3" />
-                                </button>
-                                <button
-                                  onClick={() => initiateTagDeletion(tag)}
-                                  className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity ml-1"
-                                  title="Delete tag"
-                                >
-                                  <XMarkIcon className="w-3 h-3" />
-                                </button>
-                              </div>
-                            ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      <button
+                        onClick={() => handleTagReassignment(tag)}
+                        className="text-blue-500 hover:text-blue-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Assign to category"
+                      >
+                        <PencilIcon className="w-3 h-3" />
+                      </button>
+                      <button
+                        onClick={() => initiateTagDeletion(tag)}
+                        className="text-red-500 hover:text-red-700 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Delete tag"
+                      >
+                        <XMarkIcon className="w-3 h-3" />
+                      </button>
+                    </div>
+                  )
+                })}
               </div>
             )}
           </div>
@@ -791,6 +818,107 @@ export default function TagManagerPage() {
                   setTagToDelete('')
                 }}
                 className="w-full btn btn-ghost mt-3 py-2 text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Category Edit Modal */}
+      {showCategoryEditModal && editingCategory && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-lg border border-gray-300 w-full max-w-md max-h-[80vh] overflow-hidden">
+            <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="text-lg font-bold text-black">
+                Edit "{editingCategory.name}" Tags
+              </h3>
+              <button
+                onClick={() => {
+                  setShowCategoryEditModal(false)
+                  setEditingCategory(null)
+                  setCategoryTagIds([])
+                }}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <XMarkIcon className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-4 overflow-y-auto max-h-[60vh]">
+              <div className="mb-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: editingCategory.color }}
+                  ></div>
+                  <span className="text-sm text-gray-600">
+                    Select tags to assign to this category:
+                  </span>
+                </div>
+              </div>
+              
+              {allTags.length > 0 ? (
+                <div className="space-y-2">
+                  {allTags.map(tag => {
+                    const isSelected = categoryTagIds.includes(tag)
+                    const isUncategorized = (groupedTags['Uncategorized'] || []).includes(tag)
+                    
+                    return (
+                      <label
+                        key={tag}
+                        className={`flex items-center p-2 rounded border cursor-pointer transition-all ${
+                          isSelected
+                            ? 'border-blue-400 bg-blue-50'
+                            : isUncategorized
+                            ? 'border-yellow-200 bg-yellow-50 hover:border-yellow-300'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isSelected}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setCategoryTagIds([...categoryTagIds, tag])
+                            } else {
+                              setCategoryTagIds(categoryTagIds.filter(t => t !== tag))
+                            }
+                          }}
+                          className="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                        />
+                        <div className="ml-2 flex-1">
+                          <div className={`text-sm font-medium ${isUncategorized ? 'text-yellow-800' : 'text-gray-900'}`}>
+                            {tag}
+                            {isUncategorized && <span className="text-xs text-yellow-600 ml-2">(uncategorized)</span>}
+                          </div>
+                        </div>
+                      </label>
+                    )
+                  })}
+                </div>
+              ) : (
+                <div className="text-center py-6">
+                  <p className="text-sm text-gray-500">No tags available.</p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 border-t border-gray-200 flex gap-2">
+              <button
+                onClick={() => handleCategoryTagUpdate(categoryTagIds)}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded text-sm font-medium transition-colors"
+              >
+                Update Tags
+              </button>
+              <button
+                onClick={() => {
+                  setShowCategoryEditModal(false)
+                  setEditingCategory(null)
+                  setCategoryTagIds([])
+                }}
+                className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded text-sm font-medium transition-colors"
               >
                 Cancel
               </button>
