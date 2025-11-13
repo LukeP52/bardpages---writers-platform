@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { Storyboard, Excerpt, StoryboardSection } from '@/types'
+import { Storyboard, Excerpt, StoryboardSection, Category } from '@/types'
 import { useStorage } from '@/contexts/StorageContext'
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -145,6 +145,7 @@ export default function StoryboardEditPage() {
   const [showExcerptsDropdown, setShowExcerptsDropdown] = useState(false)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [tagCategories, setTagCategories] = useState<Record<string, string[]>>({})
+  const [categories, setCategories] = useState<Category[]>([])
   const [openCategoryDropdowns, setOpenCategoryDropdowns] = useState<Set<string>>(new Set())
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const categoryDropdownRef = React.useRef<HTMLDivElement>(null)
@@ -154,48 +155,16 @@ export default function StoryboardEditPage() {
     setOpenCategoryDropdowns(new Set())
   })
 
-  // Tag categorization function (same as in categories page)
-  const categorizeTag = (tag: string): string => {
-    const tagLower = tag.toLowerCase()
-    
-    if (/\b(\d{4}s?|century|medieval|ancient|modern|renaissance|victorian|edwardian|georgian|tudor|stuart)\b/.test(tagLower)) {
-      return 'Dates & Eras'
-    }
-    if (/\b(england|france|germany|italy|spain|britain|europe|america|asia|africa|london|paris|rome|york|manchester)\b/.test(tagLower)) {
-      return 'Geography & Regions'
-    }
-    if (/\b(war|battle|military|soldier|army|navy|conflict|siege|crusade|revolution)\b/.test(tagLower)) {
-      return 'Wars & Military'
-    }
-    if (/\b(king|queen|parliament|government|political|royal|crown|empire|republic|democracy)\b/.test(tagLower)) {
-      return 'Politics & Government'
-    }
-    if (/\b(church|religion|christian|muslim|jewish|catholic|protestant|monastery|temple|spiritual|philosophy)\b/.test(tagLower)) {
-      return 'Religion & Philosophy'
-    }
-    if (/\b(culture|society|social|family|marriage|education|art|literature|music|fashion|customs)\b/.test(tagLower)) {
-      return 'Culture & Society'
-    }
-    if (/\b(trade|commerce|economy|merchant|guild|industry|agriculture|money|wealth|business)\b/.test(tagLower)) {
-      return 'Economics & Trade'
-    }
-    if (/\b(science|technology|invention|discovery|medicine|engineering|mathematics|astronomy|physics)\b/.test(tagLower)) {
-      return 'Science & Technology'
-    }
-    if (/\b(person|people|character|biography|life|individual|historical figure)\b/.test(tagLower)) {
-      return 'People & Biography'
-    }
-    return 'Other'
-  }
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [loadedStoryboards, loadedExcerpts, allTags, usedAuthors] = await Promise.all([
+        const [loadedStoryboards, loadedExcerpts, allTags, usedAuthors, loadedCategories] = await Promise.all([
           storage.getStoryboards(),
           storage.getExcerpts(),
           storage.getAllTags(),
-          storage.getUsedAuthors()
+          storage.getUsedAuthors(),
+          storage.getCategories()
         ])
         
         const loadedStoryboard = loadedStoryboards.find(sb => sb.id === storyboardId)
@@ -232,15 +201,38 @@ export default function StoryboardEditPage() {
         // Set filter options
         setAvailableTags(allTags)
         setAvailableAuthors(usedAuthors)
+        setCategories(loadedCategories)
         
-        // Categorize tags
-        const categories: Record<string, string[]> = {}
-        allTags.forEach(tag => {
-          const category = categorizeTag(tag)
-          if (!categories[category]) categories[category] = []
-          categories[category].push(tag)
+        // Build tag categories from real category data
+        const tagCategoryMap: Record<string, string[]> = {}
+        
+        // Get tag-category mappings for all tags
+        const tagCategoryPromises = allTags.map(async (tag) => {
+          const tagCategories = await storage.getTagCategories(tag)
+          return { tag, categories: tagCategories }
         })
-        setTagCategories(categories)
+        
+        const tagCategoryResults = await Promise.all(tagCategoryPromises)
+        
+        // Organize tags by category name
+        tagCategoryResults.forEach(({ tag, categories }) => {
+          if (categories.length > 0) {
+            categories.forEach(category => {
+              if (!tagCategoryMap[category.name]) {
+                tagCategoryMap[category.name] = []
+              }
+              tagCategoryMap[category.name].push(tag)
+            })
+          } else {
+            // Uncategorized tags
+            if (!tagCategoryMap['Uncategorized']) {
+              tagCategoryMap['Uncategorized'] = []
+            }
+            tagCategoryMap['Uncategorized'].push(tag)
+          }
+        })
+        
+        setTagCategories(tagCategoryMap)
       } catch (error) {
         console.error('Failed to load storyboard data:', error)
       }
