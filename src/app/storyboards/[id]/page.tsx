@@ -204,11 +204,27 @@ export default function StoryboardEditPage() {
           return
         }
 
-        setStoryboard(loadedStoryboard)
         setExcerpts(loadedExcerpts)
         
+        // Clean up storyboard sections that reference non-existent excerpts
+        const excerptIds = new Set(loadedExcerpts.map(excerpt => excerpt.id))
+        const validSections = loadedStoryboard.sections.filter(section => excerptIds.has(section.excerptId))
+        
+        // If we removed orphaned sections, save the cleaned storyboard
+        if (validSections.length !== loadedStoryboard.sections.length) {
+          const cleanedStoryboard = {
+            ...loadedStoryboard,
+            sections: validSections.map((section, index) => ({ ...section, order: index }))
+          }
+          await storage.saveStoryboard(cleanedStoryboard)
+          setStoryboard(cleanedStoryboard)
+          console.log(`Cleaned up ${loadedStoryboard.sections.length - validSections.length} orphaned sections from storyboard`)
+        } else {
+          setStoryboard(loadedStoryboard)
+        }
+        
         // Filter out excerpts that are already in the storyboard
-        const usedExcerptIds = new Set(loadedStoryboard.sections.map(section => section.excerptId))
+        const usedExcerptIds = new Set(validSections.map(section => section.excerptId))
         const available = loadedExcerpts.filter(excerpt => !usedExcerptIds.has(excerpt.id))
         setAvailableExcerpts(available)
         setFilteredAvailableExcerpts(available)
@@ -939,22 +955,20 @@ export default function StoryboardEditPage() {
                   className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 auto-rows-max"
                 >
                   <AnimatePresence>
-                    {storyboard.sections.map((section, index) => {
-                      const excerpt = getExcerptById(section.excerptId)
-                      if (!excerpt) return null
-
-                      return (
+                    {storyboard.sections
+                      .map(section => ({ section, excerpt: getExcerptById(section.excerptId) }))
+                      .filter(({ excerpt }) => excerpt !== null)
+                      .map(({ section, excerpt }, index) => (
                         <SortableExcerptCard
                           key={section.id}
                           section={section}
-                          excerpt={excerpt}
+                          excerpt={excerpt!}
                           index={index}
                           displayMode={displayMode}
                           onRemove={removeSection}
                           isBeingDraggedOver={false}
                         />
-                      )
-                    })}
+                      ))}
                   </AnimatePresence>
                 </motion.div>
               </SortableContext>
