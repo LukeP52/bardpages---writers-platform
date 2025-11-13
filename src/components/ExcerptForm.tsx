@@ -331,8 +331,11 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       const now = new Date()
       const selectedDate = new Date(date)
       
+      // Use existing excerpt ID, or guest ID if it exists, otherwise generate new UUID
+      const excerptId = excerpt?.id || (!user ? guestExcerptId : uuidv4())
+      
       const excerptData: Excerpt = {
-        id: excerpt?.id || uuidv4(),
+        id: excerptId,
         title: title.trim(),
         content: content.trim(),
         author: author.trim() || undefined,
@@ -354,6 +357,17 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       
       // Clear draft since we successfully saved
       clearDraft()
+      
+      // If this was a guest excerpt and user is now authenticated, clear guest storage
+      if (user && excerptId === guestExcerptId) {
+        try {
+          const guestStorage = createStorage()
+          guestStorage.deleteExcerpt(guestExcerptId)
+          console.log('Cleared guest excerpt from storage after authenticated save')
+        } catch (error) {
+          console.warn('Could not clear guest excerpt:', error)
+        }
+      }
       
       console.log(`Excerpt ${mode === 'create' ? 'created' : 'updated'} successfully!`)
       router.push('/excerpts')
