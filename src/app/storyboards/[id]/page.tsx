@@ -761,7 +761,7 @@ export default function StoryboardEditPage() {
               >
                 <option value="order">Manual Order</option>
                 <option value="name">Name A-Z</option>
-                <option value="displayDate">Display Date</option>
+                <option value="displayDate">Excerpt Date</option>
                 <option value="lastEdited">Last Edited</option>
               </select>
               
