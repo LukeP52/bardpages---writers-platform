@@ -198,6 +198,14 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       for (const excerpt of guestExcerpts) {
         await firestoreService.saveExcerpt(excerpt)
         console.log(`Migrated excerpt: ${excerpt.title}`)
+        
+        // Immediately clear each guest excerpt after successful migration
+        try {
+          guestStorage.deleteExcerpt(excerpt.id)
+          console.log(`Cleared migrated guest excerpt: ${excerpt.id}`)
+        } catch (error) {
+          console.warn(`Could not clear guest excerpt ${excerpt.id}:`, error)
+        }
       }
 
       // Migrate categories

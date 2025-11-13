@@ -353,6 +353,17 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         wordCount: getWordCount(content)
       }
 
+      // Check if this excerpt already exists (from migration) to prevent duplicates
+      const existingExcerpt = await storage.getExcerpt(excerptId)
+      
+      if (existingExcerpt && user && excerptId === guestExcerptId) {
+        // This excerpt was already migrated, just redirect without saving again
+        console.log('Excerpt already migrated, redirecting without duplicate save')
+        clearDraft()
+        router.push('/excerpts')
+        return
+      }
+      
       await storage.saveExcerpt(excerptData)
       
       // Verify it was saved
