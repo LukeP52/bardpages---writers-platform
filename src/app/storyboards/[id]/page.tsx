@@ -583,7 +583,11 @@ export default function StoryboardEditPage() {
     }))
     
     await saveStoryboard({
-      ...storyboard,
+      id: storyboard.id,
+      title: storyboard.title,
+      description: storyboard.description,
+      createdAt: storyboard.createdAt,
+      updatedAt: new Date(),
       sections: reorderedSections
     })
   }
@@ -599,7 +603,11 @@ export default function StoryboardEditPage() {
       // Reset to original order
       const originalSections = [...storyboard.sections].sort((a, b) => a.order - b.order)
       const updatedStoryboard = {
-        ...storyboard,
+        id: storyboard.id,
+        title: storyboard.title,
+        description: storyboard.description,
+        createdAt: storyboard.createdAt,
+        updatedAt: new Date(),
         sections: originalSections
       }
       setStoryboard(updatedStoryboard)
@@ -655,7 +663,11 @@ export default function StoryboardEditPage() {
       }))
       
       await saveStoryboard({
-        ...storyboard,
+        id: storyboard.id,
+        title: storyboard.title,
+        description: storyboard.description,
+        createdAt: storyboard.createdAt,
+        updatedAt: new Date(),
         sections: reorderedSections
       })
     }
