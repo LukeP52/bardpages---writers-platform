@@ -67,7 +67,7 @@ export default function TagManagerPage() {
   const loadData = async () => {
     try {
       const [allTags, allCategories] = await Promise.all([
-        storage.getUsedTags(),
+        storage.getAllTags(),
         storage.getCategories()
       ])
       setAllTags(allTags)
