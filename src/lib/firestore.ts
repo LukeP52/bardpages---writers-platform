@@ -187,14 +187,32 @@ export class FirestoreService {
   async getAllTags(): Promise<string[]> {
     this.checkAvailability()
     
-    const excerpts = await this.getExcerpts()
+    // Get tags from both excerpts and premade tags collection
+    const [excerpts, premadeTags] = await Promise.all([
+      this.getExcerpts(),
+      this.getPremadeTags()
+    ])
+    
     const tagSet = new Set<string>()
     
+    // Add tags from excerpts
     excerpts.forEach(excerpt => {
       excerpt.tags.forEach(tag => tagSet.add(tag))
     })
     
+    // Add premade tags
+    premadeTags.forEach(tag => tagSet.add(tag))
+    
     return Array.from(tagSet).sort()
+  }
+
+  async getPremadeTags(): Promise<string[]> {
+    this.checkAvailability()
+    
+    const premadeTagsRef = collection(db, 'users', this.userId, 'premadeTags')
+    const querySnapshot = await getDocs(premadeTagsRef)
+    
+    return querySnapshot.docs.map(doc => doc.data().tagName as string).sort()
   }
 
   async getUsedTags(): Promise<string[]> {
@@ -257,12 +275,24 @@ export class FirestoreService {
   async addPremadeTagWithCategories(tagName: string, categoryIds: string[]): Promise<void> {
     this.checkAvailability()
     
-    const tagRef = doc(db, 'users', this.userId, 'tagCategories', tagName)
-    await setDoc(tagRef, {
-      tagName,
-      categoryIds,
-      createdAt: Timestamp.now()
-    })
+    if (tagName.trim()) {
+      const trimmedTag = tagName.trim()
+      
+      // Save the tag to premade tags collection
+      const premadeTagRef = doc(db, 'users', this.userId, 'premadeTags', trimmedTag)
+      await setDoc(premadeTagRef, {
+        tagName: trimmedTag,
+        createdAt: Timestamp.now()
+      })
+      
+      // Save the tag-category mapping
+      const tagCategoryRef = doc(db, 'users', this.userId, 'tagCategories', trimmedTag)
+      await setDoc(tagCategoryRef, {
+        tagName: trimmedTag,
+        categoryIds,
+        createdAt: Timestamp.now()
+      })
+    }
   }
 
   async getTagCategories(tagName: string): Promise<Category[]> {
@@ -288,12 +318,17 @@ export class FirestoreService {
     return categories
   }
   
-  // Delete tag completely - removes from tag-category mappings
+  // Delete tag completely - removes from premade tags and tag-category mappings
   async deleteTagCompletely(tagName: string): Promise<void> {
     this.checkAvailability()
     
-    const tagRef = doc(db, 'users', this.userId, 'tagCategories', tagName)
-    await deleteDoc(tagRef)
+    // Remove from premade tags collection
+    const premadeTagRef = doc(db, 'users', this.userId, 'premadeTags', tagName)
+    await deleteDoc(premadeTagRef)
+    
+    // Remove from tag-category mappings
+    const tagCategoryRef = doc(db, 'users', this.userId, 'tagCategories', tagName)
+    await deleteDoc(tagCategoryRef)
   }
 
   // STORYBOARD OPERATIONS

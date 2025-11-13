@@ -70,7 +70,6 @@ export default function TagManagerPage() {
         storage.getAllTags(),
         storage.getCategories()
       ])
-      console.log('loadData - allTags loaded:', allTags)
       setAllTags(allTags)
       setCategories(allCategories)
       
@@ -149,19 +148,12 @@ export default function TagManagerPage() {
   const handleCategoryAssignment = async (categoryIds: string[]) => {
     if (selectedTagForAssignment) {
       try {
-        console.log(`Adding tag "${selectedTagForAssignment}" with categories:`, categoryIds)
         await storage.addPremadeTagWithCategories(selectedTagForAssignment, categoryIds)
-        
-        // Check if tag was added
-        const allTagsAfter = await storage.getAllTags()
-        console.log(`All tags after addition:`, allTagsAfter)
-        console.log(`Tag "${selectedTagForAssignment}" included:`, allTagsAfter.includes(selectedTagForAssignment))
-        
         setNewTag('')
         setSelectedTagForAssignment('')
         await loadData()
         
-        // Get category names
+        // Get category names for logging
         const categoryNames = await Promise.all(
           categoryIds.map(id => storage.getCategory(id))
         )
