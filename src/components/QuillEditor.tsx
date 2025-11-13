@@ -19,6 +19,15 @@ const DEFAULT_TOOLBAR_OPTIONS = [
   ['clean'],
 ]
 
+// Mobile-optimized toolbar with fewer, larger buttons
+const MOBILE_TOOLBAR_OPTIONS = [
+  ['bold', 'italic', 'underline'],
+  [{ list: 'ordered' }, { list: 'bullet' }],
+  [{ header: [1, 2, false] }],
+  ['link'],
+  ['clean'],
+]
+
 const DEFAULT_FORMATS = [
   'header',
   'font',
@@ -145,11 +154,15 @@ export default function QuillEditor({
       
       QuillConstructor.register(PageBreak, true)
 
+      // Detect if device is mobile
+      const isMobile = window.matchMedia('(max-width: 768px)').matches
+      const toolbarOptions = isMobile ? MOBILE_TOOLBAR_OPTIONS : DEFAULT_TOOLBAR_OPTIONS
+      
       const quillInstance = new QuillConstructor(containerRef.current, {
         theme: 'snow',
         placeholder,
         modules: {
-          toolbar: DEFAULT_TOOLBAR_OPTIONS,
+          toolbar: toolbarOptions,
           history: {
             delay: 1000,
             maxStack: 100,

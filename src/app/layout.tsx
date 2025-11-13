@@ -8,6 +8,7 @@ import 'quill/dist/quill.snow.css'
 export const metadata: Metadata = {
   title: 'Bard Pages - Writers Platform',
   description: 'A comprehensive platform for writers to manage excerpts, create storyboards, and publish books',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
 }
 
 export default function RootLayout({

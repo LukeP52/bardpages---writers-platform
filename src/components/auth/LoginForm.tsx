@@ -64,7 +64,7 @@ export default function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
           id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400"
+          className="w-full px-3 py-3 text-base border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400 min-h-[44px]"
           placeholder="Enter your email"
           disabled={loading}
         />
@@ -79,7 +79,7 @@ export default function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
           id="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400"
+          className="w-full px-3 py-3 text-base border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400 min-h-[44px]"
           placeholder="Enter your password"
           disabled={loading}
         />
@@ -88,7 +88,7 @@ export default function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium transition-colors"
+        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 disabled:cursor-not-allowed text-white px-4 py-3 rounded font-medium transition-colors min-h-[44px] text-base"
       >
         {loading ? 'Signing in...' : 'Sign In'}
       </button>
@@ -97,7 +97,7 @@ export default function LoginForm({ onToggleMode, onSuccess }: LoginFormProps) {
         <button
           type="button"
           onClick={onToggleMode}
-          className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
+          className="text-base text-blue-600 hover:text-blue-700 transition-colors py-2 px-4 min-h-[44px]"
         >
           Don't have an account? Sign up
         </button>

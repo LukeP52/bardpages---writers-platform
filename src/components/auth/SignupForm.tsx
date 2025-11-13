@@ -73,7 +73,7 @@ export default function SignupForm({ onToggleMode, onSuccess }: SignupFormProps)
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400"
+          className="w-full px-3 py-3 text-base border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400 min-h-[44px]"
           placeholder="Enter your full name"
           disabled={loading}
         />
@@ -88,7 +88,7 @@ export default function SignupForm({ onToggleMode, onSuccess }: SignupFormProps)
           id="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400"
+          className="w-full px-3 py-3 text-base border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400 min-h-[44px]"
           placeholder="Enter your email"
           disabled={loading}
         />
@@ -103,7 +103,7 @@ export default function SignupForm({ onToggleMode, onSuccess }: SignupFormProps)
           id="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400"
+          className="w-full px-3 py-3 text-base border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400 min-h-[44px]"
           placeholder="Choose a password (min. 6 characters)"
           disabled={loading}
         />
@@ -118,7 +118,7 @@ export default function SignupForm({ onToggleMode, onSuccess }: SignupFormProps)
           id="confirmPassword"
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400"
+          className="w-full px-3 py-3 text-base border border-gray-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-400 min-h-[44px]"
           placeholder="Confirm your password"
           disabled={loading}
         />
@@ -127,7 +127,7 @@ export default function SignupForm({ onToggleMode, onSuccess }: SignupFormProps)
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed text-white px-4 py-2 rounded font-medium transition-colors"
+        className="w-full bg-green-600 hover:bg-green-700 disabled:bg-green-300 disabled:cursor-not-allowed text-white px-4 py-3 rounded font-medium transition-colors min-h-[44px] text-base"
       >
         {loading ? 'Creating account...' : 'Create Account'}
       </button>
@@ -136,7 +136,7 @@ export default function SignupForm({ onToggleMode, onSuccess }: SignupFormProps)
         <button
           type="button"
           onClick={onToggleMode}
-          className="text-sm text-blue-600 hover:text-blue-700 transition-colors"
+          className="text-base text-blue-600 hover:text-blue-700 transition-colors py-2 px-4 min-h-[44px]"
         >
           Already have an account? Sign in
         </button>
