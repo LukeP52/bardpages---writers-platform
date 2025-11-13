@@ -157,6 +157,7 @@ export default function StoryboardEditPage() {
   const [openCategoryDropdowns, setOpenCategoryDropdowns] = useState<Set<string>>(new Set())
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [storyboardSortBy, setStoryboardSortBy] = useState<'order' | 'name' | 'displayDate' | 'lastEdited'>('order')
+  const [storyboardSortReversed, setStoryboardSortReversed] = useState(false)
   const categoryDropdownRef = React.useRef<HTMLDivElement>(null)
 
   // Close category dropdowns when clicking outside
@@ -543,42 +544,38 @@ export default function StoryboardEditPage() {
       .map(section => ({ section, excerpt: getExcerptById(section.excerptId) }))
       .filter(({ excerpt }) => excerpt !== null)
     
+    let sortedSections = [...validSections]
+    
     if (storyboardSortBy === 'order') {
-      return validSections.sort((a, b) => a.section.order - b.section.order)
+      sortedSections.sort((a, b) => a.section.order - b.section.order)
+    } else {
+      sortedSections.sort((a, b) => {
+        switch (storyboardSortBy) {
+          case 'name':
+            return a.excerpt!.title.localeCompare(b.excerpt!.title)
+          case 'displayDate':
+            // Sort by the excerpt's creation date (which is the display date)
+            return b.excerpt!.createdAt.getTime() - a.excerpt!.createdAt.getTime() // Newest first by default
+          case 'lastEdited':
+            return b.excerpt!.updatedAt.getTime() - a.excerpt!.updatedAt.getTime() // Newest first by default
+          default:
+            return a.section.order - b.section.order
+        }
+      })
     }
     
-    return validSections.sort((a, b) => {
-      switch (storyboardSortBy) {
-        case 'name':
-          return a.excerpt!.title.localeCompare(b.excerpt!.title)
-        case 'displayDate':
-          // Sort by the excerpt's creation date (which is the display date)
-          return b.excerpt!.createdAt.getTime() - a.excerpt!.createdAt.getTime() // Newest first
-        case 'lastEdited':
-          return b.excerpt!.updatedAt.getTime() - a.excerpt!.updatedAt.getTime() // Newest first
-        default:
-          return a.section.order - b.section.order
-      }
-    })
+    // Apply reverse if needed
+    if (storyboardSortReversed) {
+      sortedSections.reverse()
+    }
+    
+    return sortedSections
   }
 
-  const handleStoryboardSort = async (sortType: 'order' | 'name' | 'displayDate' | 'lastEdited') => {
+  const applySortToStoryboard = async () => {
     if (!storyboard) return
     
-    setStoryboardSortBy(sortType)
-    
-    if (sortType === 'order') {
-      // Reset to original order
-      const originalSections = [...storyboard.sections].sort((a, b) => a.order - b.order)
-      const updatedStoryboard = {
-        ...storyboard,
-        sections: originalSections
-      }
-      setStoryboard(updatedStoryboard)
-      return
-    }
-    
-    // Apply the sort and update section orders
+    // Apply the current sort and update section orders
     const sortedSections = getSortedStoryboardSections()
     const reorderedSections = sortedSections.map(({ section }, index) => ({
       ...section,
@@ -589,6 +586,79 @@ export default function StoryboardEditPage() {
       ...storyboard,
       sections: reorderedSections
     })
+  }
+
+  const handleStoryboardSort = async (sortType: 'order' | 'name' | 'displayDate' | 'lastEdited') => {
+    if (!storyboard) return
+    
+    setStoryboardSortBy(sortType)
+    
+    if (sortType === 'order') {
+      // Reset reverse when going back to manual order
+      setStoryboardSortReversed(false)
+      // Reset to original order
+      const originalSections = [...storyboard.sections].sort((a, b) => a.order - b.order)
+      const updatedStoryboard = {
+        ...storyboard,
+        sections: originalSections
+      }
+      setStoryboard(updatedStoryboard)
+      return
+    }
+    
+    await applySortToStoryboard()
+  }
+
+  const getBaseSortedSections = () => {
+    if (!storyboard) return []
+    
+    const validSections = storyboard.sections
+      .map(section => ({ section, excerpt: getExcerptById(section.excerptId) }))
+      .filter(({ excerpt }) => excerpt !== null)
+    
+    let sortedSections = [...validSections]
+    
+    if (storyboardSortBy === 'order') {
+      sortedSections.sort((a, b) => a.section.order - b.section.order)
+    } else {
+      sortedSections.sort((a, b) => {
+        switch (storyboardSortBy) {
+          case 'name':
+            return a.excerpt!.title.localeCompare(b.excerpt!.title)
+          case 'displayDate':
+            return b.excerpt!.createdAt.getTime() - a.excerpt!.createdAt.getTime()
+          case 'lastEdited':
+            return b.excerpt!.updatedAt.getTime() - a.excerpt!.updatedAt.getTime()
+          default:
+            return a.section.order - b.section.order
+        }
+      })
+    }
+    
+    return sortedSections
+  }
+
+  const handleReverseToggle = async () => {
+    const newReversedState = !storyboardSortReversed
+    setStoryboardSortReversed(newReversedState)
+    
+    // Only apply sort if not in manual order mode
+    if (storyboardSortBy !== 'order') {
+      // Get base sorted sections (without previous reverse)
+      const baseSortedSections = getBaseSortedSections()
+      // Apply new reverse state
+      const finalSections = newReversedState ? [...baseSortedSections].reverse() : baseSortedSections
+      
+      const reorderedSections = finalSections.map(({ section }, index) => ({
+        ...section,
+        order: index
+      }))
+      
+      await saveStoryboard({
+        ...storyboard,
+        sections: reorderedSections
+      })
+    }
   }
 
   if (!storyboard) {
@@ -680,6 +750,22 @@ export default function StoryboardEditPage() {
                 <option value="displayDate">Display Date</option>
                 <option value="lastEdited">Last Edited</option>
               </select>
+              
+              {storyboardSortBy !== 'order' && (
+                <button
+                  onClick={handleReverseToggle}
+                  className={`p-2 border border-gray-300 rounded-lg transition-colors ${
+                    storyboardSortReversed 
+                      ? 'bg-blue-100 border-blue-500 text-blue-700' 
+                      : 'bg-white text-gray-600 hover:bg-gray-50'
+                  }`}
+                  title="Reverse order"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                </button>
+              )}
             </div>
           </div>
           
