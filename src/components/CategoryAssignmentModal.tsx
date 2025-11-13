@@ -47,10 +47,13 @@ export default function CategoryAssignmentModal({
   }
 
   const handleAssign = () => {
-    if (selectedCategoryIds.length > 0) {
-      onAssign(selectedCategoryIds)
-      onClose()
-    }
+    onAssign(selectedCategoryIds)
+    onClose()
+  }
+  
+  const handleKeepUncategorized = () => {
+    onAssign([])
+    onClose()
   }
 
   const handleCreateCategory = async () => {
@@ -144,13 +147,22 @@ export default function CategoryAssignmentModal({
                 </div>
               )}
 
-              <button
-                onClick={() => setShowNewCategoryForm(true)}
-                className="w-full flex items-center justify-center gap-2 p-2 border border-dashed border-gray-300 rounded text-sm text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
-              >
-                <PlusIcon className="w-4 h-4" />
-                Create New Category
-              </button>
+              <div className="space-y-2">
+                <button
+                  onClick={handleKeepUncategorized}
+                  className="w-full flex items-center justify-center gap-2 p-2 border border-yellow-300 bg-yellow-50 hover:bg-yellow-100 rounded text-sm text-yellow-800 hover:text-yellow-900 transition-colors"
+                >
+                  Keep Uncategorized
+                </button>
+                
+                <button
+                  onClick={() => setShowNewCategoryForm(true)}
+                  className="w-full flex items-center justify-center gap-2 p-2 border border-dashed border-gray-300 rounded text-sm text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors"
+                >
+                  <PlusIcon className="w-4 h-4" />
+                  Create New Category
+                </button>
+              </div>
             </>
           ) : (
             <div className="space-y-3">
@@ -187,16 +199,14 @@ export default function CategoryAssignmentModal({
 
         {!showNewCategoryForm && (
           <div className="flex gap-2 p-4 pt-0">
-            <button
-              onClick={handleAssign}
-              disabled={selectedCategoryIds.length === 0}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white px-3 py-2 rounded text-sm font-medium transition-colors"
-            >
-              {selectedCategoryIds.length === 0 
-                ? 'Select Categories' 
-                : `Assign to ${selectedCategoryIds.length} categor${selectedCategoryIds.length === 1 ? 'y' : 'ies'}`
-              }
-            </button>
+            {selectedCategoryIds.length > 0 && (
+              <button
+                onClick={handleAssign}
+                className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
+              >
+                Assign to {selectedCategoryIds.length} categor{selectedCategoryIds.length === 1 ? 'y' : 'ies'}
+              </button>
+            )}
             <button
               onClick={onClose}
               className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-2 rounded text-sm font-medium transition-colors"
