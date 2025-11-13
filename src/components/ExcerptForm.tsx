@@ -418,7 +418,6 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       console.error('🚨 Full error details:', {
         message: error instanceof Error ? error.message : 'Unknown error',
         stack: error instanceof Error ? error.stack : undefined,
-        excerptId,
         title: title.substring(0, 30) + '...',
         tagsBeingSaved: tags
       })
