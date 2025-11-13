@@ -156,7 +156,7 @@ export default function StoryboardEditPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [openCategoryDropdowns, setOpenCategoryDropdowns] = useState<Set<string>>(new Set())
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
-  const [storyboardSortBy, setStoryboardSortBy] = useState<'order' | 'name' | 'dateCreated' | 'dateUpdated'>('order')
+  const [storyboardSortBy, setStoryboardSortBy] = useState<'order' | 'name' | 'displayDate' | 'lastEdited'>('order')
   const [storyboardSortReversed, setStoryboardSortReversed] = useState(false)
   const categoryDropdownRef = React.useRef<HTMLDivElement>(null)
 
