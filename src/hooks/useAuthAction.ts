@@ -23,26 +23,26 @@ export function useAuthAction() {
     setShowAuthModal(false)
   }
 
-  // Auto-migrate guest data when user signs in
-  const handleGuestDataMigration = useCallback(async () => {
-    if (user && !hasTriggeredMigration && checkForGuestData()) {
-      try {
-        console.log('Found guest data, migrating to user account...')
-        await migrateGuestData()
-        setHasTriggeredMigration(true)
-        console.log('Guest data migration completed successfully!')
-      } catch (error) {
-        console.error('Failed to migrate guest data:', error)
-      }
-    }
-  }, [user, hasTriggeredMigration, checkForGuestData, migrateGuestData])
-
   // Trigger migration when user signs in
   useEffect(() => {
+    const handleGuestDataMigration = async () => {
+      if (user && !hasTriggeredMigration && checkForGuestData()) {
+        try {
+          console.log('🔄 useAuthAction: Found guest data, migrating to user account...')
+          setHasTriggeredMigration(true) // Set flag immediately to prevent multiple calls
+          await migrateGuestData()
+          console.log('✅ useAuthAction: Guest data migration completed successfully!')
+        } catch (error) {
+          console.error('❌ useAuthAction: Failed to migrate guest data:', error)
+          setHasTriggeredMigration(false) // Reset on error so user can retry
+        }
+      }
+    }
+
     if (user && !hasTriggeredMigration) {
       handleGuestDataMigration()
     }
-  }, [user, handleGuestDataMigration, hasTriggeredMigration])
+  }, [user, hasTriggeredMigration, checkForGuestData, migrateGuestData])
 
   // Reset migration flag when user changes
   useEffect(() => {
@@ -55,7 +55,6 @@ export function useAuthAction() {
     checkAuthAndProceed,
     showAuthModal,
     closeAuthModal,
-    isAuthenticated: !!user,
-    handleGuestDataMigration
+    isAuthenticated: !!user
   }
 }

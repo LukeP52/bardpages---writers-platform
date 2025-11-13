@@ -173,13 +173,26 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
       return
     }
 
+    // Add flag to prevent multiple concurrent migrations
+    if (isLoading) {
+      console.log('Migration already in progress, skipping')
+      return
+    }
+
     const guestStorage = createStorage()
     const guestExcerpts = guestStorage.getExcerpts()
     const guestCategories = guestStorage.getCategories()
     const guestStoryboards = guestStorage.getStoryboards()
 
+    // If no guest data, don't migrate
+    if (guestExcerpts.length === 0 && guestCategories.length === 0 && guestStoryboards.length === 0) {
+      console.log('No guest data to migrate')
+      return
+    }
+
     try {
       setIsLoading(true)
+      console.log(`Starting migration of ${guestExcerpts.length} excerpts, ${guestCategories.length} categories, ${guestStoryboards.length} storyboards`)
       
       // Migrate excerpts to the user's cloud storage
       for (const excerpt of guestExcerpts) {
@@ -209,9 +222,10 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
           }
         }
         keysToRemove.forEach(key => localStorage.removeItem(key))
+        console.log('Cleared guest data from localStorage')
       }
 
-      console.log(`Successfully migrated ${guestExcerpts.length} excerpts, ${guestCategories.length} categories, and ${guestStoryboards.length} storyboards from guest mode to your account!`)
+      console.log(`✅ Migration completed: ${guestExcerpts.length} excerpts, ${guestCategories.length} categories, and ${guestStoryboards.length} storyboards`)
       
     } catch (error) {
       console.error('Failed to migrate guest data:', error)
@@ -219,7 +233,7 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     } finally {
       setIsLoading(false)
     }
-  }, [user, isUsingCloud, firestoreService])
+  }, [user, isUsingCloud, firestoreService, isLoading])
 
   // Create wrapper functions that route to appropriate storage
   const createStorageMethod = <T extends any[], R>(

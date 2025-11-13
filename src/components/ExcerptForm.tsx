@@ -98,11 +98,13 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   }, [excerpt?.id])
 
   // Save current form data to guest storage for unauthenticated users
+  const [guestExcerptId] = useState(() => excerpt?.id || `guest-${Date.now()}`)
+  
   const saveToGuestStorage = useCallback(() => {
     if (!user && (title || content || author)) {
       const guestStorage = createStorage()
       const excerptData: Excerpt = {
-        id: excerpt?.id || `guest-${Date.now()}`,
+        id: guestExcerptId, // Use consistent ID to update same excerpt
         title: title.trim() || 'Untitled Excerpt',
         content: content.trim(),
         author: author.trim() || undefined,
@@ -116,10 +118,10 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       // Only save if there's meaningful content
       if (excerptData.title !== 'Untitled Excerpt' || excerptData.content) {
         guestStorage.saveExcerpt(excerptData)
-        console.log('Saved form data to guest storage')
+        console.log('Updated guest excerpt:', guestExcerptId)
       }
     }
-  }, [user, title, content, author, status, tags, date, excerpt, getWordCount])
+  }, [user, title, content, author, status, tags, date, excerpt, getWordCount, guestExcerptId])
 
   // Load draft data on component mount
   useEffect(() => {
@@ -168,19 +170,26 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tags, authors] = await Promise.all([
-          storage.getAllTags(),
-          storage.getUsedAuthors()
-        ])
-        setAvailableTags(tags)
-        setAvailableAuthors(authors)
+        if (user) {
+          // Only load suggestions for signed-in users
+          const [tags, authors] = await Promise.all([
+            storage.getAllTags(),
+            storage.getUsedAuthors()
+          ])
+          setAvailableTags(tags)
+          setAvailableAuthors(authors)
+        } else {
+          // Clear suggestions for guest users
+          setAvailableTags([])
+          setAvailableAuthors([])
+        }
       } catch (error) {
         console.error('Failed to load tags and authors:', error)
       }
     }
     
     loadData()
-  }, [storage])
+  }, [storage, user])
 
 
   useEffect(() => {
