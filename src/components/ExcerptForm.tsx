@@ -29,7 +29,28 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
   const [status, setStatus] = useState<'draft' | 'review' | 'final'>(excerpt?.status || 'draft')
   const [date, setDate] = useState(() => {
     if (excerpt?.createdAt) {
-      return new Date(excerpt.createdAt).toISOString().split('T')[0]
+      try {
+        const existingDate = excerpt.createdAt
+        let dateObj: Date
+        
+        if (existingDate && typeof existingDate === 'object' && 'seconds' in existingDate) {
+          // Firestore Timestamp
+          dateObj = new Date(existingDate.seconds * 1000)
+        } else {
+          // Regular Date or string
+          dateObj = new Date(existingDate)
+        }
+        
+        // Validate the date
+        if (isNaN(dateObj.getTime())) {
+          throw new Error('Invalid date')
+        }
+        
+        return dateObj.toISOString().split('T')[0]
+      } catch (error) {
+        console.warn('Invalid excerpt date, using current date:', error)
+        return new Date().toISOString().split('T')[0]
+      }
     }
     return new Date().toISOString().split('T')[0]
   })
@@ -104,6 +125,26 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
     // Only save to guest storage if user is NOT authenticated and migration is not in progress
     if (!user && !storage.isLoading && (title || content || author)) {
       const guestStorage = createStorage()
+      // Safely handle createdAt for guest storage
+      let safeCreatedAt: Date
+      if (excerpt?.createdAt) {
+        try {
+          const existingDate = excerpt.createdAt
+          if (existingDate && typeof existingDate === 'object' && 'seconds' in existingDate) {
+            safeCreatedAt = new Date(existingDate.seconds * 1000)
+          } else {
+            safeCreatedAt = new Date(existingDate)
+          }
+          if (isNaN(safeCreatedAt.getTime())) {
+            throw new Error('Invalid date')
+          }
+        } catch (error) {
+          safeCreatedAt = new Date(date + 'T12:00:00')
+        }
+      } else {
+        safeCreatedAt = new Date(date + 'T12:00:00')
+      }
+
       const excerptData: Excerpt = {
         id: guestExcerptId, // Use consistent ID to update same excerpt
         title: title.trim() || 'Untitled Excerpt',
@@ -111,7 +152,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         author: author.trim() || undefined,
         status,
         tags,
-        createdAt: excerpt?.createdAt || new Date(date + 'T12:00:00'),
+        createdAt: safeCreatedAt,
         updatedAt: new Date(),
         wordCount: getWordCount(content)
       }
@@ -341,6 +382,32 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
       // Use existing excerpt ID, or guest ID if this started as guest work, otherwise generate new UUID  
       const excerptId = excerpt?.id || guestExcerptId || uuidv4()
       
+      // Safely handle createdAt date
+      let createdAt: Date
+      if (excerpt?.createdAt) {
+        try {
+          // Handle Firestore Timestamp objects and other date formats
+          const existingDate = excerpt.createdAt
+          if (existingDate && typeof existingDate === 'object' && 'seconds' in existingDate) {
+            // Firestore Timestamp
+            createdAt = new Date(existingDate.seconds * 1000)
+          } else {
+            // Regular Date or string
+            createdAt = new Date(existingDate)
+          }
+          
+          // Validate the date
+          if (isNaN(createdAt.getTime())) {
+            throw new Error('Invalid date')
+          }
+        } catch (error) {
+          console.warn('Invalid createdAt date, using fallback:', error)
+          createdAt = new Date(date + 'T12:00:00')
+        }
+      } else {
+        createdAt = new Date(date + 'T12:00:00')
+      }
+
       const excerptData: Excerpt = {
         id: excerptId,
         title: title.trim(),
@@ -348,7 +415,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         author: author.trim() || undefined,
         status,
         tags,
-        createdAt: excerpt?.createdAt || new Date(date + 'T12:00:00'),
+        createdAt,
         updatedAt: now,
         wordCount: getWordCount(content)
       }
