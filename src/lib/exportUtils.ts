@@ -111,13 +111,15 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
         
         // Simple page break control for images
         if (options.imagePageBreaks === true) {
-          // Force separate page for images with explicit page break and minimum height
+          // Word-specific approach: separate page breaks before and after image
           processedContent += `
-            <div style="page-break-before: always; page-break-after: always; page-break-inside: avoid; text-align: center; min-height: 8in; padding: 2in 0;">
+            <div style="page-break-before: always;"></div>
+            <div style="text-align: center; padding: 50pt 0;">
               <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
                    width="432" 
                    style="width: 432px; height: auto; border: none;" />
             </div>
+            <div style="page-break-before: always;"></div>
           `;
         } else {
           // Inline layout for images
@@ -697,13 +699,15 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
         
         // Simple page break control for DOCX images
         if (options.imagePageBreaks === true) {
-          // Force separate page for images with explicit page break and minimum height
+          // Word-specific approach: separate page breaks before and after image
           processedContent += `
-            <div style="page-break-before: always; page-break-after: always; page-break-inside: avoid; text-align: center; min-height: 8in; padding: 2in 0;">
+            <div style="page-break-before: always;"></div>
+            <div style="text-align: center; padding: 50pt 0;">
               <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
                    width="432" height="auto"
                    style="width: 432px; height: auto; display: block; margin: 0 auto; border: 0px;" />
             </div>
+            <div style="page-break-before: always;"></div>
           `;
         } else {
           // Inline layout for images in DOCX
