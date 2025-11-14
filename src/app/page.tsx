@@ -74,16 +74,17 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               viewport={{ once: true }}
+              className="h-full"
             >
-              <Link href="/excerpts" className="block group">
-                <div className="card card-interactive p-8 text-center h-full">
+              <Link href="/excerpts" className="block group h-full">
+                <div className="card card-interactive p-8 text-center h-full flex flex-col">
                   <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                     <DocumentTextIcon className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">
                     Excerpts
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-gray-600 leading-relaxed flex-grow">
                     Write and organize your story fragments with our powerful rich text editor.
                   </p>
                 </div>
@@ -95,16 +96,17 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               viewport={{ once: true }}
+              className="h-full"
             >
-              <Link href="/storyboards" className="block group">
-                <div className="card card-interactive p-8 text-center h-full">
+              <Link href="/storyboards" className="block group h-full">
+                <div className="card card-interactive p-8 text-center h-full flex flex-col">
                   <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                     <FilmIcon className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">
                     Storyboards
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-gray-600 leading-relaxed flex-grow">
                     Structure your narratives by arranging excerpts into coherent storylines.
                   </p>
                 </div>
@@ -116,16 +118,17 @@ export default function Home() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.3 }}
               viewport={{ once: true }}
+              className="h-full"
             >
-              <Link href="/books" className="block group">
-                <div className="card card-interactive p-8 text-center h-full">
+              <Link href="/books" className="block group h-full">
+                <div className="card card-interactive p-8 text-center h-full flex flex-col">
                   <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300">
                     <BookOpenIcon className="w-8 h-8 text-white" />
                   </div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-3">
                     Books
                   </h3>
-                  <p className="text-gray-600 leading-relaxed">
+                  <p className="text-gray-600 leading-relaxed flex-grow">
                     Transform storyboards into formatted manuscripts ready for publication.
                   </p>
                 </div>
