@@ -148,7 +148,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
 
   // Live Preview Component
   const LivePreview = () => (
-    <div className="card p-6 h-fit sticky top-4">
+    <div className="card p-6">
       <h3 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Live Preview</h3>
       <div 
         className="bg-white border-2 border-gray-200 rounded-lg p-8 shadow-inner"
@@ -227,187 +227,174 @@ export default function BookForm({ book, mode }: BookFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Top Section - Basic Info and Metadata */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Basic Information */}
-        <div className="card p-6">
-          <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
-            Basic Information
-          </h2>
-          
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="title" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Title *
-              </label>
-              <input
-                type="text"
-                id="title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="input text-xl"
-                placeholder="Enter book title..."
-                required
-              />
-            </div>
+      {/* Condensed Top Section - Basic Info and Metadata */}
+      <div className="card p-6">
+        <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
+          Book Information
+        </h2>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-6">
+          {/* First Row */}
+          <div className="xl:col-span-2">
+            <label htmlFor="title" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+              Title *
+            </label>
+            <input
+              type="text"
+              id="title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              className="input text-lg"
+              placeholder="Enter book title..."
+              required
+            />
+          </div>
 
-            <div>
-              <label htmlFor="subtitle" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Subtitle
-              </label>
-              <input
-                type="text"
-                id="subtitle"
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                className="input"
-                placeholder="Enter subtitle (optional)..."
-              />
-            </div>
+          <div>
+            <label htmlFor="author" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+              Author *
+            </label>
+            <input
+              type="text"
+              id="author"
+              value={author}
+              onChange={(e) => setAuthor(e.target.value)}
+              className="input"
+              placeholder="Enter author name..."
+              required
+            />
+          </div>
 
-            <div>
-              <label htmlFor="author" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Author *
-              </label>
-              <input
-                type="text"
-                id="author"
-                value={author}
-                onChange={(e) => setAuthor(e.target.value)}
-                className="input"
-                placeholder="Enter author name..."
-                required
-              />
-            </div>
+          <div>
+            <label htmlFor="storyboard" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+              Storyboard *
+            </label>
+            <select
+              id="storyboard"
+              value={storyboardId}
+              onChange={(e) => setStoryboardId(e.target.value)}
+              className="input"
+              required
+            >
+              <option value="">Select a storyboard...</option>
+              {availableStoryboards.map(storyboard => (
+                <option key={storyboard.id} value={storyboard.id}>
+                  {storyboard.title}
+                </option>
+              ))}
+            </select>
+          </div>
 
-            <div>
-              <label htmlFor="storyboard" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Storyboard *
-              </label>
-              <select
-                id="storyboard"
-                value={storyboardId}
-                onChange={(e) => setStoryboardId(e.target.value)}
-                className="input"
-                required
-              >
-                <option value="">Select a storyboard...</option>
-                {availableStoryboards.map(storyboard => (
-                  <option key={storyboard.id} value={storyboard.id}>
-                    {storyboard.title}
-                  </option>
-                ))}
-              </select>
-            </div>
+          {/* Second Row */}
+          <div>
+            <label htmlFor="subtitle" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+              Subtitle
+            </label>
+            <input
+              type="text"
+              id="subtitle"
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              className="input"
+              placeholder="Enter subtitle..."
+            />
+          </div>
+
+          <div>
+            <label htmlFor="genre" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+              Genre
+            </label>
+            <input
+              type="text"
+              id="genre"
+              value={genre}
+              onChange={(e) => setGenre(e.target.value)}
+              className="input"
+              placeholder="e.g., Fiction"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="language" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+              Language
+            </label>
+            <select
+              id="language"
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="input"
+            >
+              <option value="en">English</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="it">Italian</option>
+            </select>
+          </div>
+
+          <div>
+            <label htmlFor="isbn" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+              ISBN
+            </label>
+            <input
+              type="text"
+              id="isbn"
+              value={isbn}
+              onChange={(e) => setIsbn(e.target.value)}
+              className="input"
+              placeholder="978-0-000000-00-0"
+            />
           </div>
         </div>
-
-        {/* Metadata */}
-        <div className="card p-6">
-          <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
-            Metadata
-          </h2>
-          
-          <div className="space-y-6">
-            <div>
-              <label htmlFor="description" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                Description
-              </label>
-              <textarea
-                id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                className="input resize-none"
-                rows={3}
-                placeholder="Brief description of your book..."
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="genre" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                  Genre
-                </label>
-                <input
-                  type="text"
-                  id="genre"
-                  value={genre}
-                  onChange={(e) => setGenre(e.target.value)}
-                  className="input"
-                  placeholder="e.g., Fiction, Non-fiction"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="language" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                  Language
-                </label>
-                <select
-                  id="language"
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  className="input"
-                >
-                  <option value="en">English</option>
-                  <option value="es">Spanish</option>
-                  <option value="fr">French</option>
-                  <option value="de">German</option>
-                  <option value="it">Italian</option>
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="isbn" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
-                ISBN
-              </label>
-              <input
-                type="text"
-                id="isbn"
-                value={isbn}
-                onChange={(e) => setIsbn(e.target.value)}
-                className="input"
-                placeholder="978-0-000000-00-0"
-              />
-            </div>
-          </div>
+        
+        {/* Description spans full width */}
+        <div className="mt-6">
+          <label htmlFor="description" className="block text-sm font-bold text-black mb-2 uppercase tracking-wide">
+            Description
+          </label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="input resize-none w-full"
+            rows={2}
+            placeholder="Brief description of your book..."
+          />
         </div>
       </div>
 
-      {/* Settings Dashboard with Live Preview */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-        {/* Settings Dashboard */}
-        <div className="space-y-6">
-          {/* Tab Navigation */}
-          <div className="card p-6">
-            <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
-              Book Settings
-            </h2>
-            <div className="flex flex-wrap gap-2 border-b border-gray-200">
-              {[
-                { id: 'typography', label: 'Typography' },
-                { id: 'structure', label: 'Structure' },
-                { id: 'layout', label: 'Layout' },
-                { id: 'advanced', label: 'Advanced' }
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setActiveTab(tab.id as any)}
-                  className={`px-4 py-2 text-sm font-semibold uppercase tracking-wide border-b-2 transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-blue-600 text-blue-600'
-                      : 'border-transparent text-gray-600 hover:text-gray-900'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
+      {/* Full Width Settings Dashboard */}
+      <div className="space-y-6">
+        {/* Tab Navigation */}
+        <div className="card p-6">
+          <h2 className="text-xl font-bold text-black mb-6 uppercase tracking-wide">
+            Book Settings
+          </h2>
+          <div className="flex flex-wrap gap-2 border-b border-gray-200">
+            {[
+              { id: 'typography', label: 'Typography' },
+              { id: 'structure', label: 'Structure' },
+              { id: 'layout', label: 'Layout' },
+              { id: 'advanced', label: 'Advanced' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`px-4 py-2 text-sm font-semibold uppercase tracking-wide border-b-2 transition-colors ${
+                  activeTab === tab.id
+                    ? 'border-blue-600 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
+        </div>
 
-          {/* Tab Content */}
-          <div className="card p-6">
+        {/* Tab Content */}
+        <div className="card p-6">
             {activeTab === 'typography' && (
               <div className="space-y-6">
                 <h3 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Typography & Text</h3>
@@ -803,9 +790,8 @@ export default function BookForm({ book, mode }: BookFormProps) {
                 </div>
               </div>
             )}
-          </div>
         </div>
-
+        
         {/* Live Preview */}
         <LivePreview />
       </div>
