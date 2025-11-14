@@ -18,7 +18,26 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
   const storage = useStorage()
 
   useEffect(() => {
+    let mounted = true
+    
     const loadExcerpt = async () => {
+      // Don't try to load if storage is still initializing
+      if (storage.isLoading) {
+        console.log('Storage still loading, skipping excerpt load')
+        return
+      }
+      
+      // Only proceed if component is still mounted and we haven't already loaded
+      if (!mounted || excerpt) {
+        return
+      }
+      
+      // Add a small delay to ensure storage is fully ready
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Check if component is still mounted after delay
+      if (!mounted) return
+      
       try {
         // Handle both Promise and direct params (Next.js 13+ compatibility)
         const resolvedParams = await Promise.resolve(params)
@@ -32,13 +51,16 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
           if (cachedExcerpt) {
             try {
               const parsed = JSON.parse(cachedExcerpt)
-              setExcerpt({
-                ...parsed,
-                createdAt: parsed.createdAt ? new Date(parsed.createdAt) : new Date(),
-                updatedAt: parsed.updatedAt ? new Date(parsed.updatedAt) : new Date(),
-              })
-              sessionStorage.removeItem(cacheKey)
-              return
+              if (mounted) {
+                setExcerpt({
+                  ...parsed,
+                  createdAt: parsed.createdAt ? new Date(parsed.createdAt) : new Date(),
+                  updatedAt: parsed.updatedAt ? new Date(parsed.updatedAt) : new Date(),
+                })
+                setIsLoading(false)
+                sessionStorage.removeItem(cacheKey)
+                return
+              }
             } catch (error) {
               console.warn('Failed to parse cached excerpt data:', error)
             }
@@ -47,18 +69,26 @@ export default function EditExcerptPage({ params }: EditExcerptPageProps) {
 
         // Load from storage
         const loadedExcerpt = await storage.getExcerpt(excerptId)
-        setExcerpt(loadedExcerpt || null)
         
+        if (mounted) {
+          setExcerpt(loadedExcerpt || null)
+          setIsLoading(false)
+        }
       } catch (error) {
         console.error('Error loading excerpt for editing:', error)
-        setExcerpt(null)
-      } finally {
-        setIsLoading(false)
+        if (mounted) {
+          setExcerpt(null)
+          setIsLoading(false)
+        }
       }
     }
 
     loadExcerpt()
-  }, [params, storage])
+    
+    return () => {
+      mounted = false
+    }
+  }, [params, storage.isLoading])
 
   if (isLoading) {
     return <LoadingState message="Loading excerpt..." />

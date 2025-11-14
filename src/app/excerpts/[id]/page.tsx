@@ -19,20 +19,48 @@ export default function ExcerptDetailPage({ params }: ExcerptDetailPageProps) {
   const storage = useStorage()
 
   useEffect(() => {
+    let mounted = true
+    
     const loadExcerpt = async () => {
+      // Don't try to load if storage is still initializing
+      if (storage.isLoading) {
+        console.log('Storage still loading, skipping excerpt load')
+        return
+      }
+      
+      // Only proceed if component is still mounted and we haven't already loaded
+      if (!mounted || excerpt) {
+        return
+      }
+      
+      // Add a small delay to ensure storage is fully ready
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Check if component is still mounted after delay
+      if (!mounted) return
+      
       try {
         const loadedExcerpt = await storage.getExcerpt(params.id)
-        setExcerpt(loadedExcerpt || null)
+        
+        if (mounted) {
+          setExcerpt(loadedExcerpt || null)
+          setIsLoading(false)
+        }
       } catch (error) {
         console.error('Error loading excerpt:', error)
-        setExcerpt(null)
-      } finally {
-        setIsLoading(false)
+        if (mounted) {
+          setExcerpt(null)
+          setIsLoading(false)
+        }
       }
     }
-    
+
     loadExcerpt()
-  }, [params.id, storage])
+    
+    return () => {
+      mounted = false
+    }
+  }, [params.id, storage.isLoading])
 
   const handleDelete = async () => {
     if (!excerpt) return
