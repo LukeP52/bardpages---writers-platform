@@ -1063,7 +1063,7 @@ export default function StoryboardEditPage() {
                               <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
                                 <span>{excerpt.wordCount} words</span>
                                 <span>{(() => {
-                                  const date = sortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt
+                                  const date = storyboardSortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt
                                   const isoDate = new Date(date).toISOString().split('T')[0]
                                   return new Date(isoDate + 'T12:00:00').toLocaleDateString()
                                 })()}</span>
