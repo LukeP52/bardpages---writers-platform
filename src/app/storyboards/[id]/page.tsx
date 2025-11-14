@@ -10,7 +10,6 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
-  TouchSensor,
   useSensor,
   useSensors,
   DragOverlay,
@@ -325,13 +324,7 @@ export default function StoryboardEditPage() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 5,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 150,
-        tolerance: 10,
+        distance: 3,
       },
     }),
     useSensor(KeyboardSensor, {
