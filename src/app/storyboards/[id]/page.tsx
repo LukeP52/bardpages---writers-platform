@@ -570,9 +570,23 @@ export default function StoryboardEditPage() {
             return a.excerpt!.title.localeCompare(b.excerpt!.title)
           case 'displayDate':
             // Sort by the excerpt's creation date (which is the display date)
-            return b.excerpt!.createdAt.getTime() - a.excerpt!.createdAt.getTime() // Newest first by default
+            // Safely convert dates to JavaScript Date objects before calling getTime()
+            const aCreatedAt = a.excerpt!.createdAt && typeof a.excerpt!.createdAt === 'object' && 'seconds' in a.excerpt!.createdAt
+              ? new Date((a.excerpt!.createdAt as any).seconds * 1000)
+              : new Date(a.excerpt!.createdAt)
+            const bCreatedAt = b.excerpt!.createdAt && typeof b.excerpt!.createdAt === 'object' && 'seconds' in b.excerpt!.createdAt
+              ? new Date((b.excerpt!.createdAt as any).seconds * 1000)
+              : new Date(b.excerpt!.createdAt)
+            return bCreatedAt.getTime() - aCreatedAt.getTime() // Newest first by default
           case 'lastEdited':
-            return b.excerpt!.updatedAt.getTime() - a.excerpt!.updatedAt.getTime() // Newest first by default
+            // Safely convert dates to JavaScript Date objects before calling getTime()
+            const aUpdatedAt = a.excerpt!.updatedAt && typeof a.excerpt!.updatedAt === 'object' && 'seconds' in a.excerpt!.updatedAt
+              ? new Date((a.excerpt!.updatedAt as any).seconds * 1000)
+              : new Date(a.excerpt!.updatedAt)
+            const bUpdatedAt = b.excerpt!.updatedAt && typeof b.excerpt!.updatedAt === 'object' && 'seconds' in b.excerpt!.updatedAt
+              ? new Date((b.excerpt!.updatedAt as any).seconds * 1000)
+              : new Date(b.excerpt!.updatedAt)
+            return bUpdatedAt.getTime() - aUpdatedAt.getTime() // Newest first by default
           default:
             return a.section.order - b.section.order
         }
@@ -649,9 +663,23 @@ export default function StoryboardEditPage() {
           case 'name':
             return a.excerpt!.title.localeCompare(b.excerpt!.title)
           case 'displayDate':
-            return b.excerpt!.createdAt.getTime() - a.excerpt!.createdAt.getTime() // Newest first
+            // Safely convert dates to JavaScript Date objects before calling getTime()
+            const aCreatedAt = a.excerpt!.createdAt && typeof a.excerpt!.createdAt === 'object' && 'seconds' in a.excerpt!.createdAt
+              ? new Date((a.excerpt!.createdAt as any).seconds * 1000)
+              : new Date(a.excerpt!.createdAt)
+            const bCreatedAt = b.excerpt!.createdAt && typeof b.excerpt!.createdAt === 'object' && 'seconds' in b.excerpt!.createdAt
+              ? new Date((b.excerpt!.createdAt as any).seconds * 1000)
+              : new Date(b.excerpt!.createdAt)
+            return bCreatedAt.getTime() - aCreatedAt.getTime() // Newest first
           case 'lastEdited':
-            return b.excerpt!.updatedAt.getTime() - a.excerpt!.updatedAt.getTime() // Newest first
+            // Safely convert dates to JavaScript Date objects before calling getTime()
+            const aUpdatedAt = a.excerpt!.updatedAt && typeof a.excerpt!.updatedAt === 'object' && 'seconds' in a.excerpt!.updatedAt
+              ? new Date((a.excerpt!.updatedAt as any).seconds * 1000)
+              : new Date(a.excerpt!.updatedAt)
+            const bUpdatedAt = b.excerpt!.updatedAt && typeof b.excerpt!.updatedAt === 'object' && 'seconds' in b.excerpt!.updatedAt
+              ? new Date((b.excerpt!.updatedAt as any).seconds * 1000)
+              : new Date(b.excerpt!.updatedAt)
+            return bUpdatedAt.getTime() - aUpdatedAt.getTime() // Newest first
           default:
             return a.section.order - b.section.order
         }
