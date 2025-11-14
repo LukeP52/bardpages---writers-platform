@@ -21,6 +21,8 @@ export default function BookPreviewPage() {
   const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
+    let mounted = true
+    
     const loadBook = async () => {
       console.log('Loading book effect triggered. Storage loading:', storage.isLoading)
       
@@ -30,12 +32,19 @@ export default function BookPreviewPage() {
         return
       }
       
+      // Only proceed if component is still mounted and we haven't already loaded
+      if (!mounted || book) {
+        return
+      }
+      
       // Add a small delay to ensure storage is fully ready
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      // Check if component is still mounted after delay
+      if (!mounted) return
       
       try {
         console.log('Loading book with ID:', bookId)
-        console.log('Storage context:', storage)
         
         // First, let's see what books are available
         const allBooks = await storage.getBooks()
@@ -43,36 +52,48 @@ export default function BookPreviewPage() {
         console.log('Book IDs:', allBooks.map(b => b.id))
         
         const loadedBook = await storage.getBook(bookId)
-        console.log('Loaded book:', loadedBook)
+        console.log('First attempt result:', loadedBook ? 'found' : 'not found')
         
         if (!loadedBook) {
           // Try one more time with a delay in case of timing issues
           console.log('Book not found on first try, waiting and retrying...')
-          await new Promise(resolve => setTimeout(resolve, 500))
-          const retryBook = await storage.getBook(bookId)
+          await new Promise(resolve => setTimeout(resolve, 1000))
           
-          if (!retryBook) {
+          if (!mounted) return
+          
+          const retryBook = await storage.getBook(bookId)
+          console.log('Retry attempt result:', retryBook ? 'found' : 'not found')
+          
+          if (!retryBook && mounted) {
             setError(`Book not found. Looking for ID: ${bookId}`)
-          } else {
+            setLoading(false)
+          } else if (retryBook && mounted) {
             setBook(retryBook)
             const content = await generateBookContent(retryBook, storage)
             setBookContent(content)
+            setLoading(false)
           }
-        } else {
+        } else if (mounted) {
           setBook(loadedBook)
           const content = await generateBookContent(loadedBook, storage)
           setBookContent(content)
+          setLoading(false)
         }
       } catch (err) {
         console.error('Error loading book:', err)
-        setError('Failed to load book')
-      } finally {
-        setLoading(false)
+        if (mounted) {
+          setError('Failed to load book')
+          setLoading(false)
+        }
       }
     }
 
     loadBook()
-  }, [bookId, storage, storage.isLoading])
+    
+    return () => {
+      mounted = false
+    }
+  }, [bookId, storage.isLoading])
 
   const handleExport = async (format: 'html' | 'pdf' | 'epub' | 'docx') => {
     if (!book) return

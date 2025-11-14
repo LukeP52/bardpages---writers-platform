@@ -17,6 +17,8 @@ export default function EditBookPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let mounted = true
+    
     const loadBook = async () => {
       console.log('Loading book effect triggered. Storage loading:', storage.isLoading)
       
@@ -26,35 +28,58 @@ export default function EditBookPage() {
         return
       }
       
+      // Only proceed if component is still mounted and we haven't already loaded
+      if (!mounted || book) {
+        return
+      }
+      
       // Add a small delay to ensure storage is fully ready
-      await new Promise(resolve => setTimeout(resolve, 100))
+      await new Promise(resolve => setTimeout(resolve, 200))
+      
+      // Check if component is still mounted after delay
+      if (!mounted) return
       
       try {
+        console.log('Attempting to load book:', bookId)
         const loadedBook = await storage.getBook(bookId)
+        console.log('First attempt result:', loadedBook ? 'found' : 'not found')
+        
         if (!loadedBook) {
           // Try one more time with a delay in case of timing issues
           console.log('Book not found on first try, waiting and retrying...')
-          await new Promise(resolve => setTimeout(resolve, 500))
-          const retryBook = await storage.getBook(bookId)
+          await new Promise(resolve => setTimeout(resolve, 1000))
           
-          if (!retryBook) {
+          if (!mounted) return
+          
+          const retryBook = await storage.getBook(bookId)
+          console.log('Retry attempt result:', retryBook ? 'found' : 'not found')
+          
+          if (!retryBook && mounted) {
             setError('Book not found')
-          } else {
+            setLoading(false)
+          } else if (retryBook && mounted) {
             setBook(retryBook)
+            setLoading(false)
           }
-        } else {
+        } else if (mounted) {
           setBook(loadedBook)
+          setLoading(false)
         }
       } catch (err) {
         console.error('Error loading book:', err)
-        setError('Failed to load book')
-      } finally {
-        setLoading(false)
+        if (mounted) {
+          setError('Failed to load book')
+          setLoading(false)
+        }
       }
     }
 
     loadBook()
-  }, [bookId, storage, storage.isLoading])
+    
+    return () => {
+      mounted = false
+    }
+  }, [bookId, storage.isLoading])
 
   if (loading) {
     return <LoadingState message="Loading book..." />
