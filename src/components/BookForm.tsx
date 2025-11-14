@@ -580,7 +580,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
                           <select
                             id="chapterNumberStyle"
                             value={chapterNumberStyle}
-                            onChange={(e) => setChapterNumberStyle(e.target.value)}
+                            onChange={(e) => setChapterNumberStyle(e.target.value as 'numeric' | 'roman' | 'none')}
                             className="input"
                           >
                             <option value="numeric">Numeric (1, 2, 3)</option>
@@ -596,7 +596,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
                           <select
                             id="chapterBreak"
                             value={chapterBreakStyle}
-                            onChange={(e) => setChapterBreakStyle(e.target.value)}
+                            onChange={(e) => setChapterBreakStyle(e.target.value as 'page-break' | 'line-break' | 'section-break')}
                             className="input"
                           >
                             <option value="page-break">New Page</option>
@@ -695,7 +695,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
                     <select
                       id="pageNumbers"
                       value={pageNumbers}
-                      onChange={(e) => setPageNumbers(e.target.value)}
+                      onChange={(e) => setPageNumbers(e.target.value as 'bottom-center' | 'bottom-right' | 'bottom-left' | 'top-center' | 'top-right' | 'top-left' | 'none')}
                       className="input"
                     >
                       <option value="bottom-center">Bottom Center</option>
@@ -766,7 +766,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
                               <select
                                 id="referenceStyle"
                                 value={referenceStyle}
-                                onChange={(e) => setReferenceStyle(e.target.value)}
+                                onChange={(e) => setReferenceStyle(e.target.value as 'apa' | 'mla' | 'chicago' | 'harvard')}
                                 className="input"
                               >
                                 <option value="apa">APA</option>
@@ -783,7 +783,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
                               <select
                                 id="citationStyle"
                                 value={citationStyle}
-                                onChange={(e) => setCitationStyle(e.target.value)}
+                                onChange={(e) => setCitationStyle(e.target.value as 'footnotes' | 'endnotes' | 'inline')}
                                 className="input"
                               >
                                 <option value="footnotes">Footnotes</option>
