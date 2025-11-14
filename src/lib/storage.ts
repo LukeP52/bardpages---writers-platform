@@ -319,9 +319,9 @@ class InMemoryStorage {
     )
   }
 
-  getStoryboard(id: string): Storyboard | undefined {
+  getStoryboard(id: string): Storyboard | null {
     this.initializeFromLocalStorage()
-    return this.storyboards.get(id)
+    return this.storyboards.get(id) || null
   }
 
   saveStoryboard(storyboard: Storyboard): void {
@@ -344,9 +344,9 @@ class InMemoryStorage {
     )
   }
 
-  getBook(id: string): Book | undefined {
+  getBook(id: string): Book | null {
     this.initializeFromLocalStorage()
-    return this.books.get(id)
+    return this.books.get(id) || null
   }
 
   saveBook(book: Book): void {

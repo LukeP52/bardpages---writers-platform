@@ -33,6 +33,7 @@ interface StorageContextType {
   
   // Storyboard operations
   saveStoryboard: (storyboard: Storyboard) => Promise<void>
+  getStoryboard: (id: string) => Promise<Storyboard | null>
   getStoryboards: () => Promise<Storyboard[]>
   deleteStoryboard: (id: string) => Promise<void>
   
@@ -360,6 +361,11 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     saveStoryboard: createStorageMethod(
       'saveStoryboard',
       (storyboard: Storyboard) => firestoreService!.saveStoryboard(storyboard)
+    ),
+    
+    getStoryboard: createStorageMethod(
+      'getStoryboard',
+      (id: string) => firestoreService!.getStoryboard(id)
     ),
     
     getStoryboards: createStorageMethod(

@@ -38,7 +38,7 @@ export default function BookPreviewPage() {
           setError(`Book not found. Looking for ID: ${bookId}`)
         } else {
           setBook(loadedBook)
-          const content = generateBookContent(loadedBook)
+          const content = await generateBookContent(loadedBook, storage)
           setBookContent(content)
         }
       } catch (err) {
@@ -61,7 +61,7 @@ export default function BookPreviewPage() {
         format,
         includeMetadata: true,
         includeCover: false
-      })
+      }, storage)
       
       const filename = `${book.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${format}`
       

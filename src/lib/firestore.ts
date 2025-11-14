@@ -359,6 +359,19 @@ export class FirestoreService {
     await setDoc(storyboardRef, storyboardData)
   }
 
+  async getStoryboard(id: string): Promise<Storyboard | null> {
+    this.checkAvailability()
+    
+    const storyboardRef = doc(db, 'users', this.userId, 'storyboards', id)
+    const storyboardDoc = await getDoc(storyboardRef)
+    
+    if (!storyboardDoc.exists()) {
+      return null
+    }
+    
+    return convertTimestamps(storyboardDoc.data()) as Storyboard
+  }
+
   async getStoryboards(): Promise<Storyboard[]> {
     this.checkAvailability()
     

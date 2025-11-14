@@ -72,7 +72,7 @@ export default function BooksPage() {
         format,
         includeMetadata: true,
         includeCover: false
-      })
+      }, storage)
       
       const filename = `${book.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${format}`
       downloadFile(content, filename, 'text/html')

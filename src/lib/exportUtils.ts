@@ -1,5 +1,4 @@
-import { Book, Excerpt } from '@/types'
-import { storage } from '@/lib/storage'
+import { Book, Excerpt, Storyboard } from '@/types'
 
 export interface ExportOptions {
   format: 'pdf' | 'epub' | 'docx' | 'html'
@@ -14,8 +13,8 @@ export interface ExportOptions {
   }
 }
 
-export const generateBookContent = (book: Book): { title: string; content: string; chapters: Array<{ title: string; content: string; excerpts: Excerpt[] }> } => {
-  const storyboard = storage.getStoryboard(book.storyboardId)
+export const generateBookContent = async (book: Book, storage: any): Promise<{ title: string; content: string; chapters: Array<{ title: string; content: string; excerpts: Excerpt[] }> }> => {
+  const storyboard = await storage.getStoryboard(book.storyboardId)
   if (!storyboard) {
     throw new Error('Storyboard not found')
   }
@@ -24,9 +23,10 @@ export const generateBookContent = (book: Book): { title: string; content: strin
   let currentChapter = { title: '', content: '', excerpts: [] as Excerpt[] }
   let chapterNumber = 1
 
-  storyboard.sections.forEach((section, index) => {
-    const excerpt = storage.getExcerpt(section.excerptId)
-    if (!excerpt) return
+  for (let index = 0; index < storyboard.sections.length; index++) {
+    const section = storyboard.sections[index]
+    const excerpt = await storage.getExcerpt(section.excerptId)
+    if (!excerpt) continue
 
     // Start a new chapter every few excerpts or based on section notes
     const shouldStartNewChapter = 
@@ -48,7 +48,7 @@ export const generateBookContent = (book: Book): { title: string; content: strin
 
     currentChapter.excerpts.push(excerpt)
     currentChapter.content += `\n\n${excerpt.content}\n\n`
-  })
+  }
 
   // Add the last chapter
   if (currentChapter.excerpts.length > 0) {
@@ -66,8 +66,8 @@ export const generateBookContent = (book: Book): { title: string; content: strin
   }
 }
 
-export const exportToHTML = (book: Book, options: ExportOptions): string => {
-  const { title, content, chapters } = generateBookContent(book)
+export const exportToHTML = async (book: Book, options: ExportOptions, storage: any): Promise<string> => {
+  const { title, content, chapters } = await generateBookContent(book, storage)
   
   const metadata = options.includeMetadata ? `
     <div class="metadata">
@@ -248,8 +248,8 @@ export const exportToHTML = (book: Book, options: ExportOptions): string => {
 }
 
 // Clean PDF format optimized for digital reading
-const exportToPDFPreview = (book: Book, options: ExportOptions): string => {
-  const { title, content, chapters } = generateBookContent(book)
+const exportToPDFPreview = async (book: Book, options: ExportOptions, storage: any): Promise<string> => {
+  const { title, content, chapters } = await generateBookContent(book, storage)
   
   const metadata = options.includeMetadata ? `
     <!-- Title Section -->
@@ -386,8 +386,8 @@ const exportToPDFPreview = (book: Book, options: ExportOptions): string => {
 }
 
 // PDF-specific HTML with print optimizations
-const exportToPDF = (book: Book, options: ExportOptions): string => {
-  const { title, content, chapters } = generateBookContent(book)
+const exportToPDF = async (book: Book, options: ExportOptions, storage: any): Promise<string> => {
+  const { title, content, chapters } = await generateBookContent(book, storage)
   
   const metadata = options.includeMetadata ? `
     <div class="metadata">
@@ -551,18 +551,18 @@ const exportToPDF = (book: Book, options: ExportOptions): string => {
   `
 }
 
-export const exportBook = async (book: Book, options: ExportOptions): Promise<string> => {
+export const exportBook = async (book: Book, options: ExportOptions, storage: any): Promise<string> => {
   switch (options.format) {
     case 'html':
-      return exportToHTML(book, options)
+      return await exportToHTML(book, options, storage)
     case 'pdf':
-      return exportToPDFPreview(book, options)
+      return await exportToPDFPreview(book, options, storage)
     case 'epub':
       // For now, return HTML - in a real app, you'd use a library like epub-gen
-      return exportToHTML(book, options)
+      return await exportToHTML(book, options, storage)
     case 'docx':
       // For now, return HTML - in a real app, you'd use a library like docx
-      return exportToHTML(book, options)
+      return await exportToHTML(book, options, storage)
     default:
       throw new Error(`Unsupported export format: ${options.format}`)
   }
