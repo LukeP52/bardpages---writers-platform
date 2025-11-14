@@ -7,6 +7,28 @@ import { useStorage } from '@/contexts/StorageContext'
 import LoadingState from '@/components/LoadingState'
 import { v4 as uuidv4 } from 'uuid'
 
+// Safe date formatter to handle Firestore Timestamps
+const safeFormatDate = (date: any): string => {
+  try {
+    let dateObj: Date
+    if (date && typeof date === 'object' && 'seconds' in date) {
+      // Firestore Timestamp
+      dateObj = new Date((date as any).seconds * 1000)
+    } else {
+      dateObj = new Date(date)
+    }
+    
+    if (isNaN(dateObj.getTime())) {
+      return new Date().toLocaleDateString()
+    }
+    
+    const isoDate = dateObj.toISOString().split('T')[0]
+    return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+  } catch {
+    return new Date().toLocaleDateString()
+  }
+}
+
 export default function StoryboardsPage() {
   const storage = useStorage()
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
@@ -217,11 +239,7 @@ export default function StoryboardsPage() {
                       <div className="flex items-center gap-4 text-xs text-gray-500">
                         <span>{storyboard.sections.length} sections</span>
                         <span>{getStoryboardWordCount(storyboard)} words</span>
-                        <span>{(() => {
-                          const date = storyboard.updatedAt
-                          const isoDate = new Date(date).toISOString().split('T')[0]
-                          return new Date(isoDate + 'T12:00:00').toLocaleDateString()
-                        })()}</span>
+                        <span>{safeFormatDate(storyboard.updatedAt)}</span>
                       </div>
                       
                       {storyboard.sections.length > 0 && (
