@@ -103,14 +103,14 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
         const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
         const alt = altMatch ? altMatch[1] : '';
         
-        // Use Word-friendly table structure for image centering
+        // Use Word-friendly table structure for image centering with responsive sizing
         processedContent += `
           <div style="page-break-before: always; page-break-after: always;">
             <table style="width: 100%; height: 8in; border: none; margin: 0; padding: 0; border-collapse: collapse;">
               <tr style="border: none;">
-                <td style="text-align: center; vertical-align: middle; border: none; padding: 0;">
+                <td style="text-align: center; vertical-align: middle; border: none; padding: 12pt;">
                   <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
-                       style="max-width: 6.5in; max-height: 7in; width: auto; height: auto; display: block; margin: 0 auto; border: none;">
+                       style="max-width: 100%; max-height: 7in; width: auto; height: auto; display: block; margin: 0 auto; border: none;">
                 </td>
               </tr>
             </table>
@@ -223,9 +223,9 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
       letter-spacing: normal;
     }
     
-    /* Enhanced Word compatibility styles */
+    /* Enhanced Word compatibility styles with responsive sizing */
     img {
-      max-width: 6.5in !important;
+      max-width: 100% !important;
       max-height: 7in !important;
       height: auto !important;
       width: auto !important;
@@ -233,6 +233,7 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
       margin: 0 auto !important;
       border: none !important;
       page-break-inside: avoid !important;
+      object-fit: contain !important;
     }
     
     /* Table-based image containers for Word compatibility */
@@ -307,9 +308,9 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
         text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment} !important;
       }
       
-      /* Optimized image sizing for print */
+      /* Optimized image sizing for print with responsive width */
       img {
-        max-width: 6.5in !important;
+        max-width: 100% !important;
         max-height: 7in !important;
         height: auto !important;
         width: auto !important;
@@ -317,6 +318,7 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
         margin: 0 auto !important;
         border: none !important;
         page-break-inside: avoid !important;
+        object-fit: contain !important;
       }
       
       table {
@@ -676,20 +678,12 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
         const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
         const alt = altMatch ? altMatch[1] : '';
         
-        // Word-specific image structure with VML fallback
+        // Word-specific image structure with responsive sizing
         processedContent += `
-          <div style="page-break-before: always; page-break-after: always; text-align: center;">
+          <div style="page-break-before: always; page-break-after: always; text-align: center; padding: 12pt;">
             <p style="text-align: center; margin: 0; padding: 0;">
-              <!--[if gte vml 1]>
-              <v:shape style="width: 468pt; height: 504pt; position: relative;">
-                <v:imagedata src="${src}" />
-              </v:shape>
-              <![endif]-->
-              <!--[if !vml]-->
               <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
-                   style="width: 6.5in; height: auto; max-height: 7in; display: block; margin: 0 auto; border: none;"
-                   width="468" />
-              <!--[endif]-->
+                   style="max-width: 100%; height: auto; max-height: 7in; display: block; margin: 0 auto; border: none; object-fit: contain;" />
             </p>
           </div>
         `;
@@ -836,15 +830,16 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
       text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
     }
     
-    /* Word-optimized image styles */
+    /* Word-optimized image styles with responsive sizing */
     img {
-      width: 6.5in !important;
+      max-width: 100% !important;
       height: auto !important;
       max-height: 7in !important;
       display: block !important;
       margin: 0 auto !important;
       border: none !important;
       page-break-inside: avoid !important;
+      object-fit: contain !important;
     }
     
     /* VML styles for better Word compatibility */
