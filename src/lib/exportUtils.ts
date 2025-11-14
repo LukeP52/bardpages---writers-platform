@@ -111,15 +111,15 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
         
         // Simple page break control for images
         if (options.imagePageBreaks === true) {
-          // Word-specific approach: separate page breaks before and after image
+          // Word-specific: Use section break (more forceful than page break)
           processedContent += `
-            <div style="page-break-before: always;"></div>
-            <div style="text-align: center; padding: 50pt 0;">
+            <p style="page-break-before: always; margin: 0; padding: 0; height: 0; line-height: 0;">&nbsp;</p>
+            <div style="text-align: center; padding: 50pt 0; page-break-inside: avoid;">
               <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
                    width="432" 
                    style="width: 432px; height: auto; border: none;" />
             </div>
-            <div style="page-break-before: always;"></div>
+            <p style="page-break-before: always; margin: 0; padding: 0; height: 0; line-height: 0;">&nbsp;</p>
           `;
         } else {
           // Inline layout for images
@@ -699,15 +699,15 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
         
         // Simple page break control for DOCX images
         if (options.imagePageBreaks === true) {
-          // Word-specific approach: separate page breaks before and after image
+          // Word-specific: Use paragraph breaks (more reliable in Word)
           processedContent += `
-            <div style="page-break-before: always;"></div>
-            <div style="text-align: center; padding: 50pt 0;">
+            <p style="page-break-before: always; margin: 0; padding: 0; height: 0; line-height: 0;">&nbsp;</p>
+            <div style="text-align: center; padding: 50pt 0; page-break-inside: avoid;">
               <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
                    width="432" height="auto"
                    style="width: 432px; height: auto; display: block; margin: 0 auto; border: 0px;" />
             </div>
-            <div style="page-break-before: always;"></div>
+            <p style="page-break-before: always; margin: 0; padding: 0; height: 0; line-height: 0;">&nbsp;</p>
           `;
         } else {
           // Inline layout for images in DOCX
