@@ -79,7 +79,7 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
     </div>
   ` : ''
 
-  // Process images and page breaks
+  // Enhanced image processing for better Word compatibility
   const processImagesInContent = (content: string): string => {
     let processedContent = content;
     
@@ -89,7 +89,7 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
       '<div style="page-break-after: always;"></div>'
     );
     
-    // Then handle images - split content by images and create separate pages
+    // Enhanced image handling for Word - using table-based layout for better compatibility
     const parts = processedContent.split(/(<img[^>]*>)/g);
     processedContent = '';
     
@@ -97,15 +97,23 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
       const part = parts[i];
       
       if (part.match(/<img[^>]*>/)) {
-        // This is an image - put it on its own page
+        // Extract image attributes
         const srcMatch = part.match(/src\s*=\s*["']([^"']*)["']/i);
         const src = srcMatch ? srcMatch[1] : '';
         const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
         const alt = altMatch ? altMatch[1] : '';
         
+        // Use Word-friendly table structure for image centering
         processedContent += `
-          <div style="page-break-before: always; page-break-after: always; text-align: center; display: flex; align-items: center; justify-content: center; min-height: 80vh;">
-            <img src="${src}"${alt ? ` alt="${alt}"` : ''} style="max-width: 90%; max-height: 90%; height: auto; border: none;">
+          <div style="page-break-before: always; page-break-after: always;">
+            <table style="width: 100%; height: 8in; border: none; margin: 0; padding: 0; border-collapse: collapse;">
+              <tr style="border: none;">
+                <td style="text-align: center; vertical-align: middle; border: none; padding: 0;">
+                  <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                       style="max-width: 6.5in; max-height: 7in; width: auto; height: auto; display: block; margin: 0 auto; border: none;">
+                </td>
+              </tr>
+            </table>
           </div>
         `;
       } else if (part.trim()) {
@@ -126,12 +134,34 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
 
   return `
 <!DOCTYPE html>
-<html lang="${book.metadata.language}">
+<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40" lang="${book.metadata.language}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta name="ProgId" content="Word.Document">
-  <meta name="Generator" content="Microsoft Word">
+  <meta name="Generator" content="Microsoft Word 15">
+  <meta name="Originator" content="Microsoft Word 15">
+  <meta name="Author" content="${book.author}">
+  <meta name="Title" content="${book.title}">
+  <meta name="Subject" content="${book.metadata.description || ''}">
+  <meta name="Keywords" content="${book.metadata.genre || ''}">
+  <!--[if gte mso 9]>
+  <xml>
+    <o:DocumentProperties>
+      <o:Author>${book.author}</o:Author>
+      <o:LastAuthor>${book.author}</o:LastAuthor>
+      <o:Title>${book.title}</o:Title>
+      <o:Subject>${book.metadata.description || ''}</o:Subject>
+      <o:Keywords>${book.metadata.genre || ''}</o:Keywords>
+      <o:Description>Generated book document</o:Description>
+    </o:DocumentProperties>
+    <o:OfficeDocumentSettings>
+      <o:RelyOnVML/>
+      <o:AllowPNG/>
+    </o:OfficeDocumentSettings>
+  </xml>
+  <![endif]-->
   <title>${title}</title>
   <style>
     body {
@@ -193,48 +223,106 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
       letter-spacing: normal;
     }
     
-    /* Image sizing for Word compatibility - simplified for better Word support */
+    /* Enhanced Word compatibility styles */
     img {
-      max-width: 400px !important;
+      max-width: 6.5in !important;
+      max-height: 7in !important;
       height: auto !important;
+      width: auto !important;
+      display: block !important;
+      margin: 0 auto !important;
       border: none !important;
+      page-break-inside: avoid !important;
     }
     
     /* Table-based image containers for Word compatibility */
     table {
-      margin: 1em auto;
-      border-collapse: collapse;
-      border: none;
+      width: 100% !important;
+      border-collapse: collapse !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      page-break-inside: avoid !important;
+    }
+    
+    table tr {
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
     }
     
     table td {
-      border: none;
-      padding: 0;
+      border: none !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      text-align: center !important;
+      vertical-align: middle !important;
     }
     
-    /* Word-friendly styles */
+    /* Word-friendly paragraph styles */
     .chapter-content p {
       text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
+      margin: 12pt 0 !important;
     }
     
+    /* Word document structure */
+    .chapter {
+      page-break-inside: avoid;
+      margin-bottom: 24pt;
+    }
+    
+    .chapter h2 {
+      page-break-after: avoid;
+      margin-bottom: 12pt;
+    }
+    
+    /* Print and Word-specific optimizations */
     @media print {
-      body {
+      @page {
+        size: 8.5in 11in;
         margin: ${book.formatting.marginTop}in ${book.formatting.marginRight}in ${book.formatting.marginBottom}in ${book.formatting.marginLeft}in;
       }
       
-      p {
-        text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
+      body {
+        font-size: ${book.formatting.fontSize}pt !important;
+        line-height: ${book.formatting.lineHeight} !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        background: white !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
       
-      /* Enhanced image handling for print/Word */
+      h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid !important;
+        orphans: 3 !important;
+        widows: 3 !important;
+      }
+      
+      p {
+        orphans: 3 !important;
+        widows: 3 !important;
+        margin: 12pt 0 !important;
+        text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment} !important;
+      }
+      
+      /* Optimized image sizing for print */
       img {
-        width: 4.5in !important;
-        max-width: 4.5in !important;
+        max-width: 6.5in !important;
+        max-height: 7in !important;
         height: auto !important;
+        width: auto !important;
         display: block !important;
-        margin: 12pt auto !important;
+        margin: 0 auto !important;
         border: none !important;
         page-break-inside: avoid !important;
+      }
+      
+      table {
+        page-break-inside: avoid !important;
+        margin: 0 !important;
+        padding: 0 !important;
       }
     }
   </style>
@@ -551,6 +639,232 @@ const exportToPDF = async (book: Book, options: ExportOptions, storage: any): Pr
   `
 }
 
+// Enhanced DOCX export with Word-optimized formatting
+const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): Promise<string> => {
+  const { title, content, chapters } = await generateBookContent(book, storage)
+  
+  const metadata = options.includeMetadata ? `
+    <div class="metadata">
+      <h1>${book.title}</h1>
+      ${book.subtitle ? `<h2>${book.subtitle}</h2>` : ''}
+      <p class="author">by ${book.author}</p>
+      ${book.metadata.genre ? `<p class="genre">Genre: ${book.metadata.genre}</p>` : ''}
+      ${book.metadata.description ? `<div class="description">${book.metadata.description}</div>` : ''}
+    </div>
+  ` : ''
+
+  // Ultra Word-friendly image processing
+  const processImagesForWord = (content: string): string => {
+    let processedContent = content;
+    
+    // Handle page breaks
+    processedContent = processedContent.replace(
+      /<div class="ql-page-break-container">[\s\S]*?<\/div>/g, 
+      '<div style="page-break-after: always;"></div>'
+    );
+    
+    // Ultra-optimized image handling for Word
+    const parts = processedContent.split(/(<img[^>]*>)/g);
+    processedContent = '';
+    
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      
+      if (part.match(/<img[^>]*>/)) {
+        const srcMatch = part.match(/src\s*=\s*["']([^"']*)["']/i);
+        const src = srcMatch ? srcMatch[1] : '';
+        const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
+        const alt = altMatch ? altMatch[1] : '';
+        
+        // Word-specific image structure with VML fallback
+        processedContent += `
+          <div style="page-break-before: always; page-break-after: always; text-align: center;">
+            <p style="text-align: center; margin: 0; padding: 0;">
+              <!--[if gte vml 1]>
+              <v:shape style="width: 468pt; height: 504pt; position: relative;">
+                <v:imagedata src="${src}" />
+              </v:shape>
+              <![endif]-->
+              <!--[if !vml]-->
+              <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                   style="width: 6.5in; height: auto; max-height: 7in; display: block; margin: 0 auto; border: none;"
+                   width="468" />
+              <!--[endif]-->
+            </p>
+          </div>
+        `;
+      } else if (part.trim()) {
+        processedContent += part;
+      }
+    }
+    
+    return processedContent;
+  };
+
+  const chaptersHTML = chapters.map(chapter => `
+    <div class="chapter">
+      <h2 style="page-break-after: avoid;">${chapter.title}</h2>
+      <div class="chapter-content">${processImagesForWord(chapter.content)}</div>
+    </div>
+  `).join('')
+
+  return `
+<!DOCTYPE html>
+<html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40" lang="${book.metadata.language}">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta name="ProgId" content="Word.Document">
+  <meta name="Generator" content="Microsoft Word 15">
+  <meta name="Originator" content="Microsoft Word 15">
+  <meta name="Author" content="${book.author}">
+  <meta name="Title" content="${book.title}">
+  <meta name="Subject" content="${book.metadata.description || ''}">
+  <meta name="Keywords" content="${book.metadata.genre || ''}">
+  <!--[if gte mso 9]>
+  <xml>
+    <w:WordDocument>
+      <w:View>Print</w:View>
+      <w:Zoom>100</w:Zoom>
+      <w:DoNotPromptForConvert/>
+      <w:DoNotShowInsertionsAndDeletions/>
+      <w:DoNotMarkInsertionsAndDeletions/>
+      <w:ValidateAgainstSchemas/>
+      <w:SaveIfXMLInvalid>false</w:SaveIfXMLInvalid>
+      <w:IgnoreMixedContent>false</w:IgnoreMixedContent>
+      <w:AlwaysShowPlaceholderText>false</w:AlwaysShowPlaceholderText>
+    </w:WordDocument>
+    <o:DocumentProperties>
+      <o:Author>${book.author}</o:Author>
+      <o:LastAuthor>${book.author}</o:LastAuthor>
+      <o:Title>${book.title}</o:Title>
+      <o:Subject>${book.metadata.description || ''}</o:Subject>
+      <o:Keywords>${book.metadata.genre || ''}</o:Keywords>
+      <o:Description>Generated book document</o:Description>
+    </o:DocumentProperties>
+    <o:OfficeDocumentSettings>
+      <o:RelyOnVML/>
+      <o:AllowPNG/>
+      <o:PixelsPerInch>96</o:PixelsPerInch>
+    </o:OfficeDocumentSettings>
+  </xml>
+  <![endif]-->
+  <!--[if gte mso 9]>
+  <xml>
+    <w:LatentStyles DefLockedState="false" DefUnhideWhenUsed="false" DefSemiHidden="false" DefQFormat="false" DefPriority="99" LatentStyleCount="371">
+      <w:LsdException Locked="false" Priority="0" QFormat="true" Name="Normal"/>
+      <w:LsdException Locked="false" Priority="9" QFormat="true" Name="heading 1"/>
+      <w:LsdException Locked="false" Priority="9" SemiHidden="false" QFormat="true" Name="heading 2"/>
+      <w:LsdException Locked="false" Priority="9" QFormat="true" Name="heading 3"/>
+    </w:LatentStyles>
+  </xml>
+  <![endif]-->
+  <title>${title}</title>
+  <style>
+    /* Word-optimized styles */
+    @page {
+      size: 8.5in 11in;
+      margin: ${book.formatting.marginTop}in ${book.formatting.marginRight}in ${book.formatting.marginBottom}in ${book.formatting.marginLeft}in;
+    }
+    
+    body {
+      font-family: "${book.formatting.fontFamily}", "Times New Roman", serif;
+      font-size: ${book.formatting.fontSize}pt;
+      line-height: ${book.formatting.lineHeight};
+      margin: 0;
+      padding: 0;
+      background: white;
+      color: black;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+    
+    h1 { 
+      font-size: 24pt; 
+      margin: 0pt 0pt 12pt 0pt; 
+      text-align: center;
+      page-break-before: always;
+      page-break-after: avoid;
+      font-weight: bold;
+      font-family: "${book.formatting.fontFamily}", "Times New Roman", serif;
+    }
+    
+    h2 { 
+      font-size: 18pt; 
+      margin: 24pt 0pt 12pt 0pt;
+      font-weight: bold;
+      font-family: "${book.formatting.fontFamily}", "Times New Roman", serif;
+      page-break-after: avoid;
+      ${book.formatting.chapterBreakStyle === 'page-break' ? 'page-break-before: always;' : ''}
+      ${book.formatting.chapterBreakStyle === 'spacing' ? 'margin-top: 48pt;' : ''}
+    }
+    
+    p {
+      margin: ${(book.formatting.paragraphSpacing || 0.5) * 12}pt 0pt;
+      ${book.formatting.firstLineIndent && book.formatting.firstLineIndent > 0 ? `text-indent: ${book.formatting.firstLineIndent * 12}pt;` : ''}
+      text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
+      orphans: 3;
+      widows: 3;
+      line-height: ${book.formatting.lineHeight};
+    }
+    
+    .metadata {
+      text-align: center;
+      margin-bottom: 36pt;
+      border-bottom: 1pt solid black;
+      padding-bottom: 24pt;
+      page-break-after: always;
+    }
+    
+    .author {
+      font-size: 14pt;
+      font-style: italic;
+      margin: 12pt 0pt;
+    }
+    
+    .genre, .description {
+      color: #666666;
+      margin: 6pt 0pt;
+    }
+    
+    .chapter {
+      page-break-inside: avoid;
+      margin-bottom: 24pt;
+    }
+    
+    .chapter-content p {
+      text-align: ${book.formatting.textAlignment === 'justify' ? 'left' : book.formatting.textAlignment};
+    }
+    
+    /* Word-optimized image styles */
+    img {
+      width: 6.5in !important;
+      height: auto !important;
+      max-height: 7in !important;
+      display: block !important;
+      margin: 0 auto !important;
+      border: none !important;
+      page-break-inside: avoid !important;
+    }
+    
+    /* VML styles for better Word compatibility */
+    v\\:shape {
+      behavior: url(#default#VML);
+    }
+    
+    v\\:imagedata {
+      behavior: url(#default#VML);
+    }
+  </style>
+</head>
+<body>
+  ${metadata}
+  ${chaptersHTML}
+</body>
+</html>
+  `
+}
+
 export const exportBook = async (book: Book, options: ExportOptions, storage: any): Promise<string> => {
   switch (options.format) {
     case 'html':
@@ -561,8 +875,8 @@ export const exportBook = async (book: Book, options: ExportOptions, storage: an
       // For now, return HTML - in a real app, you'd use a library like epub-gen
       return await exportToHTML(book, options, storage)
     case 'docx':
-      // For now, return HTML - in a real app, you'd use a library like docx
-      return await exportToHTML(book, options, storage)
+      // Enhanced Word-optimized export
+      return await exportToDOCX(book, options, storage)
     default:
       throw new Error(`Unsupported export format: ${options.format}`)
   }
