@@ -22,6 +22,11 @@ export default function BookPreviewPage() {
 
   useEffect(() => {
     const loadBook = async () => {
+      // Don't try to load if storage is still initializing
+      if (storage.isLoading) {
+        return
+      }
+      
       try {
         console.log('Loading book with ID:', bookId)
         console.log('Storage context:', storage)
@@ -50,7 +55,7 @@ export default function BookPreviewPage() {
     }
 
     loadBook()
-  }, [bookId, storage])
+  }, [bookId, storage, storage.isLoading])
 
   const handleExport = async (format: 'html' | 'pdf' | 'epub' | 'docx') => {
     if (!book) return

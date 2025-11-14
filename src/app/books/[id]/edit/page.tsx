@@ -18,6 +18,11 @@ export default function EditBookPage() {
 
   useEffect(() => {
     const loadBook = async () => {
+      // Don't try to load if storage is still initializing
+      if (storage.isLoading) {
+        return
+      }
+      
       try {
         const loadedBook = await storage.getBook(bookId)
         if (!loadedBook) {
@@ -33,7 +38,7 @@ export default function EditBookPage() {
     }
 
     loadBook()
-  }, [bookId, storage])
+  }, [bookId, storage, storage.isLoading])
 
   if (loading) {
     return <LoadingState message="Loading book..." />
