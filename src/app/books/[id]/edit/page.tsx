@@ -6,9 +6,10 @@ import BookForm from '@/components/BookForm'
 import LoadingState from '@/components/LoadingState'
 import ErrorState from '@/components/ErrorState'
 import { Book } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 
 export default function EditBookPage() {
+  const storage = useStorage()
   const params = useParams()
   const bookId = params.id as string
   const [book, setBook] = useState<Book | null>(null)
@@ -18,7 +19,7 @@ export default function EditBookPage() {
   useEffect(() => {
     const loadBook = async () => {
       try {
-        const loadedBook = storage.getBook(bookId)
+        const loadedBook = await storage.getBook(bookId)
         if (!loadedBook) {
           setError('Book not found')
         } else {
@@ -32,7 +33,7 @@ export default function EditBookPage() {
     }
 
     loadBook()
-  }, [bookId])
+  }, [bookId, storage])
 
   if (loading) {
     return <LoadingState message="Loading book..." />

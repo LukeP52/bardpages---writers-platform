@@ -7,10 +7,11 @@ import { ArrowLeftIcon, ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 import LoadingState from '@/components/LoadingState'
 import ErrorState from '@/components/ErrorState'
 import { Book } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 import { generateBookContent, exportBook, downloadFile, downloadPDF } from '@/lib/exportUtils'
 
 export default function BookPreviewPage() {
+  const storage = useStorage()
   const params = useParams()
   const bookId = params.id as string
   const [book, setBook] = useState<Book | null>(null)
@@ -22,7 +23,9 @@ export default function BookPreviewPage() {
   useEffect(() => {
     const loadBook = async () => {
       try {
-        const loadedBook = storage.getBook(bookId)
+        console.log('Loading book with ID:', bookId)
+        const loadedBook = await storage.getBook(bookId)
+        console.log('Loaded book:', loadedBook)
         if (!loadedBook) {
           setError('Book not found')
         } else {
@@ -31,6 +34,7 @@ export default function BookPreviewPage() {
           setBookContent(content)
         }
       } catch (err) {
+        console.error('Error loading book:', err)
         setError('Failed to load book')
       } finally {
         setLoading(false)
@@ -38,7 +42,7 @@ export default function BookPreviewPage() {
     }
 
     loadBook()
-  }, [bookId])
+  }, [bookId, storage])
 
   const handleExport = async (format: 'html' | 'pdf' | 'epub' | 'docx') => {
     if (!book) return
