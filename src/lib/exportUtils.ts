@@ -111,9 +111,9 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
         
         // Simple page break control for images
         if (options.imagePageBreaks === true) {
-          // Simple separate page for images
+          // Force separate page for images with explicit page break and minimum height
           processedContent += `
-            <div style="page-break-before: always; page-break-after: always; text-align: center; padding: 50pt 0;">
+            <div style="page-break-before: always; page-break-after: always; page-break-inside: avoid; text-align: center; min-height: 8in; padding: 2in 0;">
               <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
                    width="432" 
                    style="width: 432px; height: auto; border: none;" />
@@ -697,9 +697,9 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
         
         // Simple page break control for DOCX images
         if (options.imagePageBreaks === true) {
-          // Simple separate page for images
+          // Force separate page for images with explicit page break and minimum height
           processedContent += `
-            <div style="page-break-before: always; page-break-after: always; text-align: center; padding: 50pt 0;">
+            <div style="page-break-before: always; page-break-after: always; page-break-inside: avoid; text-align: center; min-height: 8in; padding: 2in 0;">
               <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
                    width="432" height="auto"
                    style="width: 432px; height: auto; display: block; margin: 0 auto; border: 0px;" />
