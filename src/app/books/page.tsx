@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Book, Storyboard, Excerpt } from '@/types'
 import { useStorage } from '@/contexts/StorageContext'
 import EmptyState from '@/components/EmptyState'
+import LoadingState from '@/components/LoadingState'
 import { exportBook, downloadFile } from '@/lib/exportUtils'
 import { BookOpenIcon } from '@heroicons/react/24/outline'
 
@@ -13,6 +14,7 @@ export default function BooksPage() {
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
   const [books, setBooks] = useState<Book[]>([])
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
+  const [loading, setLoading] = useState(true)
 
   // Utility function to safely format dates (handles both Date objects and Firestore Timestamps)
   const formatDate = (date: any) => {
@@ -47,6 +49,8 @@ export default function BooksPage() {
         console.log('Loaded books:', loadedBooks)
       } catch (error) {
         console.error('Failed to load books data:', error)
+      } finally {
+        setLoading(false)
       }
     }
     
@@ -97,6 +101,10 @@ export default function BooksPage() {
     }
   }
 
+
+  if (loading) {
+    return <LoadingState message="Loading books..." />
+  }
 
   return (
     <div className="container py-12">

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { Storyboard, Excerpt, StoryboardSection, Category } from '@/types'
 import { useStorage } from '@/contexts/StorageContext'
+import LoadingState from '@/components/LoadingState'
 import { v4 as uuidv4 } from 'uuid'
 import {
   DndContext,
@@ -690,11 +691,7 @@ export default function StoryboardEditPage() {
   }
 
   if (!storyboard) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
+    return <LoadingState message="Loading storyboard..." />
   }
 
   const stats = getStoryboardStats()

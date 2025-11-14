@@ -4,12 +4,14 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Storyboard, Excerpt } from '@/types'
 import { useStorage } from '@/contexts/StorageContext'
+import LoadingState from '@/components/LoadingState'
 import { v4 as uuidv4 } from 'uuid'
 
 export default function StoryboardsPage() {
   const storage = useStorage()
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
+  const [loading, setLoading] = useState(true)
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [newStoryboardTitle, setNewStoryboardTitle] = useState('')
   const [newStoryboardDescription, setNewStoryboardDescription] = useState('')
@@ -25,6 +27,8 @@ export default function StoryboardsPage() {
         setExcerpts(loadedExcerpts)
       } catch (error) {
         console.error('Failed to load storyboards data:', error)
+      } finally {
+        setLoading(false)
       }
     }
     
@@ -76,6 +80,10 @@ export default function StoryboardsPage() {
       const excerpt = getExcerptById(section.excerptId)
       return total + (excerpt?.wordCount || 0)
     }, 0)
+  }
+
+  if (loading) {
+    return <LoadingState message="Loading storyboards..." />
   }
 
   return (
