@@ -37,6 +37,7 @@ function SortableExcerptCard({
   excerpt, 
   index, 
   displayMode, 
+  sortBy,
   onRemove, 
   isBeingDraggedOver = false
 }: {
@@ -44,6 +45,7 @@ function SortableExcerptCard({
   excerpt: Excerpt
   index: number
   displayMode: 'title' | 'date'
+  sortBy: 'order' | 'name' | 'displayDate' | 'lastEdited'
   onRemove: (id: string) => void
   isBeingDraggedOver?: boolean
 }) {
@@ -64,7 +66,7 @@ function SortableExcerptCard({
   const displayText = displayMode === 'title' 
     ? excerpt.title 
     : (() => {
-        const date = excerpt.createdAt
+        const date = sortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt
         const isoDate = new Date(date).toISOString().split('T')[0]
         return new Date(isoDate + 'T12:00:00').toLocaleDateString()
       })()
@@ -90,7 +92,7 @@ function SortableExcerptCard({
           </h3>
           <p className="text-xs text-gray-500 mt-1">
             {(() => {
-              const date = excerpt.createdAt
+              const date = sortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt
               const isoDate = new Date(date).toISOString().split('T')[0]
               return new Date(isoDate + 'T12:00:00').toLocaleDateString()
             })()}
@@ -1061,7 +1063,7 @@ export default function StoryboardEditPage() {
                               <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
                                 <span>{excerpt.wordCount} words</span>
                                 <span>{(() => {
-                                  const date = excerpt.createdAt
+                                  const date = sortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt
                                   const isoDate = new Date(date).toISOString().split('T')[0]
                                   return new Date(isoDate + 'T12:00:00').toLocaleDateString()
                                 })()}</span>
@@ -1144,6 +1146,7 @@ export default function StoryboardEditPage() {
                         excerpt={excerpt!}
                         index={index}
                         displayMode={displayMode}
+                        sortBy={storyboardSortBy}
                         onRemove={removeSection}
                         isBeingDraggedOver={false}
                       />
@@ -1163,14 +1166,14 @@ export default function StoryboardEditPage() {
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-gray-900 text-sm leading-tight truncate">
                         {(displayMode === 'title' ? activeExcerpt.title : (() => {
-                          const date = activeExcerpt.createdAt
+                          const date = storyboardSortBy === 'lastEdited' ? activeExcerpt.updatedAt : activeExcerpt.createdAt
                           const isoDate = new Date(date).toISOString().split('T')[0]
                           return new Date(isoDate + 'T12:00:00').toLocaleDateString()
                         })()).substring(0, 30)}...
                       </h3>
                       <p className="text-xs text-gray-500 mt-1">
                         {(() => {
-                          const date = activeExcerpt.createdAt
+                          const date = storyboardSortBy === 'lastEdited' ? activeExcerpt.updatedAt : activeExcerpt.createdAt
                           const isoDate = new Date(date).toISOString().split('T')[0]
                           return new Date(isoDate + 'T12:00:00').toLocaleDateString()
                         })()}
