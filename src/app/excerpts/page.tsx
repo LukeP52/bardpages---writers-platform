@@ -81,7 +81,11 @@ export default function ExcerptsPage() {
       if (filterDateFrom) {
         const fromDate = new Date(filterDateFrom)
         filtered = filtered.filter(excerpt => {
-          const compareDate = sortBy === 'dateCreated' ? excerpt.createdAt : excerpt.updatedAt
+          const rawDate = sortBy === 'dateCreated' ? excerpt.createdAt : excerpt.updatedAt
+          // Safely convert date for comparison
+          const compareDate = rawDate && typeof rawDate === 'object' && 'seconds' in rawDate
+            ? new Date((rawDate as any).seconds * 1000)
+            : new Date(rawDate)
           return compareDate >= fromDate
         })
       }
@@ -90,7 +94,11 @@ export default function ExcerptsPage() {
         const toDate = new Date(filterDateTo)
         toDate.setHours(23, 59, 59, 999) // Include full day
         filtered = filtered.filter(excerpt => {
-          const compareDate = sortBy === 'dateCreated' ? excerpt.createdAt : excerpt.updatedAt
+          const rawDate = sortBy === 'dateCreated' ? excerpt.createdAt : excerpt.updatedAt
+          // Safely convert date for comparison
+          const compareDate = rawDate && typeof rawDate === 'object' && 'seconds' in rawDate
+            ? new Date((rawDate as any).seconds * 1000)
+            : new Date(rawDate)
           return compareDate <= toDate
         })
       }
@@ -287,15 +295,25 @@ export default function ExcerptsPage() {
       // Safely format dates for caching
       const formatDateForCache = (date: any) => {
         try {
+          let dateObj: Date
+          
           if (date && typeof date === 'object' && 'seconds' in date) {
-            return new Date(date.seconds * 1000).toISOString()
+            // Firestore Timestamp
+            dateObj = new Date((date as any).seconds * 1000)
+          } else {
+            // Regular Date or string
+            dateObj = new Date(date)
           }
-          const dateObj = new Date(date)
-          if (isNaN(dateObj.getTime())) {
+          
+          // Validate the date before calling toISOString()
+          if (isNaN(dateObj.getTime()) || dateObj.getTime() === 0) {
+            console.warn('Invalid date detected, using fallback:', date)
             return new Date().toISOString()
           }
+          
           return dateObj.toISOString()
-        } catch {
+        } catch (error) {
+          console.warn('Error formatting date for cache:', error, date)
           return new Date().toISOString()
         }
       }
