@@ -4,6 +4,7 @@ export interface ExportOptions {
   format: 'pdf' | 'epub' | 'docx' | 'html'
   includeMetadata: boolean
   includeCover: boolean
+  imagePageBreaks?: boolean // Whether to put images on separate pages
   pageSize?: 'a4' | 'letter' | 'custom'
   margins?: {
     top: number
@@ -103,9 +104,14 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
         const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
         const alt = altMatch ? altMatch[1] : '';
         
+        // Configurable page breaks for images
+        const pageBreakStyle = options.imagePageBreaks !== false 
+          ? 'page-break-before: always; page-break-after: always;' 
+          : 'margin: 24pt 0;';
+        
         // Ultra-simplified Word-compatible image structure
         processedContent += `
-          <div style="page-break-before: always; page-break-after: always;">
+          <div style="${pageBreakStyle}">
             <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 0; padding: 0; border: none; border-collapse: collapse;">
               <tr>
                 <td align="center" valign="middle" style="text-align: center; vertical-align: middle; padding: 36pt; border: none;">
@@ -677,9 +683,14 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
         const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
         const alt = altMatch ? altMatch[1] : '';
         
+        // Configurable page breaks for images
+        const pageBreakStyle = options.imagePageBreaks !== false 
+          ? 'page-break-before: always; page-break-after: always;' 
+          : 'margin: 24pt 0;';
+        
         // Word-specific image structure with explicit sizing
         processedContent += `
-          <div style="page-break-before: always; page-break-after: always; text-align: center; margin: 0; padding: 36pt;">
+          <div style="${pageBreakStyle} text-align: center; margin: 0; padding: 36pt;">
             <p style="text-align: center; margin: 0; padding: 0;">
               <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
                    width="432" height="auto"

@@ -71,7 +71,8 @@ export default function BooksPage() {
       const content = await exportBook(book, {
         format,
         includeMetadata: true,
-        includeCover: false
+        includeCover: false,
+        imagePageBreaks: false // Allow images inline with text
       }, storage)
       
       const filename = `${book.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${format}`
