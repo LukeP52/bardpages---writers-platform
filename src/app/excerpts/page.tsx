@@ -270,11 +270,27 @@ export default function ExcerptsPage() {
       return
     }
     try {
+      // Safely format dates for caching
+      const formatDateForCache = (date: any) => {
+        try {
+          if (date && typeof date === 'object' && 'seconds' in date) {
+            return new Date(date.seconds * 1000).toISOString()
+          }
+          const dateObj = new Date(date)
+          if (isNaN(dateObj.getTime())) {
+            return new Date().toISOString()
+          }
+          return dateObj.toISOString()
+        } catch {
+          return new Date().toISOString()
+        }
+      }
+
       const cacheKey = `editing_excerpt_${excerpt.id}`
       const cacheData = {
         ...excerpt,
-        createdAt: excerpt.createdAt.toISOString(),
-        updatedAt: excerpt.updatedAt.toISOString(),
+        createdAt: formatDateForCache(excerpt.createdAt),
+        updatedAt: formatDateForCache(excerpt.updatedAt),
       }
       
       console.log('Caching excerpt with key:', cacheKey)
@@ -332,10 +348,30 @@ export default function ExcerptsPage() {
                   </a>
                   <p className="text-sm text-gray-500 mt-1">
                     {(() => {
-                      const date = dateDisplayMode === 'created' ? excerpt.createdAt : excerpt.updatedAt
-                      // Display date the same way as shown in the form (ISO date part)
-                      const isoDate = new Date(date).toISOString().split('T')[0]
-                      return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+                      try {
+                        const date = dateDisplayMode === 'created' ? excerpt.createdAt : excerpt.updatedAt
+                        
+                        // Safely handle date formatting
+                        let dateObj: Date
+                        if (date && typeof date === 'object' && 'seconds' in date) {
+                          // Firestore Timestamp
+                          dateObj = new Date((date as any).seconds * 1000)
+                        } else {
+                          dateObj = new Date(date)
+                        }
+                        
+                        // Validate the date
+                        if (isNaN(dateObj.getTime())) {
+                          return 'Invalid date'
+                        }
+                        
+                        // Display date the same way as shown in the form (ISO date part)
+                        const isoDate = dateObj.toISOString().split('T')[0]
+                        return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+                      } catch (error) {
+                        console.warn('Error formatting excerpt date:', error)
+                        return 'Invalid date'
+                      }
                     })()}
                   </p>
                 </div>
