@@ -113,18 +113,13 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
         if (options.imagePageBreaks === true) {
           // Full page layout for images with guaranteed page isolation
           processedContent += `
-            <div style="page-break-before: always; page-break-inside: avoid; min-height: 90vh;">
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; height: 90vh; margin: 0; padding: 0; border: none; border-collapse: collapse;">
-                <tr>
-                  <td align="center" valign="middle" style="text-align: center; vertical-align: middle; padding: 5vh; border: none; height: 90vh;">
-                    <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
-                         width="432" 
-                         style="width: 432px; height: auto; max-height: 70vh; border: none;" />
-                  </td>
-                </tr>
-              </table>
+            <div style="page-break-before: always; page-break-after: always; page-break-inside: avoid;">
+              <div style="height: 100vh; width: 100%; position: relative; display: flex; align-items: center; justify-content: center;">
+                <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                     width="432" 
+                     style="width: 432px; height: auto; max-height: 80vh; border: none;" />
+              </div>
             </div>
-            <div style="page-break-before: always; height: 0; margin: 0; padding: 0;"></div>
           `;
         } else {
           // Inline layout for images
@@ -706,18 +701,13 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
         if (options.imagePageBreaks === true) {
           // Full page layout for images in DOCX with guaranteed page isolation
           processedContent += `
-            <div style="page-break-before: always; page-break-inside: avoid; min-height: 90vh;">
-              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; height: 90vh; margin: 0; padding: 0; border: none; border-collapse: collapse;">
-                <tr>
-                  <td align="center" valign="middle" style="text-align: center; vertical-align: middle; padding: 5vh; border: none; height: 90vh;">
-                    <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
-                         width="432" height="auto"
-                         style="width: 432px; height: auto; max-height: 70vh; display: block; margin-left: auto; margin-right: auto; border: 0px;" />
-                  </td>
-                </tr>
-              </table>
+            <div style="page-break-before: always; page-break-after: always; page-break-inside: avoid;">
+              <div style="height: 100vh; width: 100%; position: relative; display: flex; align-items: center; justify-content: center;">
+                <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                     width="432" height="auto"
+                     style="width: 432px; height: auto; max-height: 80vh; display: block; margin-left: auto; margin-right: auto; border: 0px;" />
+              </div>
             </div>
-            <div style="page-break-before: always; height: 0; margin: 0; padding: 0;"></div>
           `;
         } else {
           // Inline layout for images in DOCX
