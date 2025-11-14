@@ -21,7 +21,7 @@ import {
 import { User } from 'firebase/auth'
 import { db, isConfigured } from '@/lib/firebase'
 import { SIZE_LIMITS, formatFileSize } from '@/lib/constants'
-import { Excerpt, Storyboard, Category } from '@/types'
+import { Excerpt, Storyboard, Category, Book } from '@/types'
 
 // Utility function to convert Firestore timestamps to JavaScript dates
 const convertTimestamps = (data: any) => {
@@ -373,6 +373,42 @@ export class FirestoreService {
       )
       callback(excerpts)
     })
+  }
+
+  // BOOK OPERATIONS
+  async saveBook(book: Book): Promise<void> {
+    this.checkAvailability()
+    const bookRef = doc(db, 'users', this.userId, 'books', book.id)
+    await setDoc(bookRef, prepareForStorage(book))
+  }
+
+  async getBooks(): Promise<Book[]> {
+    this.checkAvailability()
+    
+    const booksRef = collection(db, 'users', this.userId, 'books')
+    const q = query(booksRef, orderBy('updatedAt', 'desc'))
+    const querySnapshot = await getDocs(q)
+    
+    return querySnapshot.docs.map(doc => convertTimestamps(doc.data()) as Book)
+  }
+
+  async getBook(id: string): Promise<Book | null> {
+    this.checkAvailability()
+    
+    const bookRef = doc(db, 'users', this.userId, 'books', id)
+    const bookSnap = await getDoc(bookRef)
+    
+    if (bookSnap.exists()) {
+      return convertTimestamps(bookSnap.data()) as Book
+    } else {
+      return null
+    }
+  }
+
+  async deleteBook(id: string): Promise<void> {
+    this.checkAvailability()
+    const bookRef = doc(db, 'users', this.userId, 'books', id)
+    await deleteDoc(bookRef)
   }
 
   // MIGRATION HELPER - Move data from localStorage to Firestore

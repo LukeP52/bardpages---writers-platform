@@ -6,7 +6,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { FirestoreService, createFirestoreService } from '@/lib/firestore'
 import { storage as localStorageService, createStorage } from '@/lib/storage'
 import { SIZE_LIMITS, formatFileSize } from '@/lib/constants'
-import { Excerpt, Storyboard, Category } from '@/types'
+import { Excerpt, Storyboard, Category, Book } from '@/types'
 
 interface StorageContextType {
   // Excerpt operations
@@ -35,6 +35,12 @@ interface StorageContextType {
   saveStoryboard: (storyboard: Storyboard) => Promise<void>
   getStoryboards: () => Promise<Storyboard[]>
   deleteStoryboard: (id: string) => Promise<void>
+  
+  // Book operations
+  saveBook: (book: Book) => Promise<void>
+  getBooks: () => Promise<Book[]>
+  getBook: (id: string) => Promise<Book | null>
+  deleteBook: (id: string) => Promise<void>
   
   // Migration
   migrateToCloud: () => Promise<void>
@@ -364,6 +370,27 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     deleteStoryboard: createStorageMethod(
       'deleteStoryboard',
       (id: string) => firestoreService!.deleteStoryboard(id)
+    ),
+    
+    // Book operations
+    saveBook: createStorageMethod(
+      'saveBook',
+      (book: Book) => firestoreService!.saveBook(book)
+    ),
+    
+    getBooks: createStorageMethod(
+      'getBooks',
+      () => firestoreService!.getBooks()
+    ),
+    
+    getBook: createStorageMethod(
+      'getBook',
+      (id: string) => firestoreService!.getBook(id)
+    ),
+    
+    deleteBook: createStorageMethod(
+      'deleteBook',
+      (id: string) => firestoreService!.deleteBook(id)
     ),
     
     // Migration
