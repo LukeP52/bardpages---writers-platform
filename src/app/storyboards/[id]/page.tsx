@@ -10,6 +10,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragOverlay,
@@ -78,6 +79,10 @@ function SortableExcerptCard({
       className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-24 flex items-center justify-between touch-manipulation active:scale-95 select-none ${
         isDragging ? 'opacity-50' : ''
       }`}
+      style={{
+        ...style,
+        touchAction: 'none'
+      }}
       {...attributes}
       {...listeners}
     >
@@ -324,7 +329,13 @@ export default function StoryboardEditPage() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 3,
+        distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 0,
+        tolerance: 0,
       },
     }),
     useSensor(KeyboardSensor, {
