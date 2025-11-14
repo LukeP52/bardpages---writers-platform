@@ -54,7 +54,25 @@ const prepareForStorage = (data: any) => {
     prepared.updatedAt = Timestamp.fromDate(prepared.updatedAt)
   }
   
-  return prepared
+  // Remove undefined values recursively (Firestore doesn't support undefined)
+  const removeUndefined = (obj: any): any => {
+    if (obj === null || obj === undefined) return null
+    if (Array.isArray(obj)) {
+      return obj.map(removeUndefined)
+    }
+    if (typeof obj === 'object') {
+      const cleaned: any = {}
+      for (const [key, value] of Object.entries(obj)) {
+        if (value !== undefined) {
+          cleaned[key] = removeUndefined(value)
+        }
+      }
+      return cleaned
+    }
+    return obj
+  }
+  
+  return removeUndefined(prepared)
 }
 
 export class FirestoreService {
