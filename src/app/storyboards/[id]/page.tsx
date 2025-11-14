@@ -66,11 +66,7 @@ function SortableExcerptCard({
 
   const displayText = displayMode === 'title' 
     ? excerpt.title 
-    : (() => {
-        const date = sortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt
-        const isoDate = new Date(date).toISOString().split('T')[0]
-        return new Date(isoDate + 'T12:00:00').toLocaleDateString()
-      })()
+    : safeFormatDate(sortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt)
 
   return (
     <div
@@ -92,11 +88,7 @@ function SortableExcerptCard({
             {displayText.length > 30 ? `${displayText.substring(0, 30)}...` : displayText}
           </h3>
           <p className="text-xs text-gray-500 mt-1">
-            {(() => {
-              const date = sortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt
-              const isoDate = new Date(date).toISOString().split('T')[0]
-              return new Date(isoDate + 'T12:00:00').toLocaleDateString()
-            })()}
+            {safeFormatDate(sortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt)}
           </p>
         </div>
       </div>
@@ -132,6 +124,28 @@ function useClickOutside(ref: React.RefObject<HTMLDivElement | null>, handler: (
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [ref, handler])
+}
+
+// Global safe date formatter
+const safeFormatDate = (date: any): string => {
+  try {
+    let dateObj: Date
+    if (date && typeof date === 'object' && 'seconds' in date) {
+      // Firestore Timestamp
+      dateObj = new Date((date as any).seconds * 1000)
+    } else {
+      dateObj = new Date(date)
+    }
+    
+    if (isNaN(dateObj.getTime())) {
+      return new Date().toLocaleDateString()
+    }
+    
+    const isoDate = dateObj.toISOString().split('T')[0]
+    return new Date(isoDate + 'T12:00:00').toLocaleDateString()
+  } catch {
+    return new Date().toLocaleDateString()
+  }
 }
 
 export default function StoryboardEditPage() {
@@ -794,11 +808,7 @@ export default function StoryboardEditPage() {
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span>Updated {(() => {
-                const date = storyboard.updatedAt
-                const isoDate = new Date(date).toISOString().split('T')[0]
-                return new Date(isoDate + 'T12:00:00').toLocaleDateString()
-              })()}</span>
+              <span>Updated {safeFormatDate(storyboard.updatedAt)}</span>
             </div>
           </div>
         </div>
@@ -1128,11 +1138,7 @@ export default function StoryboardEditPage() {
                               )}
                               <div className="flex justify-between items-center text-xs text-gray-500 mb-2">
                                 <span>{excerpt.wordCount} words</span>
-                                <span>{(() => {
-                                  const date = storyboardSortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt
-                                  const isoDate = new Date(date).toISOString().split('T')[0]
-                                  return new Date(isoDate + 'T12:00:00').toLocaleDateString()
-                                })()}</span>
+                                <span>{safeFormatDate(storyboardSortBy === 'lastEdited' ? excerpt.updatedAt : excerpt.createdAt)}</span>
                               </div>
                               {excerpt.tags.length > 0 && (
                                 <div className="flex flex-wrap gap-1">
@@ -1231,18 +1237,10 @@ export default function StoryboardEditPage() {
                     </span>
                     <div className="min-w-0 flex-1">
                       <h3 className="font-semibold text-gray-900 text-sm leading-tight truncate">
-                        {(displayMode === 'title' ? activeExcerpt.title : (() => {
-                          const date = storyboardSortBy === 'lastEdited' ? activeExcerpt.updatedAt : activeExcerpt.createdAt
-                          const isoDate = new Date(date).toISOString().split('T')[0]
-                          return new Date(isoDate + 'T12:00:00').toLocaleDateString()
-                        })()).substring(0, 30)}...
+                        {(displayMode === 'title' ? activeExcerpt.title : safeFormatDate(storyboardSortBy === 'lastEdited' ? activeExcerpt.updatedAt : activeExcerpt.createdAt)).substring(0, 30)}...
                       </h3>
                       <p className="text-xs text-gray-500 mt-1">
-                        {(() => {
-                          const date = storyboardSortBy === 'lastEdited' ? activeExcerpt.updatedAt : activeExcerpt.createdAt
-                          const isoDate = new Date(date).toISOString().split('T')[0]
-                          return new Date(isoDate + 'T12:00:00').toLocaleDateString()
-                        })()}
+                        {safeFormatDate(storyboardSortBy === 'lastEdited' ? activeExcerpt.updatedAt : activeExcerpt.createdAt)}
                       </p>
                     </div>
                   </div>
