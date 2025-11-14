@@ -35,7 +35,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         
         if (existingDate && typeof existingDate === 'object' && 'seconds' in existingDate) {
           // Firestore Timestamp
-          dateObj = new Date(existingDate.seconds * 1000)
+          dateObj = new Date((existingDate as any).seconds * 1000)
         } else {
           // Regular Date or string
           dateObj = new Date(existingDate)
@@ -131,7 +131,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
         try {
           const existingDate = excerpt.createdAt
           if (existingDate && typeof existingDate === 'object' && 'seconds' in existingDate) {
-            safeCreatedAt = new Date(existingDate.seconds * 1000)
+            safeCreatedAt = new Date((existingDate as any).seconds * 1000)
           } else {
             safeCreatedAt = new Date(existingDate)
           }
@@ -390,7 +390,7 @@ export default function ExcerptForm({ excerpt, mode }: ExcerptFormProps) {
           const existingDate = excerpt.createdAt
           if (existingDate && typeof existingDate === 'object' && 'seconds' in existingDate) {
             // Firestore Timestamp
-            createdAt = new Date(existingDate.seconds * 1000)
+            createdAt = new Date((existingDate as any).seconds * 1000)
           } else {
             // Regular Date or string
             createdAt = new Date(existingDate)
