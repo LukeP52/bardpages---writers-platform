@@ -3,21 +3,36 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Book, Storyboard, Excerpt } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 import EmptyState from '@/components/EmptyState'
 import { exportBook, downloadFile } from '@/lib/exportUtils'
 import { BookOpenIcon } from '@heroicons/react/24/outline'
 
 export default function BooksPage() {
+  const storage = useStorage()
   const [storyboards, setStoryboards] = useState<Storyboard[]>([])
   const [books, setBooks] = useState<Book[]>([])
+  const [excerpts, setExcerpts] = useState<Excerpt[]>([])
 
   useEffect(() => {
-    const loadedStoryboards = storage.getStoryboards()
-    const loadedBooks = storage.getBooks()
-    setStoryboards(loadedStoryboards)
-    setBooks(loadedBooks)
-  }, [])
+    const loadData = async () => {
+      try {
+        const [loadedStoryboards, loadedBooks, loadedExcerpts] = await Promise.all([
+          storage.getStoryboards(),
+          storage.getBooks(),
+          storage.getExcerpts()
+        ])
+        setStoryboards(loadedStoryboards)
+        setBooks(loadedBooks)
+        setExcerpts(loadedExcerpts)
+        console.log('Loaded books:', loadedBooks)
+      } catch (error) {
+        console.error('Failed to load books data:', error)
+      }
+    }
+    
+    loadData()
+  }, [storage])
 
   const getBookStats = (book: Book) => {
     const storyboard = storyboards.find(s => s.id === book.storyboardId)
@@ -25,7 +40,7 @@ export default function BooksPage() {
     
     const chapters = storyboard.sections.length
     const totalWordCount = storyboard.sections.reduce((total, section) => {
-      const excerpt = storage.getExcerpt(section.excerptId)
+      const excerpt = excerpts.find(e => e.id === section.excerptId)
       return total + (excerpt?.wordCount || 0)
     }, 0)
     
@@ -49,12 +64,16 @@ export default function BooksPage() {
     }
   }
 
-  const handleDeleteBook = (book: Book) => {
+  const handleDeleteBook = async (book: Book) => {
     if (window.confirm(`Are you sure you want to delete "${book.title}"? This action cannot be undone.`)) {
-      storage.deleteBook(book.id)
-      const updatedBooks = storage.getBooks()
-      setBooks(updatedBooks)
-      console.log('Book deleted successfully!')
+      try {
+        await storage.deleteBook(book.id)
+        const updatedBooks = await storage.getBooks()
+        setBooks(updatedBooks)
+        console.log('Book deleted successfully!')
+      } catch (error) {
+        console.error('Failed to delete book:', error)
+      }
     }
   }
 

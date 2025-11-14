@@ -131,6 +131,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
       }
 
       await storage.saveBook(bookData)
+      console.log('Book saved successfully, navigating to /books')
       router.push('/books')
     } catch (error) {
       console.error('Error saving book:', error)
