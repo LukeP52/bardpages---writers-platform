@@ -57,9 +57,12 @@ export default function BookForm({ book, mode }: BookFormProps) {
   const [citationStyle, setCitationStyle] = useState(book?.formatting.citationStyle || 'footnotes')
   const [includeReferences, setIncludeReferences] = useState<boolean>(book?.formatting.includeReferences !== undefined ? book.formatting.includeReferences : true)
   
+  // Export Settings
+  const [imagePageBreaks, setImagePageBreaks] = useState<boolean>(book?.formatting.imagePageBreaks !== undefined ? book.formatting.imagePageBreaks : false)
+  
   const [availableStoryboards, setAvailableStoryboards] = useState<Storyboard[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [activeTab, setActiveTab] = useState<'typography' | 'structure' | 'layout' | 'advanced'>('typography')
+  const [activeTab, setActiveTab] = useState<'typography' | 'structure' | 'layout' | 'advanced' | 'export'>('typography')
 
   useEffect(() => {
     const loadStoryboards = async () => {
@@ -124,7 +127,9 @@ export default function BookForm({ book, mode }: BookFormProps) {
           // Reference Formatting
           referenceStyle,
           citationStyle,
-          includeReferences
+          includeReferences,
+          // Export Settings
+          imagePageBreaks
         },
         createdAt: book?.createdAt || now,
         updatedAt: now,
@@ -374,7 +379,8 @@ export default function BookForm({ book, mode }: BookFormProps) {
               { id: 'typography', label: 'Typography' },
               { id: 'structure', label: 'Structure' },
               { id: 'layout', label: 'Layout' },
-              { id: 'advanced', label: 'Advanced' }
+              { id: 'advanced', label: 'Advanced' },
+              { id: 'export', label: 'Export' }
             ].map((tab) => (
               <button
                 key={tab.id}
@@ -784,6 +790,71 @@ export default function BookForm({ book, mode }: BookFormProps) {
                           </div>
                         </div>
                       )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'export' && (
+              <div className="space-y-6">
+                <h3 className="text-lg font-bold text-black mb-4 uppercase tracking-wide">Export Settings</h3>
+                
+                <div className="space-y-6">
+                  <div className="border border-gray-200 p-6 rounded-lg">
+                    <h4 className="text-sm font-bold text-black mb-4 uppercase tracking-wide">Image Layout</h4>
+                    
+                    <div className="space-y-4">
+                      <label className="flex items-start">
+                        <input
+                          type="radio"
+                          name="imagePageBreaks"
+                          checked={!imagePageBreaks}
+                          onChange={() => setImagePageBreaks(false)}
+                          className="mr-3 mt-1"
+                        />
+                        <div>
+                          <span className="text-sm font-bold text-black uppercase tracking-wide block">
+                            Inline Images (Recommended)
+                          </span>
+                          <span className="text-xs text-gray-600 mt-1 block">
+                            Images appear naturally within the text flow, like traditional books
+                          </span>
+                        </div>
+                      </label>
+
+                      <label className="flex items-start">
+                        <input
+                          type="radio"
+                          name="imagePageBreaks"
+                          checked={imagePageBreaks}
+                          onChange={() => setImagePageBreaks(true)}
+                          className="mr-3 mt-1"
+                        />
+                        <div>
+                          <span className="text-sm font-bold text-black uppercase tracking-wide block">
+                            Separate Image Pages
+                          </span>
+                          <span className="text-xs text-gray-600 mt-1 block">
+                            Each image gets its own dedicated page for maximum visual impact
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg">
+                    <div className="flex items-start">
+                      <svg className="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                      </svg>
+                      <div>
+                        <h5 className="text-sm font-semibold text-blue-900">Export Settings</h5>
+                        <p className="text-sm text-blue-800 mt-1">
+                          These settings control how images appear in exported documents (HTML, PDF, DOCX). 
+                          You can change this anytime without affecting your book content.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -102,4 +102,7 @@ export interface BookFormatting {
   referenceStyle: 'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee' | 'vancouver'
   citationStyle: 'footnotes' | 'endnotes' | 'inline'
   includeReferences: boolean
+  
+  // Export Settings
+  imagePageBreaks: boolean
 }

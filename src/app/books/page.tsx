@@ -72,7 +72,7 @@ export default function BooksPage() {
         format,
         includeMetadata: true,
         includeCover: false,
-        imagePageBreaks: false // Allow images inline with text
+        imagePageBreaks: book.formatting.imagePageBreaks
       }, storage)
       
       const filename = `${book.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${format}`

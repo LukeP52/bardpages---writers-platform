@@ -104,25 +104,41 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
         const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
         const alt = altMatch ? altMatch[1] : '';
         
-        // Configurable page breaks for images
-        const pageBreakStyle = options.imagePageBreaks !== false 
-          ? 'page-break-before: always; page-break-after: always;' 
-          : 'margin: 24pt 0;';
+        // Configurable page breaks for images with enhanced separation
+        const pageBreakStyle = options.imagePageBreaks === true 
+          ? 'page-break-before: always; page-break-after: always; page-break-inside: avoid;' 
+          : 'margin: 24pt 0; page-break-inside: avoid;';
         
-        // Ultra-simplified Word-compatible image structure
-        processedContent += `
-          <div style="${pageBreakStyle}">
-            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 0; padding: 0; border: none; border-collapse: collapse;">
-              <tr>
-                <td align="center" valign="middle" style="text-align: center; vertical-align: middle; padding: 36pt; border: none;">
+        // Enhanced image structure for better page break control
+        if (options.imagePageBreaks === true) {
+          // Full page layout for images
+          processedContent += `
+            <div style="page-break-before: always; page-break-after: always;">
+              <div style="height: 100vh; display: table; width: 100%; margin: 0; padding: 0;">
+                <div style="display: table-cell; vertical-align: middle; text-align: center;">
                   <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
                        width="432" 
                        style="width: 432px; height: auto; max-height: 500px; border: none;" />
-                </td>
-              </tr>
-            </table>
-          </div>
-        `;
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          // Inline layout for images
+          processedContent += `
+            <div style="${pageBreakStyle}">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 0; padding: 0; border: none; border-collapse: collapse;">
+                <tr>
+                  <td align="center" valign="middle" style="text-align: center; vertical-align: middle; padding: 36pt; border: none;">
+                    <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                         width="432" 
+                         style="width: 432px; height: auto; max-height: 500px; border: none;" />
+                  </td>
+                </tr>
+              </table>
+            </div>
+          `;
+        }
       } else if (part.trim()) {
         // This is text content
         processedContent += part;
@@ -683,21 +699,32 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
         const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
         const alt = altMatch ? altMatch[1] : '';
         
-        // Configurable page breaks for images
-        const pageBreakStyle = options.imagePageBreaks !== false 
-          ? 'page-break-before: always; page-break-after: always;' 
-          : 'margin: 24pt 0;';
-        
-        // Word-specific image structure with explicit sizing
-        processedContent += `
-          <div style="${pageBreakStyle} text-align: center; margin: 0; padding: 36pt;">
-            <p style="text-align: center; margin: 0; padding: 0;">
-              <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
-                   width="432" height="auto"
-                   style="width: 432px; height: auto; max-height: 500px; display: block; margin-left: auto; margin-right: auto; border: 0px;" />
-            </p>
-          </div>
-        `;
+        // Enhanced image structure for DOCX with better page break control
+        if (options.imagePageBreaks === true) {
+          // Full page layout for images in DOCX
+          processedContent += `
+            <div style="page-break-before: always; page-break-after: always;">
+              <div style="height: 100vh; display: table; width: 100%; margin: 0; padding: 0;">
+                <div style="display: table-cell; vertical-align: middle; text-align: center;">
+                  <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                       width="432" height="auto"
+                       style="width: 432px; height: auto; max-height: 500px; display: block; margin-left: auto; margin-right: auto; border: 0px;" />
+                </div>
+              </div>
+            </div>
+          `;
+        } else {
+          // Inline layout for images in DOCX
+          processedContent += `
+            <div style="margin: 24pt 0; text-align: center; page-break-inside: avoid;">
+              <p style="text-align: center; margin: 0; padding: 36pt;">
+                <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                     width="432" height="auto"
+                     style="width: 432px; height: auto; max-height: 500px; display: block; margin-left: auto; margin-right: auto; border: 0px;" />
+              </p>
+            </div>
+          `;
+        }
       } else if (part.trim()) {
         processedContent += part;
       }
