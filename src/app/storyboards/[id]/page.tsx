@@ -76,7 +76,7 @@ function SortableExcerptCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-24 flex items-center justify-between ${
+      className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-24 flex items-center justify-between touch-manipulation active:scale-95 ${
         isDragging ? 'opacity-50' : ''
       }`}
       {...attributes}
