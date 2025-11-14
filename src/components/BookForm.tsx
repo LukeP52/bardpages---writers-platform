@@ -472,7 +472,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
                     <select
                       id="textAlignment"
                       value={textAlignment}
-                      onChange={(e) => setTextAlignment(e.target.value)}
+                      onChange={(e) => setTextAlignment(e.target.value as 'left' | 'center' | 'right' | 'justify')}
                       className="input"
                     >
                       <option value="left">Left</option>
