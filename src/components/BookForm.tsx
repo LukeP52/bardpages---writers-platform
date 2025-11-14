@@ -176,6 +176,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
             >
               {chapterNumberStyle === 'numeric' && '1. '}
               {chapterNumberStyle === 'roman' && 'I. '}
+              {chapterNumberStyle === 'words' && 'One. '}
               Chapter One
             </h1>
           </div>
@@ -580,11 +581,12 @@ export default function BookForm({ book, mode }: BookFormProps) {
                           <select
                             id="chapterNumberStyle"
                             value={chapterNumberStyle}
-                            onChange={(e) => setChapterNumberStyle(e.target.value as 'numeric' | 'roman' | 'none')}
+                            onChange={(e) => setChapterNumberStyle(e.target.value as 'numeric' | 'roman' | 'words' | 'none')}
                             className="input"
                           >
                             <option value="numeric">Numeric (1, 2, 3)</option>
                             <option value="roman">Roman (I, II, III)</option>
+                            <option value="words">Words (One, Two, Three)</option>
                             <option value="none">No Numbers</option>
                           </select>
                         </div>
@@ -596,11 +598,11 @@ export default function BookForm({ book, mode }: BookFormProps) {
                           <select
                             id="chapterBreak"
                             value={chapterBreakStyle}
-                            onChange={(e) => setChapterBreakStyle(e.target.value as 'page-break' | 'line-break' | 'section-break')}
+                            onChange={(e) => setChapterBreakStyle(e.target.value as 'page-break' | 'section-break' | 'spacing')}
                             className="input"
                           >
                             <option value="page-break">New Page</option>
-                            <option value="line-break">Line Break</option>
+                            <option value="spacing">Extra Spacing</option>
                             <option value="section-break">Section Break</option>
                           </select>
                         </div>
@@ -766,13 +768,15 @@ export default function BookForm({ book, mode }: BookFormProps) {
                               <select
                                 id="referenceStyle"
                                 value={referenceStyle}
-                                onChange={(e) => setReferenceStyle(e.target.value as 'apa' | 'mla' | 'chicago' | 'harvard')}
+                                onChange={(e) => setReferenceStyle(e.target.value as 'apa' | 'mla' | 'chicago' | 'harvard' | 'ieee' | 'vancouver')}
                                 className="input"
                               >
                                 <option value="apa">APA</option>
                                 <option value="mla">MLA</option>
                                 <option value="chicago">Chicago</option>
                                 <option value="harvard">Harvard</option>
+                                <option value="ieee">IEEE</option>
+                                <option value="vancouver">Vancouver</option>
                               </select>
                             </div>
 
