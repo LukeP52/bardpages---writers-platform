@@ -10,6 +10,7 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragOverlay,
@@ -325,6 +326,12 @@ export default function StoryboardEditPage() {
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 250,
+        tolerance: 5,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -740,26 +747,28 @@ export default function StoryboardEditPage() {
       </div>
 
       {/* Simple Controls Bar */}
-      <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Left Side - Add Excerpts and Sort */}
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setShowExcerptsDropdown(!showExcerptsDropdown)}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-              Add Excerpts ({availableExcerpts.length})
-            </button>
-            
+      <div className="bg-white shadow-sm border-b border-gray-200 px-4 sm:px-6 py-4">
+        <div className="flex flex-col sm:flex-row gap-4 sm:items-center sm:justify-between">
+          {/* Add Excerpts Button */}
+          <button
+            onClick={() => setShowExcerptsDropdown(!showExcerptsDropdown)}
+            className="w-full sm:w-auto px-4 py-3 sm:py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2 touch-manipulation"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            <span className="sm:inline">Add Excerpts</span>
+            <span className="hidden sm:inline">({availableExcerpts.length})</span>
+          </button>
+          
+          {/* Sort and Display Controls */}
+          <div className="flex flex-col sm:flex-row gap-3 sm:items-center">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700">Sort:</label>
+              <label className="text-sm font-medium text-gray-700 hidden sm:inline">Sort:</label>
               <select
                 value={storyboardSortBy}
                 onChange={(e) => handleStoryboardSort(e.target.value as any)}
-                className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm touch-manipulation"
               >
                 <option value="order">Manual Order</option>
                 <option value="name">Name A-Z</option>
@@ -770,7 +779,7 @@ export default function StoryboardEditPage() {
               {storyboardSortBy !== 'order' && (
                 <button
                   onClick={handleReverseToggle}
-                  className={`p-2 border border-gray-300 rounded-lg transition-colors ${
+                  className={`p-2.5 sm:p-2 border border-gray-300 rounded-lg transition-colors touch-manipulation ${
                     storyboardSortReversed 
                       ? 'bg-blue-100 border-blue-500 text-blue-700' 
                       : 'bg-white text-gray-600 hover:bg-gray-50'
@@ -783,19 +792,18 @@ export default function StoryboardEditPage() {
                 </button>
               )}
             </div>
-          </div>
-          
-          {/* Right Side - Display Mode */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700">Display:</label>
-            <select
-              value={displayMode}
-              onChange={(e) => setDisplayMode(e.target.value as 'title' | 'date')}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="title">Title</option>
-              <option value="date">Date</option>
-            </select>
+            
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 hidden sm:inline">Display:</label>
+              <select
+                value={displayMode}
+                onChange={(e) => setDisplayMode(e.target.value as 'title' | 'date')}
+                className="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm touch-manipulation"
+              >
+                <option value="title">Title</option>
+                <option value="date">Date</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>
@@ -1102,7 +1110,7 @@ export default function StoryboardEditPage() {
         </AnimatePresence>
 
         {/* Storyboard Manager */}
-        <div className="h-full p-6 overflow-auto">
+        <div className="h-full p-4 sm:p-6 overflow-auto">
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -1136,7 +1144,7 @@ export default function StoryboardEditPage() {
               >
                 <motion.div 
                   layout
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 auto-rows-max"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 auto-rows-max"
                 >
                   <AnimatePresence>
                     {getSortedStoryboardSections().map(({ section, excerpt }, index) => (

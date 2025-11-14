@@ -390,7 +390,7 @@ export default function ExcerptsPage() {
             <div className="flex items-center gap-2">
               <Link
                 href="/excerpts/new"
-                className="flex-1 btn btn-primary min-h-[44px] flex items-center justify-center"
+                className="flex-1 btn btn-primary min-h-[44px] flex items-center justify-center touch-manipulation"
               >
                 + NEW EXCERPT
               </Link>
@@ -398,10 +398,10 @@ export default function ExcerptsPage() {
               {filteredExcerpts.length > 0 && (
                 <select
                   onChange={handleSelectDropdownChange}
-                  className="input text-sm min-h-[44px]"
+                  className="input text-sm min-h-[44px] w-24 flex-shrink-0 touch-manipulation"
                   defaultValue=""
                 >
-                  <option value="" disabled>Select...</option>
+                  <option value="" disabled>•••</option>
                   <option value="select">Select</option>
                   <option value="select-all">Select All</option>
                 </select>
