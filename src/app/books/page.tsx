@@ -14,6 +14,25 @@ export default function BooksPage() {
   const [books, setBooks] = useState<Book[]>([])
   const [excerpts, setExcerpts] = useState<Excerpt[]>([])
 
+  // Utility function to safely format dates (handles both Date objects and Firestore Timestamps)
+  const formatDate = (date: any) => {
+    try {
+      // If it's already a Date object
+      if (date instanceof Date) {
+        return date.toLocaleDateString()
+      }
+      // If it's a Firestore Timestamp or other object with seconds
+      if (date && typeof date === 'object' && date.seconds) {
+        return new Date(date.seconds * 1000).toLocaleDateString()
+      }
+      // Try to convert to Date as fallback
+      return new Date(date).toLocaleDateString()
+    } catch (error) {
+      console.warn('Failed to format date:', date, error)
+      return 'Invalid Date'
+    }
+  }
+
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -197,7 +216,7 @@ export default function BooksPage() {
                         <div className="flex items-center gap-4 text-xs text-gray-500">
                           <span>{chapters} chapters</span>
                           <span>{wordCount.toLocaleString()} words</span>
-                          <span>{book.updatedAt.toLocaleDateString()}</span>
+                          <span>{formatDate(book.updatedAt)}</span>
                         </div>
                         
                         <div className="flex gap-1">
