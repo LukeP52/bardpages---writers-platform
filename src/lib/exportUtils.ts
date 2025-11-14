@@ -146,9 +146,9 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
     return processedContent;
   };
 
-  const chaptersHTML = chapters.map(chapter => `
+  const chaptersHTML = chapters.map((chapter, index) => `
     <div class="chapter">
-      <h2>${chapter.title}</h2>
+      <h2 class="${index === 0 ? 'first-chapter' : 'subsequent-chapter'}">${chapter.title}</h2>
       <div class="chapter-content">${processImagesInContent(chapter.content)}</div>
     </div>
   `).join('')
@@ -202,7 +202,14 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
       font-weight: bold;
     }
     
-    h2 { 
+    h2.first-chapter { 
+      font-size: 1.8em; 
+      margin: 2em 0 1em 0;
+      font-weight: bold;
+      ${book.formatting.chapterBreakStyle === 'spacing' ? 'margin-top: 4em;' : ''}
+    }
+    
+    h2.subsequent-chapter { 
       font-size: 1.8em; 
       margin: 2em 0 1em 0;
       font-weight: bold;
@@ -728,9 +735,9 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
     return processedContent;
   };
 
-  const chaptersHTML = chapters.map(chapter => `
+  const chaptersHTML = chapters.map((chapter, index) => `
     <div class="chapter">
-      <h2 style="page-break-after: avoid;">${chapter.title}</h2>
+      <h2 class="${index === 0 ? 'first-chapter' : 'subsequent-chapter'}" style="page-break-after: avoid;">${chapter.title}</h2>
       <div class="chapter-content">${processImagesForWord(chapter.content)}</div>
     </div>
   `).join('')
@@ -815,7 +822,16 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
       font-family: "${book.formatting.fontFamily}", "Times New Roman", serif;
     }
     
-    h2 { 
+    h2.first-chapter { 
+      font-size: 18pt; 
+      margin: 24pt 0pt 12pt 0pt;
+      font-weight: bold;
+      font-family: "${book.formatting.fontFamily}", "Times New Roman", serif;
+      page-break-after: avoid;
+      ${book.formatting.chapterBreakStyle === 'spacing' ? 'margin-top: 48pt;' : ''}
+    }
+    
+    h2.subsequent-chapter { 
       font-size: 18pt; 
       margin: 24pt 0pt 12pt 0pt;
       font-weight: bold;
