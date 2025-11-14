@@ -199,7 +199,6 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
       font-size: 2.5em; 
       margin-bottom: 0.5em; 
       text-align: center;
-      page-break-before: always;
       font-weight: bold;
     }
     
@@ -811,7 +810,6 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
       font-size: 24pt; 
       margin: 0pt 0pt 12pt 0pt; 
       text-align: center;
-      page-break-before: always;
       page-break-after: avoid;
       font-weight: bold;
       font-family: "${book.formatting.fontFamily}", "Times New Roman", serif;
@@ -841,7 +839,6 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
       margin-bottom: 36pt;
       border-bottom: 1pt solid black;
       padding-bottom: 24pt;
-      page-break-after: always;
     }
     
     .author {
