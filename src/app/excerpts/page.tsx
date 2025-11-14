@@ -104,10 +104,24 @@ export default function ExcerptsPage() {
             comparison = a.title.localeCompare(b.title)
             break
           case 'dateCreated':
-            comparison = a.createdAt.getTime() - b.createdAt.getTime()
+            // Safely convert dates to JavaScript Date objects before calling getTime()
+            const aCreatedAt = a.createdAt && typeof a.createdAt === 'object' && 'seconds' in a.createdAt
+              ? new Date((a.createdAt as any).seconds * 1000)
+              : new Date(a.createdAt)
+            const bCreatedAt = b.createdAt && typeof b.createdAt === 'object' && 'seconds' in b.createdAt
+              ? new Date((b.createdAt as any).seconds * 1000)
+              : new Date(b.createdAt)
+            comparison = aCreatedAt.getTime() - bCreatedAt.getTime()
             break
           case 'dateUpdated':
-            comparison = a.updatedAt.getTime() - b.updatedAt.getTime()
+            // Safely convert dates to JavaScript Date objects before calling getTime()
+            const aUpdatedAt = a.updatedAt && typeof a.updatedAt === 'object' && 'seconds' in a.updatedAt
+              ? new Date((a.updatedAt as any).seconds * 1000)
+              : new Date(a.updatedAt)
+            const bUpdatedAt = b.updatedAt && typeof b.updatedAt === 'object' && 'seconds' in b.updatedAt
+              ? new Date((b.updatedAt as any).seconds * 1000)
+              : new Date(b.updatedAt)
+            comparison = aUpdatedAt.getTime() - bUpdatedAt.getTime()
             break
           case 'tags':
             comparison = (a.tags[0] || '').localeCompare(b.tags[0] || '')
