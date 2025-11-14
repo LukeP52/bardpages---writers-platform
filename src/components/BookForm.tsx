@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { v4 as uuidv4 } from 'uuid'
 import LoadingSpinner from '@/components/LoadingSpinner'
 import { Book, Storyboard } from '@/types'
-import { storage } from '@/lib/storage'
+import { useStorage } from '@/contexts/StorageContext'
 
 interface BookFormProps {
   book?: Book
@@ -14,6 +14,7 @@ interface BookFormProps {
 
 export default function BookForm({ book, mode }: BookFormProps) {
   const router = useRouter()
+  const storage = useStorage()
   const [title, setTitle] = useState(book?.title || '')
   const [subtitle, setSubtitle] = useState(book?.subtitle || '')
   const [author, setAuthor] = useState(book?.author || '')
@@ -60,8 +61,16 @@ export default function BookForm({ book, mode }: BookFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    setAvailableStoryboards(storage.getStoryboards())
-  }, [])
+    const loadStoryboards = async () => {
+      try {
+        const storyboards = await storage.getStoryboards()
+        setAvailableStoryboards(storyboards)
+      } catch (error) {
+        console.error('Failed to load storyboards:', error)
+      }
+    }
+    loadStoryboards()
+  }, [storage])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -120,7 +129,7 @@ export default function BookForm({ book, mode }: BookFormProps) {
         updatedAt: now,
       }
 
-      storage.saveBook(bookData)
+      await storage.saveBook(bookData)
       
       console.log(`Book ${mode === 'create' ? 'created' : 'updated'} successfully!`)
       router.push('/books')
