@@ -24,10 +24,18 @@ export default function BookPreviewPage() {
     const loadBook = async () => {
       try {
         console.log('Loading book with ID:', bookId)
+        console.log('Storage context:', storage)
+        
+        // First, let's see what books are available
+        const allBooks = await storage.getBooks()
+        console.log('All available books:', allBooks)
+        console.log('Book IDs:', allBooks.map(b => b.id))
+        
         const loadedBook = await storage.getBook(bookId)
         console.log('Loaded book:', loadedBook)
+        
         if (!loadedBook) {
-          setError('Book not found')
+          setError(`Book not found. Looking for ID: ${bookId}`)
         } else {
           setBook(loadedBook)
           const content = generateBookContent(loadedBook)
