@@ -111,17 +111,21 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
         
         // Enhanced image structure for better page break control
         if (options.imagePageBreaks === true) {
-          // Full page layout for images
+          // Full page layout for images with guaranteed page isolation
           processedContent += `
-            <div style="page-break-before: always; page-break-after: always;">
-              <div style="height: 100vh; display: table; width: 100%; margin: 0; padding: 0;">
-                <div style="display: table-cell; vertical-align: middle; text-align: center;">
-                  <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
-                       width="432" 
-                       style="width: 432px; height: auto; max-height: 500px; border: none;" />
-                </div>
-              </div>
+            <div style="page-break-before: always; page-break-after: always; page-break-inside: avoid; min-height: 100vh;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; height: 90vh; margin: 0; padding: 0; border: none; border-collapse: collapse;">
+                <tr>
+                  <td align="center" valign="middle" style="text-align: center; vertical-align: middle; padding: 5vh; border: none; height: 90vh;">
+                    <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                         width="432" 
+                         style="width: 432px; height: auto; max-height: 70vh; border: none;" />
+                  </td>
+                </tr>
+              </table>
             </div>
+            <br style="page-break-before: always;">
+            <p style="page-break-before: always; margin: 0; padding: 0; line-height: 1pt; font-size: 1pt; height: 1pt;">&nbsp;</p>
           `;
         } else {
           // Inline layout for images
@@ -701,17 +705,21 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
         
         // Enhanced image structure for DOCX with better page break control
         if (options.imagePageBreaks === true) {
-          // Full page layout for images in DOCX
+          // Full page layout for images in DOCX with guaranteed page isolation
           processedContent += `
-            <div style="page-break-before: always; page-break-after: always;">
-              <div style="height: 100vh; display: table; width: 100%; margin: 0; padding: 0;">
-                <div style="display: table-cell; vertical-align: middle; text-align: center;">
-                  <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
-                       width="432" height="auto"
-                       style="width: 432px; height: auto; max-height: 500px; display: block; margin-left: auto; margin-right: auto; border: 0px;" />
-                </div>
-              </div>
+            <div style="page-break-before: always; page-break-after: always; page-break-inside: avoid; min-height: 100vh;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; height: 90vh; margin: 0; padding: 0; border: none; border-collapse: collapse;">
+                <tr>
+                  <td align="center" valign="middle" style="text-align: center; vertical-align: middle; padding: 5vh; border: none; height: 90vh;">
+                    <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                         width="432" height="auto"
+                         style="width: 432px; height: auto; max-height: 70vh; display: block; margin-left: auto; margin-right: auto; border: 0px;" />
+                  </td>
+                </tr>
+              </table>
             </div>
+            <br style="page-break-before: always;">
+            <p style="page-break-before: always; margin: 0; padding: 0; line-height: 1pt; font-size: 1pt; height: 1pt;">&nbsp;</p>
           `;
         } else {
           // Inline layout for images in DOCX
