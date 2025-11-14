@@ -10,7 +10,6 @@ import {
   closestCenter,
   KeyboardSensor,
   PointerSensor,
-  TouchSensor,
   useSensor,
   useSensors,
   DragOverlay,
@@ -76,13 +75,9 @@ function SortableExcerptCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-24 flex items-center justify-between touch-manipulation active:scale-95 select-none ${
+      className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-24 flex items-center justify-between ${
         isDragging ? 'opacity-50' : ''
       }`}
-      style={{
-        ...style,
-        touchAction: 'none'
-      }}
       {...attributes}
       {...listeners}
     >
@@ -165,6 +160,7 @@ export default function StoryboardEditPage() {
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
   const [storyboardSortBy, setStoryboardSortBy] = useState<'order' | 'name' | 'displayDate' | 'lastEdited'>('order')
   const [storyboardSortReversed, setStoryboardSortReversed] = useState(false)
+  const [showMobileDragHelp, setShowMobileDragHelp] = useState(false)
   const categoryDropdownRef = React.useRef<HTMLDivElement>(null)
 
   // Close category dropdowns when clicking outside
@@ -172,6 +168,17 @@ export default function StoryboardEditPage() {
     setOpenCategoryDropdowns(new Set())
   })
 
+
+  // Show mobile drag help on mobile devices
+  useEffect(() => {
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768
+    if (isMobile && storyboard && storyboard.sections.length > 1) {
+      const hasSeenHelp = localStorage.getItem('storyboard-drag-help-seen')
+      if (!hasSeenHelp) {
+        setShowMobileDragHelp(true)
+      }
+    }
+  }, [storyboard])
 
   useEffect(() => {
     const loadData = async () => {
@@ -330,12 +337,6 @@ export default function StoryboardEditPage() {
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 0,
-        tolerance: 0,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -701,6 +702,34 @@ export default function StoryboardEditPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
+      {/* Mobile Drag Help Popup */}
+      {showMobileDragHelp && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl p-6 max-w-sm w-full">
+            <div className="text-center">
+              <div className="text-4xl mb-4">📱</div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Mobile Tip</h3>
+              <p className="text-gray-600 mb-4">
+                On mobile, press and hold the <strong>numbered circles</strong> to drag and reorder your excerpts.
+              </p>
+              <div className="flex items-center justify-center gap-2 mb-4 text-sm text-gray-500">
+                <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2.5 py-1.5 rounded-lg">01</span>
+                <span>← Press and hold these</span>
+              </div>
+              <button
+                onClick={() => {
+                  setShowMobileDragHelp(false)
+                  localStorage.setItem('storyboard-drag-help-seen', 'true')
+                }}
+                className="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+              >
+                Got it!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Bar */}
       <div className="bg-white shadow-sm border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
