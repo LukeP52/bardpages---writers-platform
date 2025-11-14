@@ -76,14 +76,22 @@ export default function BookForm({ book, mode }: BookFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    console.log('Form submitted with:', { title, author, storyboardId })
+    
     if (!title.trim() || !author.trim() || !storyboardId) {
-      console.error('Please provide title, author, and select a storyboard.')
+      console.error('Validation failed - missing required fields:', {
+        title: title.trim(),
+        author: author.trim(),
+        storyboardId
+      })
+      alert('Please provide title, author, and select a storyboard.')
       return
     }
 
     setIsSubmitting(true)
 
     try {
+      console.log('Creating book data...')
       const now = new Date()
       const bookData: Book = {
         id: book?.id || uuidv4(),
@@ -130,13 +138,14 @@ export default function BookForm({ book, mode }: BookFormProps) {
         updatedAt: now,
       }
 
+      console.log('Saving book data:', bookData)
       await storage.saveBook(bookData)
       
       console.log(`Book ${mode === 'create' ? 'created' : 'updated'} successfully!`)
       router.push('/books')
     } catch (error) {
       console.error('Error saving book:', error)
-      console.error('There was an error saving your book. Please try again.')
+      alert('There was an error saving your book. Please try again.')
     } finally {
       setIsSubmitting(false)
     }
@@ -809,7 +818,17 @@ export default function BookForm({ book, mode }: BookFormProps) {
         <button
           type="submit"
           disabled={isSubmitting || !title.trim() || !author.trim() || !storyboardId}
-          className="btn btn-primary"
+          className={`btn btn-primary ${isSubmitting ? 'opacity-75 cursor-not-allowed' : ''}`}
+          onClick={(e) => {
+            console.log('Submit button clicked')
+            console.log('Form validation:', {
+              isSubmitting,
+              title: title.trim(),
+              author: author.trim(),
+              storyboardId,
+              disabled: isSubmitting || !title.trim() || !author.trim() || !storyboardId
+            })
+          }}
         >
           {isSubmitting ? (
             <>
