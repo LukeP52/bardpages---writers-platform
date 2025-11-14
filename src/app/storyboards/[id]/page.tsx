@@ -76,7 +76,7 @@ function SortableExcerptCard({
     <div
       ref={setNodeRef}
       style={style}
-      className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-24 flex items-center justify-between touch-manipulation active:scale-95 ${
+      className={`bg-white border border-gray-200 rounded-xl p-4 cursor-move transition-all hover:shadow-lg group h-24 flex items-center justify-between touch-manipulation active:scale-95 select-none ${
         isDragging ? 'opacity-50' : ''
       }`}
       {...attributes}
@@ -325,13 +325,13 @@ export default function StoryboardEditPage() {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        distance: 5,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 100,
-        tolerance: 8,
+        delay: 150,
+        tolerance: 10,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -1144,7 +1144,7 @@ export default function StoryboardEditPage() {
               >
                 <motion.div 
                   layout
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 auto-rows-max"
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4 lg:gap-6 auto-rows-max touch-pan-y"
                 >
                   <AnimatePresence>
                     {getSortedStoryboardSections().map(({ section, excerpt }, index) => (
