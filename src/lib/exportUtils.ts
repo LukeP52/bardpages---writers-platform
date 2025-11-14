@@ -109,16 +109,14 @@ export const exportToHTML = async (book: Book, options: ExportOptions, storage: 
           ? 'page-break-before: always; page-break-after: always; page-break-inside: avoid;' 
           : 'margin: 24pt 0; page-break-inside: avoid;';
         
-        // Enhanced image structure for better page break control
+        // Simple page break control for images
         if (options.imagePageBreaks === true) {
-          // Full page layout for images with guaranteed page isolation
+          // Simple separate page for images
           processedContent += `
-            <div style="page-break-before: always; page-break-after: always; page-break-inside: avoid;">
-              <div style="height: 100vh; width: 100%; position: relative; display: flex; align-items: center; justify-content: center;">
-                <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
-                     width="432" 
-                     style="width: 432px; height: auto; max-height: 80vh; border: none;" />
-              </div>
+            <div style="page-break-before: always; page-break-after: always; text-align: center; padding: 50pt 0;">
+              <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                   width="432" 
+                   style="width: 432px; height: auto; border: none;" />
             </div>
           `;
         } else {
@@ -697,16 +695,14 @@ const exportToDOCX = async (book: Book, options: ExportOptions, storage: any): P
         const altMatch = part.match(/alt\s*=\s*["']([^"']*)["']/i);
         const alt = altMatch ? altMatch[1] : '';
         
-        // Enhanced image structure for DOCX with better page break control
+        // Simple page break control for DOCX images
         if (options.imagePageBreaks === true) {
-          // Full page layout for images in DOCX with guaranteed page isolation
+          // Simple separate page for images
           processedContent += `
-            <div style="page-break-before: always; page-break-after: always; page-break-inside: avoid;">
-              <div style="height: 100vh; width: 100%; position: relative; display: flex; align-items: center; justify-content: center;">
-                <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
-                     width="432" height="auto"
-                     style="width: 432px; height: auto; max-height: 80vh; display: block; margin-left: auto; margin-right: auto; border: 0px;" />
-              </div>
+            <div style="page-break-before: always; page-break-after: always; text-align: center; padding: 50pt 0;">
+              <img src="${src}"${alt ? ` alt="${alt}"` : ''} 
+                   width="432" height="auto"
+                   style="width: 432px; height: auto; display: block; margin: 0 auto; border: 0px;" />
             </div>
           `;
         } else {
