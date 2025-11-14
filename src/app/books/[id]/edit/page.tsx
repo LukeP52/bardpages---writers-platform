@@ -18,19 +18,35 @@ export default function EditBookPage() {
 
   useEffect(() => {
     const loadBook = async () => {
+      console.log('Loading book effect triggered. Storage loading:', storage.isLoading)
+      
       // Don't try to load if storage is still initializing
       if (storage.isLoading) {
+        console.log('Storage still loading, skipping book load')
         return
       }
+      
+      // Add a small delay to ensure storage is fully ready
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       try {
         const loadedBook = await storage.getBook(bookId)
         if (!loadedBook) {
-          setError('Book not found')
+          // Try one more time with a delay in case of timing issues
+          console.log('Book not found on first try, waiting and retrying...')
+          await new Promise(resolve => setTimeout(resolve, 500))
+          const retryBook = await storage.getBook(bookId)
+          
+          if (!retryBook) {
+            setError('Book not found')
+          } else {
+            setBook(retryBook)
+          }
         } else {
           setBook(loadedBook)
         }
       } catch (err) {
+        console.error('Error loading book:', err)
         setError('Failed to load book')
       } finally {
         setLoading(false)

@@ -22,10 +22,16 @@ export default function BookPreviewPage() {
 
   useEffect(() => {
     const loadBook = async () => {
+      console.log('Loading book effect triggered. Storage loading:', storage.isLoading)
+      
       // Don't try to load if storage is still initializing
       if (storage.isLoading) {
+        console.log('Storage still loading, skipping book load')
         return
       }
+      
+      // Add a small delay to ensure storage is fully ready
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       try {
         console.log('Loading book with ID:', bookId)
@@ -40,7 +46,18 @@ export default function BookPreviewPage() {
         console.log('Loaded book:', loadedBook)
         
         if (!loadedBook) {
-          setError(`Book not found. Looking for ID: ${bookId}`)
+          // Try one more time with a delay in case of timing issues
+          console.log('Book not found on first try, waiting and retrying...')
+          await new Promise(resolve => setTimeout(resolve, 500))
+          const retryBook = await storage.getBook(bookId)
+          
+          if (!retryBook) {
+            setError(`Book not found. Looking for ID: ${bookId}`)
+          } else {
+            setBook(retryBook)
+            const content = await generateBookContent(retryBook, storage)
+            setBookContent(content)
+          }
         } else {
           setBook(loadedBook)
           const content = await generateBookContent(loadedBook, storage)
